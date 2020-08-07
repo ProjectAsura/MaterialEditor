@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30320.27
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MaterialEditor", "MaterialEditor.vcxproj", "{8240A17D-93BF-4590-A5FC-24BA77351555}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asdx12", "..\external\asdx12\project\asdx12.vcxproj", "{ECD906D6-5DEB-4B5B-B919-05C147194C1D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8240A17D-93BF-4590-A5FC-24BA77351555}.Debug|x64.ActiveCfg = Debug|x64
+		{8240A17D-93BF-4590-A5FC-24BA77351555}.Debug|x64.Build.0 = Debug|x64
+		{8240A17D-93BF-4590-A5FC-24BA77351555}.Release|x64.ActiveCfg = Release|x64
+		{8240A17D-93BF-4590-A5FC-24BA77351555}.Release|x64.Build.0 = Release|x64
+		{ECD906D6-5DEB-4B5B-B919-05C147194C1D}.Debug|x64.ActiveCfg = Debug|x64
+		{ECD906D6-5DEB-4B5B-B919-05C147194C1D}.Debug|x64.Build.0 = Debug|x64
+		{ECD906D6-5DEB-4B5B-B919-05C147194C1D}.Release|x64.ActiveCfg = Release|x64
+		{ECD906D6-5DEB-4B5B-B919-05C147194C1D}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2A05D959-D91B-4877-ADCB-B4631B28680A}
+	EndGlobalSection
+EndGlobal

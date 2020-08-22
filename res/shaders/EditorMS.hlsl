@@ -4,20 +4,11 @@
 // Copyright(c) Project Asura. All right reserved.
 //-----------------------------------------------------------------------------
 
-///////////////////////////////////////////////////////////////////////////////
-// MSInput structure
-///////////////////////////////////////////////////////////////////////////////
-struct MSInput
-{
-    float3 Position;        //!< 位置座標です.
-    float2 TexCoord0;       //!< テクスチャ座標0です.
-    float2 TexCoord1;       //!< テクスチャ座標1です.
-    float2 TexCoord2;       //!< テクスチャ座標2です.
-    float2 TexCoord3;       //!< テクスチャ座標3です.
-    float3 Normal;          //!< 法線ベクトルです(ローカル座標系).
-    float3 Tangent;         //!< 接線ベクトルです(ローカル座標系).
-    float4 Color;           //!< 頂点カラーです.
-};
+//-----------------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------------
+#include "Math.hlsli"
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // MSOutput structure
@@ -25,10 +16,8 @@ struct MSInput
 struct MSOutput
 {
     float4 Position     : SV_POSITION;      //!< 位置座標です.
-    float2 TexCorod0    : TEXCOORD0;        //!< テクスチャ座標0です.
-    float2 TexCoord1    : TEXCOORD1;        //!< テクスチャ座標1です.
-    float2 TexCoord2    : TEXCOORD2;        //!< テクスチャ座標2です.
-    float2 TexCoord3    : TEXCOORD3;        //!< テクスチャ座標3です.
+    float4 TexCoord01   : TEXCOORD01;       //!< テクスチャ座標0と1です(xy: TexCoord0, zw:TexCoord1)
+    float4 TexCoord23   : TEXCOORD23;       //!< テクスチャ座標2と3です(xy: TexCoord2, zw:TexCoord3)
     float4 Color        : COLOR;            //!< 頂点カラーです.
     float3 Normal       : NORMAL;           //!< 法線ベクトルです.
     float3 Tangent      : TANGENT;          //!< 接線ベクトルです.
@@ -41,9 +30,7 @@ struct MSOutput
 struct ParamMesh
 {
     float4x4 World;             //!< ワールド行列です.
-    int      MeshId;            //!< メッシュIDです.
     float    MeshTimer;         //!< メッシュタイマーです.
-    int      CustomProcessId;   //!< カスタム処理IDです.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,31 +55,26 @@ struct Meshlet
     uint VertexOffset;      // 頂点番号オフセット.
     uint VertexCount;       // 出力頂点数.
     uint PrimitiveOffset;   // プリミティブ番号オフセット.
-    uint PrimitiveCount;    // 出力プリミティブ数. 
+    uint PrimitiveCount;    // 出力プリミティブ数.
 };
 
 
 //-----------------------------------------------------------------------------
 // Resources
 //-----------------------------------------------------------------------------
-ConstantBuffer<ParamMesh>       CbMesh      : register(b0);
-ConstantBuffer<ParamScene>      CbScene     : register(b1);
-StructuredBuffer<MSInput>       Vertices    : register(t0);
-StructuredBuffer<uint>          Indices     : register(t1);
-StructuredBuffer<Meshlet>       Meshlets    : register(t2);
-StructuredBuffer<uint>          Primitives  : register(t3);
+ConstantBuffer<ParamMesh>       CbMesh          : register(b0);
+ConstantBuffer<ParamScene>      CbScene         : register(b1);
+StructuredBuffer<float3>        Positions       : register(t0);
+StructuredBuffer<uint>          TangentSpaces   : register(t1);
+StructuredBuffer<uint>          Colors          : register(t2);
+StructuredBuffer<uint>          TexCoords0      : register(t3);
+StructuredBuffer<uint>          TexCoords1      : register(t4);
+StructuredBuffer<uint>          TexCoords2      : register(t5);
+StructuredBuffer<uint>          TexCoords3      : register(t6);
+StructuredBuffer<uint>          Indices         : register(t7);
+StructuredBuffer<Meshlet>       Meshlets        : register(t8);
+StructuredBuffer<uint>          Primitives      : register(t9);
 
-
-//-----------------------------------------------------------------------------
-//      パッキングされたインデックスデータを展開する.
-//-----------------------------------------------------------------------------
-uint3 UnpackPrimitiveIndex(uint packedIndex)
-{
-    return uint3(
-        packedIndex & 0x3FF,
-        (packedIndex >> 10) & 0x3FF,
-        (packedIndex >> 20) & 0x3FF);
-}
 
 //-----------------------------------------------------------------------------
 //      メインエントリーポイントです.
@@ -120,28 +102,28 @@ void main
     if (groupThreadId < m.VertexCount)
     {
         uint        index  = Indices[m.VertexOffset + groupThreadId];
-        MSInput     input  = Vertices[index];
         MSOutput    output = (MSOutput)0;
 
-        float4 localPos = float4(input.Position, 1.0f);
+        float4 localPos = float4(Positions[index], 1.0f);
         float4 worldPos = mul(CbMesh.World, localPos);
         float4 viewPos  = mul(CbScene.View, worldPos);
         float4 projPos  = mul(CbScene.Proj, viewPos);
 
-        output.Position     = projPos;
-        output.TexCorod0    = input.TexCoord0;
-        output.TexCoord1    = input.TexCoord1;
-        output.TexCoord2    = input.TexCoord2;
-        output.TexCoord3    = input.TexCoord3;
-        output.Color        = input.Color;
-        output.PositionWS   = worldPos;
+        float3 N, T;
+        UnpackTN(TangentSpaces[index], N, T);
 
-        // 基底ベクトル.
-        float3 N = normalize(mul((float3x3)CbMesh.World, input.Normal));
-        float3 T = normalize(mul((float3x3)CbMesh.World, input.Tangent));
+        float3 worldN = normalize(mul((float3x3)CbMesh.World, N));
+        float3 worldT = normalize(mul((float3x3)CbMesh.World, T));
 
-        output.Tangent      = T;
-        output.Normal       = N;
+        output.Position         = projPos;
+        output.TexCoord01.xy    = UnpackHalf2(TexCoords0[index]);
+        output.TexCoord01.zw    = UnpackHalf2(TexCoords1[index]);
+        output.TexCoord23.xy    = UnpackHalf2(TexCoords2[index]);
+        output.TexCoord23.zw    = UnpackHalf2(TexCoords3[index]);
+        output.Color            = UnpackUnorm(Colors[index]);
+        output.PositionWS       = worldPos.xyz;
+        output.Tangent          = worldT;
+        output.Normal           = worldN;
 
         verts[groupThreadId] = output;
     }

@@ -25,6 +25,9 @@
     <Filter Include="external\imiguizmo">
       <UniqueIdentifier>{b917a148-f8c8-40a5-8fa8-bde6ddfc8cf4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\asdx12">
+      <UniqueIdentifier>{bee5efe4-fdc5-4366-ba95-e7a495adaba4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -62,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="..\external\imguizmo\ImSequencer.cpp">
       <Filter>external\imiguizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\asdx12\src\asdxEditParam.cpp">
+      <Filter>external\asdx12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,13 +113,13 @@
     <ClInclude Include="..\external\imguizmo\ImSequencer.h">
       <Filter>external\imiguizmo</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\asdx12\include\asdxEditParam.h">
+      <Filter>external\asdx12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\res\shaders\EditorMS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
 </Project>

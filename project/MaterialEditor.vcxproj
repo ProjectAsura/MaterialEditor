@@ -53,9 +53,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;ASDX_ENABLE_IMGUI;ASDX_ENABLE_TINYXML2;ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\external\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -65,6 +65,7 @@
       <ShaderModel>6.4</ShaderModel>
       <VariableName>%(Filename)</VariableName>
       <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\res\shaders\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -73,9 +74,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;ASDX_ENABLE_IMGUI;ASDX_ENABLE_TINYXML2;ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\external\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -87,9 +88,11 @@
       <ShaderModel>6.4</ShaderModel>
       <VariableName>%(Filename)</VariableName>
       <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\res\shaders\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\asdx12\src\asdxEditParam.cpp" />
     <ClCompile Include="..\external\imguizmo\ImCurveEdit.cpp" />
     <ClCompile Include="..\external\imguizmo\ImGradient.cpp" />
     <ClCompile Include="..\external\imguizmo\ImGuizmo.cpp" />
@@ -104,6 +107,7 @@
     <ClCompile Include="..\src\MeshExporter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\asdx12\include\asdxEditParam.h" />
     <ClInclude Include="..\external\imguizmo\ImCurveEdit.h" />
     <ClInclude Include="..\external\imguizmo\ImGradient.h" />
     <ClInclude Include="..\external\imguizmo\ImGuizmo.h" />
@@ -121,28 +125,14 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\res\shaders\EditorMS.hlsl">
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.4</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.4</ShaderModel>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Tms_6_5 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Tms_6_5 %(AdditionalOptions)</AdditionalOptions>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\external\asdx12\project\asdx12.vcxproj">
+    <ProjectReference Include="..\..\asdx12\project\asdx12.vcxproj">
       <Project>{ecd906d6-5deb-4b5b-b919-05c147194c1d}</Project>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="packages\WinPixEventRuntime.1.0.200127001\build\WinPixEventRuntime.targets" Condition="Exists('packages\WinPixEventRuntime.1.0.200127001\build\WinPixEventRuntime.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>このプロジェクトは、このコンピューター上にない NuGet パッケージを参照しています。それらのパッケージをダウンロードするには、[NuGet パッケージの復元] を使用します。詳細については、http://go.microsoft.com/fwlink/?LinkID=322105 を参照してください。見つからないファイルは {0} です。</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\WinPixEventRuntime.1.0.200127001\build\WinPixEventRuntime.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\WinPixEventRuntime.1.0.200127001\build\WinPixEventRuntime.targets'))" />
-  </Target>
 </Project>

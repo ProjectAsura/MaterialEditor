@@ -35,6 +35,7 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
+    <Import Project="..\external\Assimp_native_4.1_v142.4.1.0\build\native\Assimp_native_4.1_v142.targets" Condition="Exists('..\external\Assimp_native_4.1_v142.4.1.0\build\native\Assimp_native_4.1_v142.targets')" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -55,7 +56,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;ASDX_ENABLE_IMGUI;ASDX_ENABLE_TINYXML2;ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\external\meshoptimizer\src;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -65,7 +66,7 @@
       <ShaderModel>6.4</ShaderModel>
       <VariableName>%(Filename)</VariableName>
       <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\res\shaders\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\res\shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </FxCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -79,7 +80,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ASDX_ENABLE_IMGUI;ASDX_ENABLE_TINYXML2;ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\external\meshoptimizer\src;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -91,7 +92,7 @@
       <ShaderModel>6.4</ShaderModel>
       <VariableName>%(Filename)</VariableName>
       <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\res\shaders\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\res\shaders;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </FxCompile>
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
@@ -107,6 +108,21 @@
     <ClCompile Include="..\external\imgui\imgui.cpp" />
     <ClCompile Include="..\external\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\external\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\allocator.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\clusterizer.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\indexcodec.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\indexgenerator.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\overdrawanalyzer.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\overdrawoptimizer.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\simplifier.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\spatialorder.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\stripifier.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\vcacheanalyzer.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\vcacheoptimizer.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\vertexcodec.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\vertexfilter.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\vfetchanalyzer.cpp" />
+    <ClCompile Include="..\external\meshoptimizer\src\vfetchoptimizer.cpp" />
     <ClCompile Include="..\external\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\src\App.cpp" />
     <ClCompile Include="..\src\AppMeshDraw.cpp" />
@@ -118,6 +134,7 @@
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\MaterialExporter.cpp" />
     <ClCompile Include="..\src\MeshExporter.cpp" />
+    <ClCompile Include="..\src\MeshLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\asdx12\include\asdxEditParam.h" />
@@ -132,6 +149,7 @@
     <ClInclude Include="..\external\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\external\imgui\imstb_textedit.h" />
     <ClInclude Include="..\external\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\external\meshoptimizer\src\meshoptimizer.h" />
     <ClInclude Include="..\external\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\include\App.h" />
     <ClInclude Include="..\include\EditorMaterial.h" />
@@ -139,11 +157,27 @@
     <ClInclude Include="..\include\EditorShader.h" />
     <ClInclude Include="..\include\MaterialExporter.h" />
     <ClInclude Include="..\include\MeshExporter.h" />
+    <ClInclude Include="..\include\MeshLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\asdx12\project\asdx12.vcxproj">
       <Project>{ecd906d6-5deb-4b5b-b919-05c147194c1d}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\res\shaders\EditorMS.hlsl">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Tms_6_5 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Tms_6_5 %(AdditionalOptions)</AdditionalOptions>
+    </FxCompile>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>このプロジェクトは、このコンピューター上にない NuGet パッケージを参照しています。それらのパッケージをダウンロードするには、[NuGet パッケージの復元] を使用します。詳細については、http://go.microsoft.com/fwlink/?LinkID=322105 を参照してください。見つからないファイルは {0} です。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\external\Assimp_native_4.1_v142.4.1.0\build\native\Assimp_native_4.1_v142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\external\Assimp_native_4.1_v142.4.1.0\build\native\Assimp_native_4.1_v142.targets'))" />
+  </Target>
 </Project>

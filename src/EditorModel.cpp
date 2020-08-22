@@ -8,6 +8,8 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <EditorModel.h>
+#include <MeshLoader.h>
+#include <asdxLogger.h>
 
 
 namespace {
@@ -42,8 +44,35 @@ EditorModel::~EditorModel()
 //-----------------------------------------------------------------------------
 bool EditorModel::Init(const char* path)
 {
-    //asdx::ResModel res;
+    asdx::ResModel res;
+    MeshLoader loader;
+    if (!loader.Load(path, res))
+    {
+        ELOGA("Error : MeshLoader::Load() Failed.");
+        return false;
+    }
 
+    // 頂点カラーがない場合は生成.
+    for(size_t i=0; i<res.Meshes.size(); ++i)
+    {
+        if (res.Meshes[i].Colors.empty())
+        {
+            auto count = res.Meshes[i].Positions.size();
+            res.Meshes[i].Colors.resize(count);
+            for(auto j=0; j<count; ++j)
+            { res.Meshes[i].Colors[j] = UINT32_MAX; }
+        }
+    }
+
+    // リソースからシェーダバリエーションを決定.
+    {
+    }
+
+    if (!m_Model.Init(res))
+    {
+        ELOGA("Error : Model::Init() Failed.");
+        return false;
+    }
 
     return true;
 }

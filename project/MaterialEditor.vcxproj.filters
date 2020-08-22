@@ -28,6 +28,9 @@
     <Filter Include="external\asdx12">
       <UniqueIdentifier>{bee5efe4-fdc5-4366-ba95-e7a495adaba4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\meshoptimizer">
+      <UniqueIdentifier>{f838e6c6-5f0b-4b3a-8678-aaa917179c17}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -90,6 +93,54 @@
     <ClCompile Include="..\src\EditorMaterial.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\MeshLoader.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\allocator.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\clusterizer.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\indexcodec.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\indexgenerator.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\overdrawanalyzer.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\overdrawoptimizer.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\simplifier.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\spatialorder.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\stripifier.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\vcacheanalyzer.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\vcacheoptimizer.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\vertexcodec.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\vertexfilter.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\vfetchanalyzer.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\meshoptimizer\src\vfetchoptimizer.cpp">
+      <Filter>external\meshoptimizer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\App.h">
@@ -149,5 +200,19 @@
     <ClInclude Include="..\include\EditorShader.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\MeshLoader.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\meshoptimizer\src\meshoptimizer.h">
+      <Filter>external\meshoptimizer</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\res\shaders\EditorMS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

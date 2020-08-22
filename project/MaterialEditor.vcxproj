@@ -167,12 +167,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\res\shaders\EditorMS.hlsl">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Tms_6_5 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Tms_6_5 %(AdditionalOptions)</AdditionalOptions>
-    </FxCompile>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

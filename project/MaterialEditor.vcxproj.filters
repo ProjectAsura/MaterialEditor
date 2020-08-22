@@ -210,9 +210,4 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\res\shaders\EditorMS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-  </ItemGroup>
 </Project>

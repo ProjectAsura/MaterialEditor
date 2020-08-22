@@ -17,21 +17,16 @@
 struct IDxcBlob;
 
 ///////////////////////////////////////////////////////////////////////////////
-// ParameterSetting structure
+// BoolSetting structure
 ///////////////////////////////////////////////////////////////////////////////
 struct BoolSetting
 {
     bool        Enable;
     std::string Label;
-
-    void Serialize(tinyxml2::XMLDocument* doc, const char* tag);
-    void Deserialize(tinyxml2::XMLElement* element, const char* tag);
 };
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
-// ParameterSetting structure
+// FloatSetting structure
 ///////////////////////////////////////////////////////////////////////////////
 struct FloatSetting
 {
@@ -40,19 +35,15 @@ struct FloatSetting
     float       Step;
     float       Min;
     float       Max;
-
-    void Serialize(tinyxml2::XMLDocument* doc, const char* tag);
-    void Deserialize(tinyxml2::XMLElement* element, const char* tag);
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// MapSetting
+///////////////////////////////////////////////////////////////////////////////
 struct MapSetting
 {
     bool        Enable;
     std::string Label;
-
-
-    void Serialize(tinyxml2::XMLDocument* doc, const char* tag);
-    void Deserialize(tinyxml2::XMLElement* element, const char* tag);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -102,13 +93,11 @@ struct ShaderSetting
     bool EnableUVScale1;
     bool EnableUVScale2;
     bool EnableUVScale3;
-    bool EnableUVScale4;
 
     bool EnableUVRotate0;
     bool EnableUVRotate1;
     bool EnableUVRotate2;
     bool EnableUVRotate3;
-    bool EnableUVRotate4;
 
     bool EnableUVScroll0;
     bool EnableUVScroll1;
@@ -120,15 +109,15 @@ struct ShaderSetting
     bool EnableAlphaThreshold2;
     bool EnableAlphaThreshold3;
 
-    bool EnableColorScale0;
-    bool EnableColorScale1;
-    bool EnableColorScale2;
-    bool EnableColorScale3;
-
     bool EnableColor0;
     bool EnableColor1;
     bool EnableColor2;
     bool EnableColor3;
+
+    bool EnableColorScale0;
+    bool EnableColorScale1;
+    bool EnableColorScale2;
+    bool EnableColorScale3;
 
     BoolSetting    CustomBool_0;
     BoolSetting    CustomBool_1;
@@ -183,10 +172,8 @@ struct ShaderSetting
     MapSetting    CustomMap5;
     MapSetting    CustomMap6;
     MapSetting    CustomMap7;
-
-    void Serialize(tinyxml2::XMLDocument* doc, const char* tag);
-    void Deserialize(tinyxml2::XMLElement* element, const char* tag);
 };
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // EditorShader class
@@ -223,3 +210,14 @@ private:
     asdx::RefPtr<IDxcBlob>  m_Blob;
 };
 
+
+
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, const BoolSetting&   value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, const FloatSetting&  value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, const MapSetting&    value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, const ShaderSetting& value);
+
+void Deserialize(tinyxml2::XMLElement* element, const char* tag, BoolSetting&   value);
+void Deserialize(tinyxml2::XMLElement* element, const char* tag, FloatSetting&  value);
+void Deserialize(tinyxml2::XMLElement* element, const char* tag, MapSetting&    value);
+void Deserialize(tinyxml2::XMLElement* element, const char* tag, ShaderSetting& value);

@@ -69,6 +69,27 @@
     <ClCompile Include="..\..\asdx12\src\asdxEditParam.cpp">
       <Filter>external\asdx12</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\asdx12\src\asdxGuiMgr.cpp">
+      <Filter>external\asdx12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AppExport.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AppGui.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\AppMeshDraw.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\EditorModel.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\EditorShader.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\EditorMaterial.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\App.h">
@@ -116,10 +137,17 @@
     <ClInclude Include="..\..\asdx12\include\asdxEditParam.h">
       <Filter>external\asdx12</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\res\shaders\EditorMS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
+    <ClInclude Include="..\..\asdx12\include\asdxGuiMgr.h">
+      <Filter>external\asdx12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\EditorModel.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\EditorMaterial.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\EditorShader.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

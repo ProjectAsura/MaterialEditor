@@ -1,29 +1,27 @@
 ﻿//-----------------------------------------------------------------------------
-// File : main.cpp
-// Desc : Main Entry Point.
+// File : AppExport.cpp
+// Desc : Export Process.
 // Copyright(c) Project Asura. All right reserved.
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#if defined(DEBUG) || defined(_DEBUG)
-    #define _CRTDBG_MAP_ALLOC
-    #include <cstdlib>
-    #include <crtdbg.h>
-#endif
 #include <App.h>
 
+
 //-----------------------------------------------------------------------------
-//      メインエントリーポイントです.
+//      メッシュを出力します.
 //-----------------------------------------------------------------------------
-int main(int argc, char** argv)
+bool App::ExportMesh(const char* path)
 {
-    #if defined(DEBUG) || defined(_DEBUG)
-        _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-    #endif
+    return false;
+}
 
-    App().Run();
-
-    return 0;
+//-----------------------------------------------------------------------------
+//      マテリアルを出力します.
+//-----------------------------------------------------------------------------
+bool App::ExportMaterial(const char* path)
+{
+    return false;
 }

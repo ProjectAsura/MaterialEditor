@@ -1,29 +1,18 @@
 ﻿//-----------------------------------------------------------------------------
-// File : main.cpp
-// Desc : Main Entry Point.
+// File : AppDraw.cpp
+// Desc : Mesh Draw.
 // Copyright(c) Project Asura. All right reserved.
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#if defined(DEBUG) || defined(_DEBUG)
-    #define _CRTDBG_MAP_ALLOC
-    #include <cstdlib>
-    #include <crtdbg.h>
-#endif
 #include <App.h>
 
+
 //-----------------------------------------------------------------------------
-//      メインエントリーポイントです.
+//      メッシュを描画します.
 //-----------------------------------------------------------------------------
-int main(int argc, char** argv)
+void App::DrawMesh(ID3D12GraphicsCommandList6* pCmd)
 {
-    #if defined(DEBUG) || defined(_DEBUG)
-        _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-    #endif
-
-    App().Run();
-
-    return 0;
 }

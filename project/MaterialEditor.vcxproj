@@ -67,6 +67,9 @@
       <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\res\shaders\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </FxCompile>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -90,9 +93,13 @@
       <HeaderFileOutput>$(ProjectDir)..\res\shaders\Compiled\%(Filename).inc</HeaderFileOutput>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\res\shaders\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </FxCompile>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\asdx12\src\asdxEditParam.cpp" />
+    <ClCompile Include="..\..\asdx12\src\asdxGuiMgr.cpp" />
     <ClCompile Include="..\external\imguizmo\ImCurveEdit.cpp" />
     <ClCompile Include="..\external\imguizmo\ImGradient.cpp" />
     <ClCompile Include="..\external\imguizmo\ImGuizmo.cpp" />
@@ -102,12 +109,19 @@
     <ClCompile Include="..\external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\external\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\src\App.cpp" />
+    <ClCompile Include="..\src\AppMeshDraw.cpp" />
+    <ClCompile Include="..\src\AppExport.cpp" />
+    <ClCompile Include="..\src\AppGui.cpp" />
+    <ClCompile Include="..\src\EditorMaterial.cpp" />
+    <ClCompile Include="..\src\EditorModel.cpp" />
+    <ClCompile Include="..\src\EditorShader.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\MaterialExporter.cpp" />
     <ClCompile Include="..\src\MeshExporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\asdx12\include\asdxEditParam.h" />
+    <ClInclude Include="..\..\asdx12\include\asdxGuiMgr.h" />
     <ClInclude Include="..\external\imguizmo\ImCurveEdit.h" />
     <ClInclude Include="..\external\imguizmo\ImGradient.h" />
     <ClInclude Include="..\external\imguizmo\ImGuizmo.h" />
@@ -120,14 +134,11 @@
     <ClInclude Include="..\external\imgui\imstb_truetype.h" />
     <ClInclude Include="..\external\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\include\App.h" />
+    <ClInclude Include="..\include\EditorMaterial.h" />
+    <ClInclude Include="..\include\EditorModel.h" />
+    <ClInclude Include="..\include\EditorShader.h" />
     <ClInclude Include="..\include\MaterialExporter.h" />
     <ClInclude Include="..\include\MeshExporter.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\res\shaders\EditorMS.hlsl">
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/Tms_6_5 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Tms_6_5 %(AdditionalOptions)</AdditionalOptions>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\asdx12\project\asdx12.vcxproj">

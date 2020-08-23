@@ -8,9 +8,8 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <EditorShader.h>
-#include <dxcapi.h>
-
-
+#include <asdxLogger.h>
+#include <asdxMisc.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,11 +38,54 @@ EditorShader::~EditorShader()
 bool EditorShader::Init(const char* path)
 {
     // XMLファイル読み込み.
-
+    {
+        tinyxml2::XMLDocument doc;
+        auto ret = doc.LoadFile(path);
+        if (ret != tinyxml2::XML_SUCCESS)
+        {
+            ELOGA("Error : ShaderSetting Load Failed. path = %s", path);
+            return false;
+        }
+    
+        Serialize(&doc, "EditorShader", m_Setting);
+    }
 
     // シェーダコンパイル.
+    {
+        std::string path;
+        if (!asdx::SearchFilePathA(m_Setting.PixelShader.c_str(), path))
+        {
+            ELOGA("Error : Shader Not Found. path = %s", m_Setting.PixelShader.c_str());
+            return false;
+        }
+    
+        auto wpath = asdx::ToStringW(path);
+        auto wentry = asdx::ToStringW(m_Setting.EntryPoint);
+
+        const wchar_t* args[] = {
+            wpath.c_str(),
+            L"-E", wentry.c_str(),
+            L"-T", L"ps_6_5",
+            L"-Zi",
+        };
+
+        if (!asdx::CompileFromFile(wpath.c_str(), args, _countof(args), m_Blob.GetAddress()))
+        {
+            ELOGA("Error : CompileFromFile() Failed. path = %s", path.c_str());
+            return false;
+        }
+    }
 
     return true;
+}
+
+//-----------------------------------------------------------------------------
+//      終了処理を行います.
+//-----------------------------------------------------------------------------
+void EditorShader::Term()
+{
+    m_Blob.Reset();
+    m_Hash = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -71,6 +113,9 @@ uint32_t EditorShader::GetHash() const
 
 #define TO_VAL(x) #x, value.x
 
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, const bool& value)
 {
     auto element = doc->NewElement(tag);
@@ -78,6 +123,9 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, con
     return element;
 }
 
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, const BoolSetting& value)
 {
     auto element = doc->NewElement(tag);
@@ -86,6 +134,9 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, con
     return element;
 }
 
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, const FloatSetting& value)
 {
     auto element = doc->NewElement(tag);
@@ -97,6 +148,9 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, con
     return element;
 }
 
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, const MapSetting& value)
 {
     auto element = doc->NewElement(tag);
@@ -105,6 +159,9 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, con
     return element;
 }
 
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, const ShaderSetting& value)
 {
     auto element = doc->NewElement(tag);
@@ -233,6 +290,9 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const char* tag, con
     return element;
 }
 
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, const char* tag, bool& value)
 {
     auto e = element->FirstChildElement(tag);
@@ -242,6 +302,9 @@ void Deserialize(tinyxml2::XMLElement* element, const char* tag, bool& value)
     value = e->BoolAttribute("value");
 }
 
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, const char* tag, BoolSetting& value)
 {
     auto e = element->FirstChildElement(tag);
@@ -252,6 +315,9 @@ void Deserialize(tinyxml2::XMLElement* element, const char* tag, BoolSetting& va
     value.Label  = e->Attribute("label");
 }
 
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, const char* tag, FloatSetting& value)
 {
     auto e = element->FirstChildElement(tag);
@@ -265,6 +331,9 @@ void Deserialize(tinyxml2::XMLElement* element, const char* tag, FloatSetting& v
     value.Max       = e->FloatAttribute("max");
 }
 
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, const char* tag, MapSetting& value)
 {
     auto e = element->FirstChildElement(tag);
@@ -275,6 +344,9 @@ void Deserialize(tinyxml2::XMLElement* element, const char* tag, MapSetting& val
     value.Label  = e->Attribute("label");
 }
 
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, const char* tag, ShaderSetting& value)
 {
     auto e = element->FirstChildElement(tag);

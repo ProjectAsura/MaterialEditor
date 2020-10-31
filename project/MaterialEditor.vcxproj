@@ -56,7 +56,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;ASDX_ENABLE_IMGUI;ASDX_ENABLE_TINYXML2;ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\external\meshoptimizer\src;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx11\include;$(ProjectDir)..\..\asdx11\external\imgui;$(ProjectDir)..\..\asdx11\external\tinyxml2;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\meshoptimizer\src;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -80,7 +80,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ASDX_ENABLE_IMGUI;ASDX_ENABLE_TINYXML2;ASDX_AUTO_LINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx12\include;$(ProjectDir)..\external\imgui;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\tinyxml2;$(ProjectDir)..\external\meshoptimizer\src;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\asdx11\include;$(ProjectDir)..\..\asdx11\external\imgui;$(ProjectDir)..\..\asdx11\external\tinyxml2;$(ProjectDir)..\external\imguizmo;$(ProjectDir)..\external\meshoptimizer\src;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -99,15 +99,10 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\asdx12\src\asdxEditParam.cpp" />
-    <ClCompile Include="..\..\asdx12\src\asdxGuiMgr.cpp" />
     <ClCompile Include="..\external\imguizmo\ImCurveEdit.cpp" />
     <ClCompile Include="..\external\imguizmo\ImGradient.cpp" />
     <ClCompile Include="..\external\imguizmo\ImGuizmo.cpp" />
     <ClCompile Include="..\external\imguizmo\ImSequencer.cpp" />
-    <ClCompile Include="..\external\imgui\imgui.cpp" />
-    <ClCompile Include="..\external\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\external\meshoptimizer\src\allocator.cpp" />
     <ClCompile Include="..\external\meshoptimizer\src\clusterizer.cpp" />
     <ClCompile Include="..\external\meshoptimizer\src\indexcodec.cpp" />
@@ -123,49 +118,44 @@
     <ClCompile Include="..\external\meshoptimizer\src\vertexfilter.cpp" />
     <ClCompile Include="..\external\meshoptimizer\src\vfetchanalyzer.cpp" />
     <ClCompile Include="..\external\meshoptimizer\src\vfetchoptimizer.cpp" />
-    <ClCompile Include="..\external\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\src\App.cpp" />
-    <ClCompile Include="..\src\AppMeshDraw.cpp" />
     <ClCompile Include="..\src\AppExport.cpp" />
     <ClCompile Include="..\src\AppGui.cpp" />
     <ClCompile Include="..\src\EditorMaterial.cpp" />
     <ClCompile Include="..\src\EditorModel.cpp" />
-    <ClCompile Include="..\src\EditorShader.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\MaterialExporter.cpp" />
     <ClCompile Include="..\src\MeshExporter.cpp" />
     <ClCompile Include="..\src\MeshLoader.cpp" />
+    <ClCompile Include="..\src\PluginMaterial.cpp" />
+    <ClCompile Include="..\src\PluginMgr.cpp" />
+    <ClCompile Include="..\src\PluginShader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\asdx12\include\asdxEditParam.h" />
-    <ClInclude Include="..\..\asdx12\include\asdxGuiMgr.h" />
     <ClInclude Include="..\external\imguizmo\ImCurveEdit.h" />
     <ClInclude Include="..\external\imguizmo\ImGradient.h" />
     <ClInclude Include="..\external\imguizmo\ImGuizmo.h" />
     <ClInclude Include="..\external\imguizmo\ImSequencer.h" />
-    <ClInclude Include="..\external\imgui\imconfig.h" />
-    <ClInclude Include="..\external\imgui\imgui.h" />
-    <ClInclude Include="..\external\imgui\imgui_internal.h" />
-    <ClInclude Include="..\external\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\external\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\external\imgui\imstb_truetype.h" />
     <ClInclude Include="..\external\meshoptimizer\src\meshoptimizer.h" />
-    <ClInclude Include="..\external\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\include\App.h" />
     <ClInclude Include="..\include\EditorMaterial.h" />
     <ClInclude Include="..\include\EditorModel.h" />
-    <ClInclude Include="..\include\EditorShader.h" />
     <ClInclude Include="..\include\MaterialExporter.h" />
     <ClInclude Include="..\include\MeshExporter.h" />
     <ClInclude Include="..\include\MeshLoader.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\asdx12\project\asdx12.vcxproj">
-      <Project>{ecd906d6-5deb-4b5b-b919-05c147194c1d}</Project>
-    </ProjectReference>
+    <ClInclude Include="..\include\PluginMgr.h" />
+    <ClInclude Include="..\include\UserData.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\asdx11\project\asdx_2019.vcxproj">
+      <Project>{ebbe78d9-693a-433e-8c76-6832ec15d93d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\asdx11\project\asdx_edit_2019.vcxproj">
+      <Project>{01a1f824-50d7-476c-8eed-93e921e57f64}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

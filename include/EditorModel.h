@@ -8,30 +8,31 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <asdxModel.h>
+#include <string>
+#include <asdxMath.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// MS_SHADER_TYPE enum
+// SHADER_TYPE enum
 ///////////////////////////////////////////////////////////////////////////////
-enum MS_SHADER_TYPE
+enum SHADER_TYPE
 {
     // Static
-    MS_SHADER_0,  // Position, Color
-    MS_SHADER_1,  // Position, TangentSpace, Color, TexCoord0
-    MS_SHADER_2,  // Position, TangentSpace, Color, TexCoord0, TexCoord1,
-    MS_SHADER_3,  // Position, TangentSpace, Color, TexCoord0, TexCoord1, TexCoord2,
-    MS_SHADER_4,  // Position, TangentSpace, Color, TexCoord0, TexCoord1, TexCoord2, TexCoord3,
+    SHADER_0,  // Position, Color
+    SHADER_1,  // Position, TangentSpace, Color, TexCoord0
+    SHADER_2,  // Position, TangentSpace, Color, TexCoord0, TexCoord1,
+    SHADER_3,  // Position, TangentSpace, Color, TexCoord0, TexCoord1, TexCoord2,
+    SHADER_4,  // Position, TangentSpace, Color, TexCoord0, TexCoord1, TexCoord2, TexCoord3,
 };
 
-//-----------------------------------------------------------------------------
-//! @brief      メッシュシェーダを取得します.
-//!
-//! @param[in]      type        メッシュシェーダタイプ.
-//! @return     シェーダバイトコードを返却します.
-//-----------------------------------------------------------------------------
-D3D12_SHADER_BYTECODE GetMeshShader(MS_SHADER_TYPE type);
-
+///////////////////////////////////////////////////////////////////////////////
+// BoundingBox structure
+///////////////////////////////////////////////////////////////////////////////
+struct BoundingBox
+{
+    asdx::Vector3   mini;
+    asdx::Vector3   maxi;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // EditorModel class
@@ -85,26 +86,18 @@ public:
     uint32_t GetMeshCount() const;
 
     //-------------------------------------------------------------------------
-    //! @brief      メッシュを取得します.
-    //!
-    //! @param[in]      index       メッシュ番号です.
-    //! @return     指定されたメッシュを返却します.
-    //-------------------------------------------------------------------------
-    const asdx::Mesh& GetMesh(uint32_t index) const;
-    
-    //-------------------------------------------------------------------------
     //! @brief      バウンディングボックスを取得します.
     //!
     //! @return     バウンディングボックスを返却します.
     //-------------------------------------------------------------------------
-    const asdx::BoundingBox& GetBox() const;
+    const BoundingBox& GetBox() const;
 
     //-------------------------------------------------------------------------
     //! @brief      シェーダタイプを取得します.
     //!
     //! @return     シェーダタイプを返却します.
     //-------------------------------------------------------------------------
-    MS_SHADER_TYPE GetShaderType() const;
+    SHADER_TYPE GetShaderType() const;
 
     //-------------------------------------------------------------------------
     //! @brief      ファイルパスを取得します.
@@ -154,13 +147,12 @@ private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    asdx::Model         m_Model;            //!< モデル.
-    std::string         m_Path;             //!< ファイルパス.
-    asdx::Vector3       m_Scale;            //!< スケール.
-    asdx::Vector3       m_Rotation;         //!< 回転角(度単位).
-    asdx::Vector3       m_Translation;      //!< 平行移動量.
-    asdx::Matrix        m_World;            //!< ワールド行列.
-    MS_SHADER_TYPE      m_ShaderType;       //!< シェーダタイプ.
+    std::string     m_Path;             //!< ファイルパス.
+    asdx::Vector3   m_Scale;            //!< スケール.
+    asdx::Vector3   m_Rotation;         //!< 回転角(度単位).
+    asdx::Vector3   m_Translation;      //!< 平行移動量.
+    asdx::Matrix    m_World;            //!< ワールド行列.
+    SHADER_TYPE     m_ShaderType;       //!< シェーダタイプ.
 
     //=========================================================================
     // private methods.

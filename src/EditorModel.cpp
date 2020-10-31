@@ -30,7 +30,7 @@ EditorModel::EditorModel()
 , m_Rotation    (0.0f, 0.0f, 0.0f)
 , m_Translation (0.0f, 0.0f, 0.0f)
 , m_World       (asdx::Matrix::CreateIdentity())
-, m_ShaderType  (MS_SHADER_0)
+, m_ShaderType  (SHADER_0)
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -68,11 +68,11 @@ bool EditorModel::Init(const char* path)
     {
     }
 
-    if (!m_Model.Init(res))
-    {
-        ELOGA("Error : Model::Init() Failed.");
-        return false;
-    }
+    //if (!m_Model.Init(res))
+    //{
+    //    ELOGA("Error : Model::Init() Failed.");
+    //    return false;
+    //}
 
     return true;
 }
@@ -82,31 +82,39 @@ bool EditorModel::Init(const char* path)
 //-----------------------------------------------------------------------------
 void EditorModel::Term()
 {
-    m_Model.Term();
+    //m_Model.Term();
 }
 
 //-----------------------------------------------------------------------------
 //      メッシュ数を取得します.
 //-----------------------------------------------------------------------------
 uint32_t EditorModel::GetMeshCount() const
-{ return m_Model.GetMeshCount(); }
+{
+    return 0;
+    //return m_Model.GetMeshCount();
+}
 
-//-----------------------------------------------------------------------------
-//      メッシュを取得します.
-//-----------------------------------------------------------------------------
-const asdx::Mesh& EditorModel::GetMesh(uint32_t index) const
-{ return m_Model.GetMesh(index); }
+////-----------------------------------------------------------------------------
+////      メッシュを取得します.
+////-----------------------------------------------------------------------------
+//const asdx::Mesh& EditorModel::GetMesh(uint32_t index) const
+//{ 
+//    return m_Model.GetMesh(index);
+//}
 
 //-----------------------------------------------------------------------------
 //      バウンディングボックスを取得します.
 //-----------------------------------------------------------------------------
-const asdx::BoundingBox& EditorModel::GetBox() const
-{ return m_Model.GetBox(); }
+const BoundingBox& EditorModel::GetBox() const
+{
+    return BoundingBox();
+    //return m_Model.GetBox();
+}
 
 //-----------------------------------------------------------------------------
 //      シェーダタイプを取得します.
 //-----------------------------------------------------------------------------
-MS_SHADER_TYPE EditorModel::GetShaderType() const
+SHADER_TYPE EditorModel::GetShaderType() const
 { return m_ShaderType; }
 
 //-----------------------------------------------------------------------------

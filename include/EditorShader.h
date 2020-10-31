@@ -10,10 +10,10 @@
 //-----------------------------------------------------------------------------
 #include <string>
 #include <tinyxml2.h>
-#include <d3d12.h>
+#include <d3d11.h>
 #include <asdxRef.h>
-#include <asdxShaderCompiler.h>
 
+#define MAX_LAYER_COUNT (4)
 
 ///////////////////////////////////////////////////////////////////////////////
 // BoolSetting structure

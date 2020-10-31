@@ -20,7 +20,7 @@ namespace {
 void DrawFPS(float fps, uint64_t vertexCount, uint64_t meshletCount, bool connect)
 {
     ImGui::SetNextWindowPos (ImVec2(10,  10));
-    ImGui::SetNextWindowSize(ImVec2(150, 80));
+    ImGui::SetNextWindowSize(ImVec2(150, 60));
 
     auto flags = ImGuiWindowFlags_NoMove
                 | ImGuiWindowFlags_NoResize
@@ -33,10 +33,6 @@ void DrawFPS(float fps, uint64_t vertexCount, uint64_t meshletCount, bool connec
 
     // 頂点数
     ImGui::Text(u8"頂点数 : %lu", vertexCount);
-
-    // メッシュレット数.
-    ImGui::Text(u8"Meshlets : %lu", meshletCount);
-
 
     if (connect)
     { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), u8"接続"); }
@@ -154,9 +150,9 @@ void DrawPopupMenu()
 //-----------------------------------------------------------------------------
 //      GUIを描画します.
 //-----------------------------------------------------------------------------
-void App::DrawGui(ID3D12GraphicsCommandList6* pCmd)
+void App::DrawGui()
 {
-    asdx::GuiMgr::Instance().Update(m_Width, m_Height);
+    asdx::GuiMgr::GetInstance().Update(m_Width, m_Height);
     {
         // FPS表示.
         DrawFPS(GetFPS(), 0, 0, false);
@@ -171,5 +167,5 @@ void App::DrawGui(ID3D12GraphicsCommandList6* pCmd)
 
     }
     // 描画コマンドを積む.
-    asdx::GuiMgr::Instance().Draw(pCmd);
+    asdx::GuiMgr::GetInstance().Draw();
 }

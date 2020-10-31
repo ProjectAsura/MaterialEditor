@@ -10,7 +10,8 @@
 #include <App.h>
 #include <asdxGuiMgr.h>
 #include <asdxLogger.h>
-#include <asdxCmdHelper.h>
+#include <asdxDeviceContext.h>
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,14 +43,13 @@ App::~App()
 //-----------------------------------------------------------------------------
 bool App::OnInit()
 {
-    m_pGraphicsQueue = asdx::GfxDevice().GetGraphicsQueue();
-
     const char* fontPath = "../res/fonts/07やさしさゴシック.ttf";
-    if (!asdx::GuiMgr::Instance().Init(
+    if (!asdx::GuiMgr::GetInstance().Init(
+        m_pDevice,
+        m_pDeviceContext,
         m_hWnd,
         m_Width,
         m_Height,
-        m_SwapChainFormat,
         fontPath))
     {
         ELOGA("Error : GuiMgr::Init() Failed.");
@@ -65,7 +65,7 @@ bool App::OnInit()
 void App::OnTerm()
 {
 
-    asdx::GuiMgr::Instance().Term();
+    asdx::GuiMgr::GetInstance().Term();
 }
 
 //-----------------------------------------------------------------------------
@@ -73,62 +73,21 @@ void App::OnTerm()
 //-----------------------------------------------------------------------------
 void App::OnFrameRender(asdx::FrameEventArgs& args)
 {
-    auto idx  = GetCurrentBackBufferIndex();
-    auto pCmd = m_GfxCmdList.Reset();
 
-    asdx::GfxDevice().SetUploadCommand(pCmd);
 
-    asdx::BarrierTransition(
-        pCmd,
-        m_ColorTarget[idx].GetResource(),
-        0,
-        D3D12_RESOURCE_STATE_PRESENT,
-        D3D12_RESOURCE_STATE_RENDER_TARGET);
+    auto pRTV = m_ColorTarget2D.GetTargetView();
+    m_pDeviceContext->ClearRenderTargetView(pRTV, m_ClearColor);
+    m_pDeviceContext->OMSetRenderTargets(1, &pRTV, nullptr);
+    m_pDeviceContext->RSSetViewports(1, &m_Viewport);
+    m_pDeviceContext->RSSetScissorRects(1, &m_ScissorRect);
 
-    auto pRTV = m_ColorTarget[idx].GetRTV();
-    auto pDSV = m_DepthTarget.GetDSV();
-
-    asdx::ClearRTV(pCmd, pRTV, m_ClearColor);
-    asdx::ClearDSV(pCmd, pDSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0);
-
-    asdx::SetRenderTarget(pCmd, pRTV, pDSV);
-    asdx::SetViewport(pCmd, m_ColorTarget[idx].GetResource());
-
+    // スワップチェインに描画.
     {
-        //DrawShadow(pCmd);
-
-        //DrawBackground(pCmd);
-
-        //DrawForwardLighting(pCmd);
-
-        // GUI描画.
-        DrawGui(pCmd);
+        DrawGui();
     }
-
-    asdx::BarrierTransition(
-        pCmd,
-        m_ColorTarget[idx].GetResource(),
-        0,
-        D3D12_RESOURCE_STATE_RENDER_TARGET,
-        D3D12_RESOURCE_STATE_PRESENT);
-
-    pCmd->Close();
-
-    ID3D12CommandList* pCmds[] = {
-        pCmd
-    };
-
-    // 前フレームの描画の完了を待機.
-    m_pGraphicsQueue->WaitIdle();
-
-    // コマンドを実行.
-    m_pGraphicsQueue->Execute(1, pCmds);
 
     // 画面に表示.
     Present(0);
-
-    // フレーム同期.
-    asdx::GfxDevice().FrameSync();
 }
 
 //-----------------------------------------------------------------------------
@@ -143,7 +102,7 @@ void App::OnResize(const asdx::ResizeEventArgs& args)
 //-----------------------------------------------------------------------------
 void App::OnKey(const asdx::KeyEventArgs& args)
 {
-    asdx::GuiMgr::Instance().OnKey(args.IsKeyDown, args.IsKeyDown, args.KeyCode);
+    asdx::GuiMgr::GetInstance().OnKey(args.IsKeyDown, args.IsKeyDown, args.KeyCode);
 }
 
 //-----------------------------------------------------------------------------
@@ -151,7 +110,7 @@ void App::OnKey(const asdx::KeyEventArgs& args)
 //-----------------------------------------------------------------------------
 void App::OnMouse(const asdx::MouseEventArgs& args)
 {
-    asdx::GuiMgr::Instance().OnMouse(
+    asdx::GuiMgr::GetInstance().OnMouse(
         args.X,
         args.Y,
         args.WheelDelta,
@@ -165,7 +124,7 @@ void App::OnMouse(const asdx::MouseEventArgs& args)
 //-----------------------------------------------------------------------------
 void App::OnTyping(uint32_t keyCode)
 {
-    asdx::GuiMgr::Instance().OnTyping(keyCode);
+    asdx::GuiMgr::GetInstance().OnTyping(keyCode);
 }
 
 //-----------------------------------------------------------------------------

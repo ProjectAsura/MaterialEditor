@@ -16,7 +16,6 @@
 #include <cassert>
 #include <meshoptimizer.h>
 #include <asdxHash.h>
-#include <asdxHalf.h>
 
 
 //-----------------------------------------------------------------------------
@@ -90,18 +89,16 @@ void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh)
     auto matId = pSrcMesh->mMaterialIndex;
     uint32_t matHash = matId;
 
+    asdx::ResMesh dstMesh;
+    dstMesh.MeshName = pSrcMesh->mName.C_Str();
+
     // マテリアルハッシュ生成.
     {
         auto pMaterial = m_pScene->mMaterials[matId];
         aiString matName;
         if (pMaterial->Get(AI_MATKEY_NAME, matName) == AI_SUCCESS)
-        { matHash = asdx::Fnv1a(matName.C_Str()).GetHash(); }
+        { dstMesh.MaterialName = matName.C_Str(); }
     }
-
-    asdx::ResMesh dstMesh;
-    dstMesh.MeshHash        = asdx::Fnv1a(pSrcMesh->mName.C_Str()).GetHash();
-    dstMesh.MatrerialHash   = matHash;
-
 
     aiVector3D zero3D(0.0f, 0.0f, 0.0f);
     aiColor4D  white (1.0f, 1.0f, 1.0f, 1.0f);
@@ -164,7 +161,7 @@ void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh)
         if (pSrcMesh->HasVertexColors(0))
         {
             auto pColor = &(pSrcMesh->mColors[0][i]);
-            dstMesh.Colors[i] = asdx::ToUnorm(asdx::Vector4(pColor->r, pColor->g, pColor->b, pColor->a));
+            dstMesh.Colors[i] = asdx::EncodeUnorm4(asdx::Vector4(pColor->r, pColor->g, pColor->b, pColor->a));
         }
 
         if (pSrcMesh->HasBones())
@@ -263,16 +260,18 @@ void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh)
 
     // 頂点インデックスのメモリを確保.
     std::vector<uint32_t>   vertexIndices;
-    vertexIndices.resize(pSrcMesh->mNumFaces * 3);
+    vertexIndices.resize(size_t(pSrcMesh->mNumFaces) * 3);
 
     for(auto i=0u; i<pSrcMesh->mNumFaces; ++i)
     {
         const auto& face = pSrcMesh->mFaces[i];
         assert(face.mNumIndices == 3);  // 三角形化しているので必ず3になっている.
 
-        vertexIndices[i * 3 + 0] = face.mIndices[0];
-        vertexIndices[i * 3 + 1] = face.mIndices[1];
-        vertexIndices[i * 3 + 2] = face.mIndices[2];
+        auto idx = size_t(i) * 3;
+
+        vertexIndices[idx + 0] = face.mIndices[0];
+        vertexIndices[idx + 1] = face.mIndices[1];
+        vertexIndices[idx + 2] = face.mIndices[2];
     }
 
     // 最適化.
@@ -458,8 +457,11 @@ void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh)
             vertexIndices.data(),
             vertexIndices.size(),
             vertexCount);
+
+        dstMesh.Indices = vertexIndices;
     }
 
+#if 0
     // メッシュレット生成.
     {
         // see. https://developer.nvidia.com/blog/introduction-turing-mesh-shaders/
@@ -535,6 +537,7 @@ void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh)
         dstMesh.Meshlets    .shrink_to_fit();
         dstMesh.CullingInfos.shrink_to_fit();
     }
+#endif
 
     model.Meshes.push_back(dstMesh);
 }

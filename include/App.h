@@ -9,7 +9,6 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <asdxApp.h>
-#include <asdxResourceUploader.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,7 +55,7 @@ private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    asdx::Queue*            m_pGraphicsQueue = nullptr;
+
 
     //=========================================================================
     // private methods.
@@ -102,20 +101,8 @@ private:
     //-------------------------------------------------------------------------
     void OnDrop(const wchar_t** dropFiles, uint32_t fileCount) override;
 
-
-    //-------------------------------------------------------------------------
-    //! @brief      メッシュを描画します.
-    //-------------------------------------------------------------------------
-    void DrawMesh(ID3D12GraphicsCommandList6* pCmd);
-
-    void DrawShadow(ID3D12GraphicsCommandList6* pCmd);
-
-    void DrawBackground(ID3D12GraphicsCommandList6* pCmd);
-
-    void DrawForwardLighting(ID3D12GraphicsCommandList6* pCmd);
-
     //-------------------------------------------------------------------------
     //! @brief      GUIを描画します.
     //-------------------------------------------------------------------------
-    void DrawGui(ID3D12GraphicsCommandList6* pCmd);
+    void DrawGui();
 };

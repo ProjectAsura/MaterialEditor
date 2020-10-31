@@ -16,17 +16,8 @@
     <Filter Include="external">
       <UniqueIdentifier>{002e5044-8b84-4556-83ad-57e8034d128b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="external\tinyxml2">
-      <UniqueIdentifier>{ce9e35df-6c99-4ff8-9530-beb63d19ac85}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\imgui">
-      <UniqueIdentifier>{7cc7f22f-ebb6-400b-b544-8288581f241e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="external\imiguizmo">
       <UniqueIdentifier>{b917a148-f8c8-40a5-8fa8-bde6ddfc8cf4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="external\asdx12">
-      <UniqueIdentifier>{bee5efe4-fdc5-4366-ba95-e7a495adaba4}</UniqueIdentifier>
     </Filter>
     <Filter Include="external\meshoptimizer">
       <UniqueIdentifier>{f838e6c6-5f0b-4b3a-8678-aaa917179c17}</UniqueIdentifier>
@@ -45,18 +36,6 @@
     <ClCompile Include="..\src\MaterialExporter.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\tinyxml2\tinyxml2.cpp">
-      <Filter>external\tinyxml2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\imgui\imgui.cpp">
-      <Filter>external\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\imgui\imgui_draw.cpp">
-      <Filter>external\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\imgui\imgui_widgets.cpp">
-      <Filter>external\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="..\external\imguizmo\ImCurveEdit.cpp">
       <Filter>external\imiguizmo</Filter>
     </ClCompile>
@@ -69,25 +48,13 @@
     <ClCompile Include="..\external\imguizmo\ImSequencer.cpp">
       <Filter>external\imiguizmo</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\asdx12\src\asdxEditParam.cpp">
-      <Filter>external\asdx12</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\asdx12\src\asdxGuiMgr.cpp">
-      <Filter>external\asdx12</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\AppExport.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\src\AppGui.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\AppMeshDraw.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\EditorModel.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\EditorShader.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\src\EditorMaterial.cpp">
@@ -141,6 +108,15 @@
     <ClCompile Include="..\external\meshoptimizer\src\vfetchoptimizer.cpp">
       <Filter>external\meshoptimizer</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\PluginShader.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\PluginMaterial.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\PluginMgr.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\App.h">
@@ -151,27 +127,6 @@
     </ClInclude>
     <ClInclude Include="..\include\MaterialExporter.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\tinyxml2\tinyxml2.h">
-      <Filter>external\tinyxml2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\imgui\imconfig.h">
-      <Filter>external\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\imgui\imgui.h">
-      <Filter>external\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\imgui\imgui_internal.h">
-      <Filter>external\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\imgui\imstb_rectpack.h">
-      <Filter>external\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\imgui\imstb_textedit.h">
-      <Filter>external\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\imgui\imstb_truetype.h">
-      <Filter>external\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\external\imguizmo\ImCurveEdit.h">
       <Filter>external\imiguizmo</Filter>
@@ -185,19 +140,10 @@
     <ClInclude Include="..\external\imguizmo\ImSequencer.h">
       <Filter>external\imiguizmo</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\asdx12\include\asdxEditParam.h">
-      <Filter>external\asdx12</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\asdx12\include\asdxGuiMgr.h">
-      <Filter>external\asdx12</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\EditorModel.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\include\EditorMaterial.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\EditorShader.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\include\MeshLoader.h">
@@ -205,6 +151,12 @@
     </ClInclude>
     <ClInclude Include="..\external\meshoptimizer\src\meshoptimizer.h">
       <Filter>external\meshoptimizer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\UserData.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\PluginMgr.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

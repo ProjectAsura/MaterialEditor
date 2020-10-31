@@ -152,14 +152,16 @@
     <ClInclude Include="..\external\meshoptimizer\src\meshoptimizer.h">
       <Filter>external\meshoptimizer</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\UserData.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\PluginMgr.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\res\shaders\EditorVS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -13,6 +13,26 @@
 #include <asdxDeviceContext.h>
 
 
+namespace {
+
+//-----------------------------------------------------------------------------
+// Constant Values.
+//-----------------------------------------------------------------------------
+#include "../res/shaders/Compiled/EditorVS.inc"
+
+
+//-----------------------------------------------------------------------------
+// Global Varaibles.
+//-----------------------------------------------------------------------------
+D3D11_INPUT_ELEMENT_DESC kElements[] = {
+    { "POSITION",      0, DXGI_FORMAT_R32G32B32_FLOAT,   0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "COLOR",         0, DXGI_FORMAT_R8G8B8A8_UNORM,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TANGENT_SPACE", 0, DXGI_FORMAT_R32_UINT,          0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",      0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
+
+} // namespace
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // App class
@@ -43,6 +63,9 @@ App::~App()
 //-----------------------------------------------------------------------------
 bool App::OnInit()
 {
+    m_pDevice        = asdx::DeviceContext::Instance().GetDevice();
+    m_pDeviceContext = asdx::DeviceContext::Instance().GetContext();
+
     const char* fontPath = "../res/fonts/07やさしさゴシック.ttf";
     if (!asdx::GuiMgr::GetInstance().Init(
         m_pDevice,
@@ -56,6 +79,17 @@ bool App::OnInit()
         return false;
     }
 
+    // 頂点シェーダ.
+    {
+        auto hr = m_pDevice->CreateVertexShader(
+            EditorVS, sizeof(EditorVS), nullptr, m_VS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -64,7 +98,7 @@ bool App::OnInit()
 //-----------------------------------------------------------------------------
 void App::OnTerm()
 {
-
+    m_VS.Reset();
     asdx::GuiMgr::GetInstance().Term();
 }
 
@@ -102,7 +136,8 @@ void App::OnResize(const asdx::ResizeEventArgs& args)
 //-----------------------------------------------------------------------------
 void App::OnKey(const asdx::KeyEventArgs& args)
 {
-    asdx::GuiMgr::GetInstance().OnKey(args.IsKeyDown, args.IsKeyDown, args.KeyCode);
+    asdx::GuiMgr::GetInstance().OnKey(
+        args.IsKeyDown, args.IsKeyDown, args.KeyCode);
 }
 
 //-----------------------------------------------------------------------------

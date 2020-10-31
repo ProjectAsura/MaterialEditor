@@ -10,12 +10,207 @@
 #include <EditorModel.h>
 #include <MeshLoader.h>
 #include <asdxLogger.h>
+#include <asdxDeviceContext.h>
 
 
 namespace {
 
+///////////////////////////////////////////////////////////////////////////////
+// Vertex structure
+///////////////////////////////////////////////////////////////////////////////
+struct Vertex
+{
+    asdx::Vector3   Position;
+    uint32_t        Color;
+    uint32_t        TangentSpace;
+    uint32_t        TexCoord0;
+    uint32_t        TexCoord1;
+    uint32_t        TexCoord2;
+    uint32_t        TexCoord3;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// SkinningData structure
+///////////////////////////////////////////////////////////////////////////////
+struct SkinningData
+{
+    asdx::ResBoneIndex  Indices;
+    asdx::Vector4       Weights;
+};
 
 } // namespace
+
+
+///////////////////////////////////////////////////////////////////////////////
+// EditorMesh class 
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+EditorMesh::EditorMesh()
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      デストラクタです.
+//-----------------------------------------------------------------------------
+EditorMesh::~EditorMesh()
+{ Term(); }
+
+//-----------------------------------------------------------------------------
+//      初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool EditorMesh::Init(ID3D11Device* pDevice, const asdx::ResMesh& mesh)
+{
+    if (pDevice == nullptr)
+    {
+        ELOG("Error : Invalid Argument");
+        return false;
+    }
+
+    std::vector<Vertex> vertices;
+    vertices.resize(mesh.Positions.size());
+
+    m_MeshName      = mesh.MeshName;
+    m_MaterialName  = mesh.MaterialName;
+
+    m_Box.maxi = m_Box.mini = mesh.Positions[0];
+
+    for(size_t i=0; i<vertices.size(); ++i)
+    {
+        auto& vertex = vertices[i];
+        vertex.Position     = mesh.Positions[i];
+        vertex.Color        = (mesh.Colors.empty()) ? 0xFFFFFFFF : mesh.Colors[i];
+        vertex.TangentSpace = mesh.TangentSpaces[i];
+        vertex.TexCoord0    = (mesh.TexCoords[0].empty()) ? 0 : mesh.TexCoords[0][i];
+        vertex.TexCoord1    = (mesh.TexCoords[1].empty()) ? 0 : mesh.TexCoords[1][i];
+        vertex.TexCoord2    = (mesh.TexCoords[2].empty()) ? 0 : mesh.TexCoords[2][i];
+        vertex.TexCoord3    = (mesh.TexCoords[3].empty()) ? 0 : mesh.TexCoords[3][i];
+
+        m_Box.maxi = asdx::Vector3::Max(m_Box.maxi, vertex.Position);
+        m_Box.mini = asdx::Vector3::Min(m_Box.mini, vertex.Position);
+    }
+
+    if (!m_VB.Init(
+        pDevice,
+        sizeof(Vertex) * vertices.size(),
+        sizeof(Vertex),
+        vertices.data()))
+    {
+        ELOG("Error : VertexBuffer::Init() Failed.");
+        return false;
+    }
+
+    m_HasSkinningData = false;
+
+    if (mesh.BoneWeights.size() > 0)
+    {
+        std::vector<SkinningData> skinningData;
+        skinningData.resize(mesh.BoneWeights.size());
+
+        for(size_t i=0; i<mesh.BoneWeights.size(); ++i)
+        {
+            auto& vertex = skinningData[i];
+            vertex.Indices = mesh.BoneIndices[i];
+            vertex.Weights = mesh.BoneWeights[i];
+        }
+
+        if (!m_SkinVB.Init(
+            pDevice,
+            sizeof(SkinningData) * skinningData.size(),
+            sizeof(SkinningData),
+            skinningData.data()))
+        {
+            ELOG("Error : VertexBuffer::Init() Failed.");
+            return false;
+        }
+
+        m_HasSkinningData = true;
+    }
+
+    if (!m_IB.Init(
+        pDevice,
+        sizeof(uint32_t) * mesh.Indices.size(),
+        mesh.Indices.data()))
+    {
+        ELOG("Error : IndexBuffer::Init() Failed.");
+        return false;
+    }
+    m_IndexCount = uint32_t(mesh.Indices.size());
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      終了処理を行います.
+//-----------------------------------------------------------------------------
+void EditorMesh::Term()
+{
+    m_IndexCount        = 0;
+    m_HasSkinningData   = false;
+
+    m_IB    .Term();
+    m_VB    .Term();
+    m_SkinVB.Term();
+}
+
+//-----------------------------------------------------------------------------
+//      メッシュ名を取得します.
+//-----------------------------------------------------------------------------
+const std::string& EditorMesh::GetMeshName() const
+{ return m_MeshName; }
+
+//-----------------------------------------------------------------------------
+//      マテリアル名を取得します.
+//-----------------------------------------------------------------------------
+const std::string& EditorMesh::GetMaterialName() const
+{ return m_MaterialName; }
+
+//-----------------------------------------------------------------------------
+//      描画処理を行います.
+//-----------------------------------------------------------------------------
+void EditorMesh::Draw(ID3D11DeviceContext* pContext) const
+{
+    if (!m_HasSkinningData)
+    {
+        auto pVB    = m_VB.GetBuffer();
+        auto stride = m_VB.GetStride();
+        pContext->IASetVertexBuffers(0, 1, &pVB, &stride, nullptr);
+    }
+    else
+    {
+        ID3D11Buffer* pVBs[] = {
+            m_VB.GetBuffer(),
+            m_SkinVB.GetBuffer()
+        };
+
+        UINT strides[] = {
+            m_VB.GetStride(),
+            m_SkinVB.GetStride()
+        };
+
+        UINT offsets[] = {
+            0,
+            0
+        };
+
+        pContext->IASetVertexBuffers(0, 2, pVBs, strides, offsets);
+    }
+    pContext->IASetIndexBuffer(m_IB.GetBuffer(), DXGI_FORMAT_R32_UINT, 0);
+    pContext->DrawIndexed(m_IndexCount, 0, 0);
+}
+
+//-----------------------------------------------------------------------------
+//      スキニングデータを持つかどうか?
+//-----------------------------------------------------------------------------
+bool EditorMesh::HasSkinningData() const
+{ return m_HasSkinningData; }
+
+//-----------------------------------------------------------------------------
+//      バウンディングボックスを取得します.
+//-----------------------------------------------------------------------------
+const BoundingBox& EditorMesh::GetBox() const
+{ return m_Box; }
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,7 +225,6 @@ EditorModel::EditorModel()
 , m_Rotation    (0.0f, 0.0f, 0.0f)
 , m_Translation (0.0f, 0.0f, 0.0f)
 , m_World       (asdx::Matrix::CreateIdentity())
-, m_ShaderType  (SHADER_0)
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -44,6 +238,8 @@ EditorModel::~EditorModel()
 //-----------------------------------------------------------------------------
 bool EditorModel::Init(const char* path)
 {
+    auto pDevice = asdx::DeviceContext::Instance().GetDevice();
+
     asdx::ResModel res;
     MeshLoader loader;
     if (!loader.Load(path, res))
@@ -52,27 +248,32 @@ bool EditorModel::Init(const char* path)
         return false;
     }
 
-    // 頂点カラーがない場合は生成.
+    m_Meshes.resize(res.Meshes.size());
+
     for(size_t i=0; i<res.Meshes.size(); ++i)
     {
-        if (res.Meshes[i].Colors.empty())
+        if (!m_Meshes[i].Init(pDevice, res.Meshes[i]))
         {
-            auto count = res.Meshes[i].Positions.size();
-            res.Meshes[i].Colors.resize(count);
-            for(auto j=0; j<count; ++j)
-            { res.Meshes[i].Colors[j] = UINT32_MAX; }
+            ELOG("Error : EditorMesh::Init() Failed.");
+            return false;
+        }
+
+        if (i == 0)
+        {
+            m_Box = m_Meshes[i].GetBox();
+        }
+        else
+        {
+            m_Box.mini = asdx::Vector3::Min(m_Box.mini, m_Meshes[i].GetBox().mini);
+            m_Box.maxi = asdx::Vector3::Max(m_Box.maxi, m_Meshes[i].GetBox().maxi);
         }
     }
 
-    // リソースからシェーダバリエーションを決定.
-    {
-    }
-
-    //if (!m_Model.Init(res))
-    //{
-    //    ELOGA("Error : Model::Init() Failed.");
-    //    return false;
-    //}
+    m_Path        = path;
+    m_Scale       = asdx::Vector3(1.0f, 1.0f, 1.0f);
+    m_Rotation    = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    m_Translation = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    m_World       = asdx::Matrix::CreateIdentity();
 
     return true;
 }
@@ -82,40 +283,34 @@ bool EditorModel::Init(const char* path)
 //-----------------------------------------------------------------------------
 void EditorModel::Term()
 {
-    //m_Model.Term();
+    for(size_t i=0; i<m_Meshes.size(); ++i)
+    { m_Meshes[i].Term(); }
+
+    m_Meshes.clear();
+
+    m_Scale       = asdx::Vector3(1.0f, 1.0f, 1.0f);
+    m_Rotation    = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    m_Translation = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    m_World       = asdx::Matrix::CreateIdentity();
 }
 
 //-----------------------------------------------------------------------------
 //      メッシュ数を取得します.
 //-----------------------------------------------------------------------------
 uint32_t EditorModel::GetMeshCount() const
-{
-    return 0;
-    //return m_Model.GetMeshCount();
-}
+{ return uint32_t(m_Meshes.size()); }
 
-////-----------------------------------------------------------------------------
-////      メッシュを取得します.
-////-----------------------------------------------------------------------------
-//const asdx::Mesh& EditorModel::GetMesh(uint32_t index) const
-//{ 
-//    return m_Model.GetMesh(index);
-//}
+//-----------------------------------------------------------------------------
+//      メッシュを取得します.
+//-----------------------------------------------------------------------------
+const EditorMesh& EditorModel::GetMesh(uint32_t index) const
+{ return m_Meshes[index]; }
 
 //-----------------------------------------------------------------------------
 //      バウンディングボックスを取得します.
 //-----------------------------------------------------------------------------
 const BoundingBox& EditorModel::GetBox() const
-{
-    return BoundingBox();
-    //return m_Model.GetBox();
-}
-
-//-----------------------------------------------------------------------------
-//      シェーダタイプを取得します.
-//-----------------------------------------------------------------------------
-SHADER_TYPE EditorModel::GetShaderType() const
-{ return m_ShaderType; }
+{ return m_Box; }
 
 //-----------------------------------------------------------------------------
 //      ファイルパスを取得します.

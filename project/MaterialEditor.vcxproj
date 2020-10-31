@@ -144,7 +144,6 @@
     <ClInclude Include="..\include\MeshExporter.h" />
     <ClInclude Include="..\include\MeshLoader.h" />
     <ClInclude Include="..\include\PluginMgr.h" />
-    <ClInclude Include="..\include\UserData.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -156,6 +155,14 @@
     <ProjectReference Include="..\..\asdx11\project\asdx_edit_2019.vcxproj">
       <Project>{01a1f824-50d7-476c-8eed-93e921e57f64}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\res\shaders\EditorVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

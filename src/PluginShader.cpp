@@ -63,7 +63,7 @@ bool PluginShader::Load(const char* path)
         nullptr,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         "main",
-        "ps_6_0",
+        "ps_5_0",
         compileFlag,
         0,
         pBlob.GetAddress(),

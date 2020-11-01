@@ -9,6 +9,7 @@
 //-----------------------------------------------------------------------------
 #include <PluginMgr.h>
 #include <asdxLogger.h>
+#include <asdxMisc.h>
 
 
 namespace {
@@ -101,7 +102,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefDepthStat
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefBool& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("bool");
+    element->SetAttribute("label", param.DisplayTag.c_str());
     element->SetAttribute("target",  param.Target.c_str());
     element->SetAttribute("default", param.Default);
     return element;
@@ -112,7 +114,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefBool& par
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefInt& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("int");
+    element->SetAttribute("label",   param.DisplayTag.c_str());
     element->SetAttribute("target",  param.Target.c_str());
     element->SetAttribute("default", param.Default);
     element->SetAttribute("step",    param.Step);
@@ -126,7 +129,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefInt& para
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("float");
+    element->SetAttribute("label",   param.DisplayTag.c_str());
     element->SetAttribute("target",  param.Target.c_str());
     element->SetAttribute("default", param.Default);
     element->SetAttribute("step",    param.Step);
@@ -140,7 +144,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat& pa
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat2& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("float2");
+    element->SetAttribute("label",      param.DisplayTag.c_str());
     element->SetAttribute("target",     param.Target.c_str());
     element->SetAttribute("default_x",  param.Default.x);
     element->SetAttribute("default_y",  param.Default.y);
@@ -155,7 +160,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat2& p
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat3& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("float3");
+    element->SetAttribute("label",      param.DisplayTag.c_str());
     element->SetAttribute("target",     param.Target.c_str());
     element->SetAttribute("default_x",  param.Default.x);
     element->SetAttribute("default_y",  param.Default.y);
@@ -171,7 +177,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat3& p
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat4& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("float4");
+    element->SetAttribute("label",      param.DisplayTag.c_str());
     element->SetAttribute("target",     param.Target.c_str());
     element->SetAttribute("default_x",  param.Default.x);
     element->SetAttribute("default_y",  param.Default.y);
@@ -188,7 +195,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat4& p
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefColor3& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("color3");
+    element->SetAttribute("label",      param.DisplayTag.c_str());
     element->SetAttribute("target",     param.Target.c_str());
     element->SetAttribute("default_r",  param.Default.x);
     element->SetAttribute("default_g",  param.Default.y);
@@ -202,7 +210,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefColor3& p
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefColor4& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("color4");
+    element->SetAttribute("label",      param.DisplayTag.c_str());
     element->SetAttribute("target",     param.Target.c_str());
     element->SetAttribute("default_r",  param.Default.x);
     element->SetAttribute("default_g",  param.Default.y);
@@ -217,7 +226,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefColor4& p
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefBit32& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("bit32");
+    element->SetAttribute("label",   param.DisplayTag.c_str());
     element->SetAttribute("target",  param.Target.c_str());
     element->SetAttribute("default", param.Default);
     return element;
@@ -228,7 +238,8 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefBit32& pa
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefTexture2D& param)
 {
-    auto element = doc->NewElement(param.DisplayTag.c_str());
+    auto element = doc->NewElement("texture2D");
+    element->SetAttribute("label",   param.DisplayTag.c_str());
     element->SetAttribute("target",  param.Target.c_str());
     element->SetAttribute("default", int(param.Default));
     return element;
@@ -302,159 +313,572 @@ void Deserialize(tinyxml2::XMLElement* element, UiDefDepthState& param)
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefBool& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefBool>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Bool");
     if (e == nullptr)
     { return; }
 
-    param.Target  = e->Attribute("target");
-    param.Default = e->BoolAttribute("default");
+    while (e != nullptr)
+    {
+        UiDefBool p;
+        p.DisplayTag = e->Attribute("label");
+        p.Target     = e->Attribute("target");
+        p.Default    = e->BoolAttribute("default");
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Bool");
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefInt& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefInt>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Int");
     if (e == nullptr)
     { return; }
 
-    param.Target    = e->Attribute("target");
-    param.Default   = e->IntAttribute("default");
-    param.Step      = e->IntAttribute("step");
-    param.Mini      = e->IntAttribute("mini");
-    param.Maxi      = e->IntAttribute("maxi");
+    while (e != nullptr)
+    {
+        UiDefInt p;
+        p.DisplayTag = e->Attribute("label");
+        p.Target     = e->Attribute("target");
+        p.Default    = e->IntAttribute("default");
+        p.Step       = e->IntAttribute("step");
+        p.Mini       = e->IntAttribute("mini");
+        p.Maxi       = e->IntAttribute("maxi");
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Int");
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefFloat& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Float");
     if (e == nullptr)
     { return; }
 
-    param.Target    = e->Attribute("target");
-    param.Default   = e->FloatAttribute("default");
-    param.Step      = e->FloatAttribute("step");
-    param.Mini      = e->FloatAttribute("mini");
-    param.Maxi      = e->FloatAttribute("maxi");
+    while(e != nullptr)
+    {
+        UiDefFloat p;
+        p.DisplayTag = e->Attribute("label");
+        p.Target     = e->Attribute("target");
+        p.Default    = e->FloatAttribute("default");
+        p.Step       = e->FloatAttribute("step");
+        p.Mini       = e->FloatAttribute("mini");
+        p.Maxi       = e->FloatAttribute("maxi");
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Float");
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefFloat2& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat2>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Float2");
     if (e == nullptr)
     { return; }
 
-    param.Target        = e->Attribute("target");
-    param.Default.x     = e->FloatAttribute("default_x");
-    param.Default.y     = e->FloatAttribute("default_y");
-    param.Step          = e->FloatAttribute("step");
-    param.Mini          = e->FloatAttribute("mini");
-    param.Maxi          = e->FloatAttribute("maxi");
+    while(e != nullptr)
+    {
+        UiDefFloat2 p;
+        p.DisplayTag    = e->Attribute("label");
+        p.Target        = e->Attribute("target");
+        p.Default.x     = e->FloatAttribute("default_x");
+        p.Default.y     = e->FloatAttribute("default_y");
+        p.Step          = e->FloatAttribute("step");
+        p.Mini          = e->FloatAttribute("mini");
+        p.Maxi          = e->FloatAttribute("maxi");
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Float2");
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefFloat3& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat3>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Float3");
     if (e == nullptr)
     { return; }
 
-    param.Target        = e->Attribute("target");
-    param.Default.x     = e->FloatAttribute("default_x");
-    param.Default.y     = e->FloatAttribute("default_y");
-    param.Default.z     = e->FloatAttribute("default_z");
-    param.Step          = e->FloatAttribute("step");
-    param.Mini          = e->FloatAttribute("mini");
-    param.Maxi          = e->FloatAttribute("maxi");
+    while(e != nullptr)
+    {
+        UiDefFloat3 p;
+        p.DisplayTag    = e->Attribute("label");
+        p.Target        = e->Attribute("target");
+        p.Default.x     = e->FloatAttribute("default_x");
+        p.Default.y     = e->FloatAttribute("default_y");
+        p.Default.z     = e->FloatAttribute("default_z");
+        p.Step          = e->FloatAttribute("step");
+        p.Mini          = e->FloatAttribute("mini");
+        p.Maxi          = e->FloatAttribute("maxi");
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Float3");
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefFloat4& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat4>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Float4");
     if (e == nullptr)
     { return; }
 
-    param.Target        = e->Attribute("target");
-    param.Default.x     = e->FloatAttribute("default_x");
-    param.Default.y     = e->FloatAttribute("default_y");
-    param.Default.z     = e->FloatAttribute("default_z");
-    param.Default.w     = e->FloatAttribute("default_w");
-    param.Step          = e->FloatAttribute("step");
-    param.Mini          = e->FloatAttribute("mini");
-    param.Maxi          = e->FloatAttribute("maxi");
+    while(e != nullptr)
+    {
+        UiDefFloat4 p;
+        p.DisplayTag    = e->Attribute("label");
+        p.Target        = e->Attribute("target");
+        p.Default.x     = e->FloatAttribute("default_x");
+        p.Default.y     = e->FloatAttribute("default_y");
+        p.Default.z     = e->FloatAttribute("default_z");
+        p.Default.w     = e->FloatAttribute("default_w");
+        p.Step          = e->FloatAttribute("step");
+        p.Mini          = e->FloatAttribute("mini");
+        p.Maxi          = e->FloatAttribute("maxi");
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Float4");
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefColor3& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefColor3>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Color3");
     if (e == nullptr)
     { return; }
 
-    param.Target        = e->Attribute("target");
-    param.Default.x     = e->FloatAttribute("default_r");
-    param.Default.y     = e->FloatAttribute("default_g");
-    param.Default.z     = e->FloatAttribute("default_b");
+    while(e != nullptr)
+    {
+        UiDefColor3 p;
+        p.DisplayTag    = e->Attribute("label");
+        p.Target        = e->Attribute("target");
+        p.Default.x     = e->FloatAttribute("default_r");
+        p.Default.y     = e->FloatAttribute("default_g");
+        p.Default.z     = e->FloatAttribute("default_b");
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Color3");
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefColor4& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefColor4>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Color4");
     if (e == nullptr)
     { return; }
 
-    param.Target        = e->Attribute("target");
-    param.Default.x     = e->FloatAttribute("default_r");
-    param.Default.y     = e->FloatAttribute("default_g");
-    param.Default.z     = e->FloatAttribute("default_b");
-    param.Default.w     = e->FloatAttribute("default_a");
+    while(e != nullptr)
+    {
+        UiDefColor4 p;
+        p.DisplayTag    = e->Attribute("label");
+        p.Target        = e->Attribute("target");
+        p.Default.x     = e->FloatAttribute("default_r");
+        p.Default.y     = e->FloatAttribute("default_g");
+        p.Default.z     = e->FloatAttribute("default_b");
+        p.Default.w     = e->FloatAttribute("default_a");
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Color4");
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefBit32& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefBit32>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Bit32");
     if (e == nullptr)
     { return; }
 
-    param.Target    = e->Attribute("target");
-    param.Default   = e->UnsignedAttribute("default");
+    while(e != nullptr)
+    {
+        UiDefBit32 p;
+        p.DisplayTag    = e->Attribute("label");
+        p.Target        = e->Attribute("target");
+        p.Default       = e->UnsignedAttribute("default");
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Bit32");
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      デシリアライズします.
 //-----------------------------------------------------------------------------
-void Deserialize(tinyxml2::XMLElement* element, UiDefTexture2D& param)
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefTexture2D>& param)
 {
-    auto e = element->FirstChildElement(param.DisplayTag.c_str());
+    auto e = element->FirstChildElement("Texture2D");
     if (e == nullptr)
     { return; }
 
-    param.Target    = e->Attribute("target");
-    param.Default   = DEFAULT_TEXTURE_TYPE(e->IntAttribute("default"));
+    while(e != nullptr)
+    {
+        UiDefTexture2D p;
+        p.DisplayTag    = e->Attribute("label");
+        p.Target        = e->Attribute("target");
+        p.Default       = DEFAULT_TEXTURE_TYPE(e->IntAttribute("default"));
+        param.push_back(p);
+
+        e = e->NextSiblingElement("Texture2D");
+    }
 }
 
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiBool& value)
+{
+    auto e = doc->NewElement("bool");
+    e->SetAttribute("tag", value.Tag.c_str());
+    e->SetAttribute("value", value.Param.GetValue());
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiInt& value)
+{
+    auto e = doc->NewElement("int");
+    e->SetAttribute("tag", value.Tag.c_str());
+    e->SetAttribute("value", value.Param.GetValue());
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiFloat& value)
+{
+    auto e = doc->NewElement("float");
+    e->SetAttribute("tag", value.Tag.c_str());
+    e->SetAttribute("value", value.Param.GetValue());
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiFloat2& value)
+{
+    auto e = doc->NewElement("float2");
+    e->SetAttribute("tag", value.Tag.c_str());
+    e->SetAttribute("x", value.Param.GetValue().x);
+    e->SetAttribute("y", value.Param.GetValue().y);
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiFloat3& value)
+{
+    auto e = doc->NewElement("float3");
+    e->SetAttribute("tag", value.Tag.c_str());
+    e->SetAttribute("x", value.Param.GetValue().x);
+    e->SetAttribute("y", value.Param.GetValue().y);
+    e->SetAttribute("z", value.Param.GetValue().z);
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiFloat4& value)
+{
+    auto e = doc->NewElement("float4");
+    e->SetAttribute("tag", value.Tag.c_str());
+    e->SetAttribute("x", value.Param.GetValue().x);
+    e->SetAttribute("y", value.Param.GetValue().y);
+    e->SetAttribute("z", value.Param.GetValue().z);
+    e->SetAttribute("w", value.Param.GetValue().w);
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiColor3& value)
+{
+    auto e = doc->NewElement("color3");
+    e->SetAttribute("tag", value.Tag.c_str());
+    e->SetAttribute("r", value.Param.GetValue().x);
+    e->SetAttribute("g", value.Param.GetValue().y);
+    e->SetAttribute("b", value.Param.GetValue().z);
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiColor4& value)
+{
+    auto e = doc->NewElement("color4");
+    e->SetAttribute("tag", value.Tag.c_str());
+    e->SetAttribute("r", value.Param.GetValue().x);
+    e->SetAttribute("g", value.Param.GetValue().y);
+    e->SetAttribute("b", value.Param.GetValue().z);
+    e->SetAttribute("a", value.Param.GetValue().w);
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiBit32& value)
+{
+    auto e = doc->NewElement("bit32");
+    e->SetAttribute("tag",   value.Tag.c_str());
+    e->SetAttribute("value", value.Param.GetValue());
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiTexture2D& value)
+{
+    auto e = doc->NewElement("texture2D");
+    e->SetAttribute("tag",  value.Tag.c_str());
+    e->SetAttribute("path", value.Param.GetPath().c_str());
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiBool>& value)
+{
+    auto e = element->FirstChildElement("bool");
+    if (e == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        UiBool p = {};
+        p.Tag = e->Attribute("tag");
+        p.Param.SetValue(e->BoolAttribute("value"));
+        value.push_back(p);
+
+        e = e->NextSiblingElement("bool");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiInt>& value)
+{
+    auto e = element->FirstChildElement("int");
+    if (e == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        UiInt p = {};
+        p.Tag = e->Attribute("tag");
+        p.Param.SetValue(e->IntAttribute("value"));
+        value.push_back(p);
+
+        e = e->NextSiblingElement("int");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiFloat>& value)
+{
+    auto e = element->FirstChildElement("float");
+    if (e == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        UiFloat p = {};
+        p.Tag = e->Attribute("tag");
+        p.Param.SetValue(e->FloatAttribute("value"));
+
+        e = e->NextSiblingElement("float");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiFloat2>& value)
+{
+    auto e = element->FirstChildElement("float2");
+    if (e == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        asdx::Vector2 v;
+        UiFloat2 p = {};
+        p.Tag = e->Attribute("tag");
+        v.x = e->FloatAttribute("x");
+        v.y = e->FloatAttribute("y");
+        p.Param.SetValue(v);
+
+        e = e->NextSiblingElement("float2");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiFloat3>& value)
+{
+    auto e = element->FirstChildElement("float3");
+    if (e == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        asdx::Vector3 v;
+        UiFloat3 p = {};
+        p.Tag = e->Attribute("tag");
+        v.x = e->FloatAttribute("x");
+        v.y = e->FloatAttribute("y");
+        v.z = e->FloatAttribute("z");
+        p.Param.SetValue(v);
+
+        e = e->NextSiblingElement("float3");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiFloat4>& value)
+{
+    auto e = element->FirstChildElement("float4");
+    if (e == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        asdx::Vector4 v;
+        UiFloat4 p = {};
+        p.Tag = e->Attribute("tag");
+        v.x = e->FloatAttribute("x");
+        v.y = e->FloatAttribute("y");
+        v.z = e->FloatAttribute("z");
+        v.w = e->FloatAttribute("w");
+        p.Param.SetValue(v);
+
+        e = e->NextSiblingElement("float4");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiColor3>& value)
+{
+    auto e = element->FirstChildElement("color3");
+    if (e == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        asdx::Vector3 v;
+        UiColor3 p = {};
+        p.Tag = e->Attribute("tag");
+        v.x = e->FloatAttribute("r");
+        v.y = e->FloatAttribute("g");
+        v.z = e->FloatAttribute("b");
+        p.Param.SetValue(v);
+
+        e = e->NextSiblingElement("color3");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiColor4>& value)
+{
+    auto e = element->FirstChildElement("color4");
+    if (e == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        asdx::Vector4 v;
+        UiFloat4 p = {};
+        p.Tag = e->Attribute("tag");
+        v.x = e->FloatAttribute("r");
+        v.y = e->FloatAttribute("g");
+        v.z = e->FloatAttribute("b");
+        v.w = e->FloatAttribute("a");
+        p.Param.SetValue(v);
+
+        e = e->NextSiblingElement("color4");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiBit32>& value)
+{
+    auto e = element->FirstChildElement("bit32");
+    if (e == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        UiBit32 p = {};
+        p.Tag = e->Attribute("tag");
+        p.Param.SetValue(e->UnsignedAttribute("value"));
+
+        e = e->NextSiblingElement("bit32");
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiTexture2D>& value)
+{
+    auto e = element->FirstChildElement("texture2D");
+    if (e  == nullptr)
+    { return; }
+
+    while(e != nullptr)
+    {
+        UiTexture2D p = {};
+        p.Tag = e->Attribute("tag");
+        p.Param.SetPath(e->Attribute("path"));
+
+        e = e->NextSiblingElement("texture2D");
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Materialinstance class
@@ -487,46 +911,36 @@ tinyxml2::XMLElement* MaterialInstance::Serialize(tinyxml2::XMLDocument* doc)
     element->SetAttribute("blend_state", m_BlendState.GetValue());
     element->SetAttribute("rasterizer_state", m_RasterizerState.GetValue());
     element->SetAttribute("depth_state", m_DepthStencilState.GetValue());
-    element->SetAttribute("count_bool", m_Bool.size());
-    element->SetAttribute("count_int", m_Int.size());
-    element->SetAttribute("count_float", m_Float.size());
-    element->SetAttribute("count_float2", m_Float2.size());
-    element->SetAttribute("count_float3", m_Float3.size());
-    element->SetAttribute("count_float4", m_Float4.size());
-    element->SetAttribute("count_color3", m_Color3.size());
-    element->SetAttribute("count_color4", m_Color4.size());
-    element->SetAttribute("count_bit32", m_Bit32.size());
-    element->SetAttribute("count_texture2d", m_Texture2D.size());
 
     for(size_t i=0; i<m_Bool.size(); ++i)
-    { element->InsertEndChild(m_Bool[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Bool[i])); }
 
     for(size_t i=0; i<m_Int.size(); ++i)
-    { element->InsertEndChild(m_Int[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Int[i])); }
 
     for(size_t i=0; i<m_Float.size(); ++i)
-    { element->InsertEndChild(m_Float[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Float[i])); }
 
     for(size_t i=0; i<m_Float2.size(); ++i)
-    { element->InsertEndChild(m_Float2[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Float2[i])); }
 
     for(size_t i=0; i<m_Float3.size(); ++i)
-    { element->InsertEndChild(m_Float3[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Float3[i])); }
 
     for(size_t i=0; i<m_Float4.size(); ++i)
-    { element->InsertEndChild(m_Float4[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Float4[i])); }
 
     for(size_t i=0; i<m_Color3.size(); ++i)
-    { element->InsertEndChild(m_Color3[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Color3[i])); }
 
     for(size_t i=0; i<m_Color4.size(); ++i)
-    { element->InsertEndChild(m_Color4[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Color4[i])); }
 
     for(size_t i=0; i<m_Bit32.size(); ++i)
-    { element->InsertEndChild(m_Bit32[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Bit32[i])); }
 
     for(size_t i=0; i<m_Texture2D.size(); ++i)
-    { element->InsertEndChild(m_Texture2D[i].Serialize(doc)); }
+    { element->InsertEndChild(::Serialize(doc, m_Texture2D[i])); }
 
     return element;
 }
@@ -546,57 +960,16 @@ void MaterialInstance::Deserialize(tinyxml2::XMLElement* element)
     m_RasterizerState   .SetValue(e->IntAttribute("rasterizer_state"));
     m_DepthStencilState .SetValue(e->IntAttribute("depth_state"));
 
-    auto count_bool         = e->Unsigned64Attribute("count_bool");
-    auto count_int          = e->Unsigned64Attribute("count_int");
-    auto count_float        = e->Unsigned64Attribute("count_float");
-    auto count_float2       = e->Unsigned64Attribute("count_float2");
-    auto count_float3       = e->Unsigned64Attribute("count_float3");
-    auto count_float4       = e->Unsigned64Attribute("count_float4");
-    auto count_color3       = e->Unsigned64Attribute("count_color3");
-    auto count_color4       = e->Unsigned64Attribute("count_color4");
-    auto count_bit32        = e->Unsigned64Attribute("count_bit32");
-    auto count_texture2d    = e->Unsigned64Attribute("count_texture2d");
-
-    m_Bool      .resize(count_bool);
-    m_Int       .resize(count_int);
-    m_Float     .resize(count_float);
-    m_Float2    .resize(count_float2);
-    m_Float3    .resize(count_float3);
-    m_Float4    .resize(count_float4);
-    m_Color3    .resize(count_color3);
-    m_Color4    .resize(count_color4);
-    m_Bit32     .resize(count_bit32);
-    m_Texture2D .resize(count_texture2d);
-
-    for(size_t i=0; i<m_Bool.size(); ++i)
-    { m_Bool[i].Deserialize(e); }
-
-    for(size_t i=0; i<m_Int.size(); ++i)
-    { m_Int[i].Deserialize(e); }
-
-    for(size_t i=0; i<m_Float.size(); ++i)
-    { m_Float[i].Deserialize(e); }
-
-    for(size_t i=0; i<m_Float2.size(); ++i)
-    { m_Float2[i].Deserialize(e); }
-
-    for(size_t i=0; i<m_Float3.size(); ++i)
-    { m_Float3[i].Deserialize(e); }
-
-    for(size_t i=0; i<m_Float4.size(); ++i)
-    { m_Float4[i].Deserialize(e); }
-
-    for(size_t i=0; i<m_Color3.size(); ++i)
-    { m_Color3[i].Deserialize(e); }
-
-    for(size_t i=0; i<m_Color4.size(); ++i)
-    { m_Color4[i].Deserialize(e); }
-
-    for(size_t i=0; i<m_Bit32.size(); ++i)
-    { m_Bit32[i].Deserialize(e); }
-
-    for(size_t i=0; i<m_Texture2D.size(); ++i)
-    { m_Texture2D[i].Deserialize(e); }
+    ::Deserialize(e, m_Bool);
+    ::Deserialize(e, m_Int);
+    ::Deserialize(e, m_Float);
+    ::Deserialize(e, m_Float2);
+    ::Deserialize(e, m_Float3);
+    ::Deserialize(e, m_Float4);
+    ::Deserialize(e, m_Color3);
+    ::Deserialize(e, m_Color4);
+    ::Deserialize(e, m_Bit32);
+    ::Deserialize(e, m_Texture2D);
 }
 
 
@@ -631,17 +1004,21 @@ bool PluginMaterial::Load(const char* path)
     auto ret = doc.LoadFile(path);
     if (ret != tinyxml2::XML_SUCCESS)
     {
-        ELOG("Error : PluginMaterial Load Failed. path = %s", path);
+        ELOGA("Error : PluginMaterial Load Failed. path = %s", path);
         return false;
     }
 
     // デシリアライズ.
     Deserialize(&doc);
 
+    auto shaderPath = asdx::ToFullPath(path);
+    shaderPath = asdx::GetDirectoryPathA(shaderPath.c_str());
+    shaderPath = asdx::ToFullPath((shaderPath + m_ShaderPath).c_str());
+
     // シェーダをロード.
-    if (!m_Shader.Load(m_ShaderPath.c_str()))
+    if (!m_Shader.Load(shaderPath.c_str()))
     {
-        ELOG("Error : PluginShader::Load() Failed. path = %s", m_ShaderPath.c_str());
+        ELOGA("Error : PluginShader::Load() Failed. path = %s", shaderPath.c_str());
         return false;
     }
 
@@ -933,16 +1310,12 @@ tinyxml2::XMLElement* PluginMaterial::Serialize(tinyxml2::XMLDocument* doc)
 
     e->SetAttribute("name",             m_Name      .c_str());
     e->SetAttribute("shader_path",      m_ShaderPath.c_str());
-    e->SetAttribute("count_bool",       m_Bool      .size());
-    e->SetAttribute("count_int",        m_Int       .size());
-    e->SetAttribute("count_float",      m_Float     .size());
-    e->SetAttribute("count_float2",     m_Float2    .size());
-    e->SetAttribute("count_float3",     m_Float3    .size());
-    e->SetAttribute("count_float4",     m_Float3    .size());
-    e->SetAttribute("count_color3",     m_Color3    .size());
-    e->SetAttribute("count_color4",     m_Color4    .size());
-    e->SetAttribute("count_bit32",      m_Bit32     .size());
-    e->SetAttribute("count_texture2d",  m_Texture2D .size());
+
+    e->InsertEndChild(::Serialize(doc, m_ShadowCast));
+    e->InsertEndChild(::Serialize(doc, m_ShadowReceive));
+    e->InsertEndChild(::Serialize(doc, m_BlendState));
+    e->InsertEndChild(::Serialize(doc, m_RasterizerState));
+    e->InsertEndChild(::Serialize(doc, m_DepthState));
 
     for(size_t i=0; i<m_Bool.size(); ++i)
     { e->InsertEndChild(::Serialize(doc, m_Bool[i])); }
@@ -989,63 +1362,77 @@ void PluginMaterial::Deserialize(tinyxml2::XMLDocument* doc)
     m_Name          = e->Attribute("name");
     m_ShaderPath    = e->Attribute("shader_path");
 
-    auto count_bool         = e->Unsigned64Attribute("count_bool");
-    auto count_int          = e->Unsigned64Attribute("count_int");
-    auto count_float        = e->Unsigned64Attribute("count_float");
-    auto count_float2       = e->Unsigned64Attribute("count_float2");
-    auto count_float3       = e->Unsigned64Attribute("count_float3");
-    auto count_float4       = e->Unsigned64Attribute("count_float4");
-    auto count_color3       = e->Unsigned64Attribute("count_color3");
-    auto count_color4       = e->Unsigned64Attribute("count_color4");
-    auto count_bit32        = e->Unsigned64Attribute("count_bit32");
-    auto count_texture2d    = e->Unsigned64Attribute("count_texture2d");
-
     ::Deserialize(e, m_ShadowCast);
     ::Deserialize(e, m_ShadowReceive);
     ::Deserialize(e, m_BlendState);
     ::Deserialize(e, m_RasterizerState);
     ::Deserialize(e, m_DepthState);
-
-    m_Bool      .resize(count_bool);
-    m_Int       .resize(count_int);
-    m_Float     .resize(count_float);
-    m_Float2    .resize(count_float2);
-    m_Float3    .resize(count_float3);
-    m_Float4    .resize(count_float4);
-    m_Color3    .resize(count_color3);
-    m_Color4    .resize(count_color4);
-    m_Bit32     .resize(count_bit32);
-    m_Texture2D .resize(count_texture2d);
-
-    for(size_t i=0; i<m_Bool.size(); ++i)
-    { ::Deserialize(e, m_Bool[i]); }
-
-    for(size_t i=0; i<m_Int.size(); ++i)
-    { ::Deserialize(e, m_Int[i]); }
-
-    for(size_t i=0; i<m_Float.size(); ++i)
-    { ::Deserialize(e, m_Float[i]); }
-
-    for(size_t i=0; i<m_Float2.size(); ++i)
-    { ::Deserialize(e, m_Float2[i]); }
-
-    for(size_t i=0; i<m_Float3.size(); ++i)
-    { ::Deserialize(e, m_Float3[i]); }
-
-    for(size_t i=0; i<m_Float4.size(); ++i)
-    { ::Deserialize(e, m_Float4[i]); }
-
-    for(size_t i=0; i<m_Color3.size(); ++i)
-    { ::Deserialize(e, m_Color3[i]); }
-
-    for(size_t i=0; i<m_Color4.size(); ++i)
-    { ::Deserialize(e, m_Color4[i]); }
-
-    for(size_t i=0; i<m_Bit32.size(); ++i)
-    { ::Deserialize(e, m_Bit32[i]); }
-
-    for(size_t i=0; i<m_Texture2D.size(); ++i)
-    { ::Deserialize(e, m_Texture2D[i]); }
-
+    ::Deserialize(e, m_Bool);
+    ::Deserialize(e, m_Int);
+    ::Deserialize(e, m_Float);
+    ::Deserialize(e, m_Float2);
+    ::Deserialize(e, m_Float3);
+    ::Deserialize(e, m_Float4);
+    ::Deserialize(e, m_Color3);
+    ::Deserialize(e, m_Color4);
+    ::Deserialize(e, m_Bit32);
+    ::Deserialize(e, m_Texture2D);
 }
 
+//-----------------------------------------------------------------------------
+//      テンプレートを生成します.
+//-----------------------------------------------------------------------------
+PluginMaterial PluginMaterial::CreateTemplate()
+{
+    PluginMaterial temp;
+    temp.m_Name                     = u8"TemplateMaterial";
+    temp.m_ShaderPath               = "../shader/StandardPS.hlsl";
+    temp.m_ShadowCast.Default       = true;
+    temp.m_ShadowCast.Editable      = true;
+    temp.m_ShadowReceive.Default    = true;
+    temp.m_ShadowReceive.Editable   = true;
+    temp.m_BlendState.Default       = 0;
+    temp.m_BlendState.Editable      = true;
+    temp.m_RasterizerState.Default  = 0;
+    temp.m_RasterizerState.Editable = true;
+    temp.m_DepthState.Default       = 1;
+    temp.m_DepthState.Editable      = true;
+
+    UiDefBool boolParam = {};
+    boolParam.DisplayTag    = u8"ブール値";
+    boolParam.Target        = "BoolParam";
+    boolParam.Default       = false;
+    temp.m_Bool.push_back(boolParam);
+
+    UiDefInt intParam = {};
+    intParam.DisplayTag = u8"整数値";
+    intParam.Target     = "IntParam";
+    intParam.Default    = 0;
+    temp.m_Int.push_back(intParam);
+
+    UiDefFloat floatParam = {};
+    floatParam.DisplayTag   = u8"浮動小数値";
+    floatParam.Target       = "FloatParam";
+    floatParam.Step         = 0.1f;
+    floatParam.Default      = 0.0f;
+    floatParam.Mini         = 0.0f;
+    floatParam.Maxi         = 1.0f;
+    temp.m_Float.push_back(floatParam);
+
+    UiDefFloat2 float2Param = {};
+    float2Param.DisplayTag = u8"2次元ベクトル";
+    float2Param.Target     = "Vec2Param";
+    float2Param.Step       = 0.1f;
+    float2Param.Default    = asdx::Vector2(0.0f, 0.0f);
+    float2Param.Mini       = 0.0f;
+    float2Param.Maxi       = 1.0f;
+    temp.m_Float2.push_back(float2Param);
+
+    UiDefTexture2D texture2dParam = {};
+    texture2dParam.DisplayTag   = u8"テクスチャ0";
+    texture2dParam.Target       = "ColorMap";
+    texture2dParam.Default      = DEFAULT_TEXTURE_BLACK;
+    temp.m_Texture2D.push_back(texture2dParam);
+
+    return temp;
+}

@@ -9,10 +9,28 @@
 //-----------------------------------------------------------------------------
 #include <App.h>
 #include <asdxGuiMgr.h>
+#include <asdxLogger.h>
+#include <asdxMisc.h>
 #include <imgui.h>
+#include <AppVersion.h>
 
 
 namespace {
+
+//-----------------------------------------------------------------------------
+// Constant Values.
+//-----------------------------------------------------------------------------
+static const char* kWorkFilter = "Work File(*.work)\0*.work\0\0";
+
+
+///////////////////////////////////////////////////////////////////////////////
+// MenuContext structure
+///////////////////////////////////////////////////////////////////////////////
+struct MenuContext
+{
+    bool ShowLicense = false;
+};
+
 
 //-----------------------------------------------------------------------------
 //      FPSを表示します.
@@ -23,8 +41,8 @@ void DrawFPS(float fps, uint64_t vertexCount, uint64_t meshletCount, bool connec
     ImGui::SetNextWindowSize(ImVec2(150, 60));
 
     auto flags = ImGuiWindowFlags_NoMove
-                | ImGuiWindowFlags_NoResize
-                | ImGuiWindowFlags_NoTitleBar;
+               | ImGuiWindowFlags_NoResize
+               | ImGuiWindowFlags_NoTitleBar;
     if (!ImGui::Begin(u8"FrameInfo", nullptr, flags))
     { return; }
 
@@ -45,7 +63,7 @@ void DrawFPS(float fps, uint64_t vertexCount, uint64_t meshletCount, bool connec
 //-----------------------------------------------------------------------------
 //      ファイルメニューを表示します.
 //-----------------------------------------------------------------------------
-void DrawFileMenu()
+void DrawFileMenu(WorkSpace& workSpace)
 {
     if (!ImGui::BeginMenu(u8"ファイル"))
     { return; }
@@ -54,14 +72,33 @@ void DrawFileMenu()
     {
         if (ImGui::MenuItem(u8"開く"))
         {
+            std::string path;
+            if (asdx::OpenFileDlg(kWorkFilter, path, ""))
+            {
+                // ワークスペースをロード.
+                workSpace.LoadAsync(path.c_str());
+            }
         }
 
         if (ImGui::MenuItem(u8"名前を付けて保存"))
         {
+            std::string base, ext;
+            if (asdx::SaveFileDlg(kWorkFilter, base, ext))
+            {
+                auto path = base + ext;
+                if (workSpace.SaveAs(path.c_str()))
+                { ILOGA("Info : WorkSpace Save Success. path = %s", path.c_str()); }
+                else
+                { ELOGA("Error : WorkSpace Save Failed. path = %s", path.c_str()); }
+            }
         }
 
         if (ImGui::MenuItem(u8"上書き保存"))
         {
+            if (workSpace.Save())
+            { ILOGA("Info : WorkSpace Save Success."); }
+            else
+            { ELOGA("Error : WorkSpace Save Failed."); }
         }
 
         ImGui::EndMenu();
@@ -102,7 +139,7 @@ void DrawRuntimeLinkage(bool connect)
 //-----------------------------------------------------------------------------
 //      ヘルプメニューを表示します.
 //-----------------------------------------------------------------------------
-void DrawHelp()
+void DrawHelp(MenuContext& context)
 {
     if (!ImGui::BeginMenu(u8"ヘルプ"))
         return;
@@ -113,10 +150,23 @@ void DrawHelp()
 
     if (ImGui::MenuItem(u8"バージョン情報"))
     {
+        std::string msg = "Version : ";
+        msg += std::to_string(APP_MAJOR_VERSION) + "." + std::to_string(APP_MINOR_VERSION);
+        msg += "\n";
+        msg += "Build : ";
+        msg += APP_BUILD_VERSION_TAG;
+        msg += "\n";
+        msg += "Time  : ";
+        msg += __DATE__;
+        msg += " ";
+        msg += __TIME__;
+
+        asdx::InfoDlg("Version Information", msg.c_str());
     }
 
     if (ImGui::MenuItem(u8"ライセンス"))
     {
+        context.ShowLicense = true;
     }
 
 
@@ -126,26 +176,46 @@ void DrawHelp()
 //-----------------------------------------------------------------------------
 //      ポップアップメニューを描画します.
 //-----------------------------------------------------------------------------
-void DrawPopupMenu()
+void DrawPopupMenu(WorkSpace& workSpace, MenuContext& context)
 {
     if(!ImGui::BeginPopup(u8"PopupMenu"))
     { return; }
 
     // ファイルメニュー.
-    DrawFileMenu();
+    DrawFileMenu(workSpace);
 
     // ランタイム連携.
-    DrawRuntimeLinkage(false);
+    //DrawRuntimeLinkage(false);
 
     // ヘルプ.
-    DrawHelp();
+    DrawHelp(context);
 
     ImGui::EndPopup();
 }
 
+//-----------------------------------------------------------------------------
+//      モーダルダイアログを表示します.
+//-----------------------------------------------------------------------------
+void DrawModalDialog(MenuContext& context)
+{
+    if (context.ShowLicense)
+    { ImGui::OpenPopup("License"); }
+
+    if (ImGui::BeginPopupModal("License"))
+    {
+        ImGui::BulletText("Dear Imgui (https://github.com/ocornut/imgui/blob/master/LICENSE.txt)");
+        ImGui::BulletText("ImgGuizmo (https://github.com/CedricGuillemet/ImGuizmo/blob/master/LICENSE)");
+        ImGui::BulletText("TinyXML-2 (https://github.com/leethomason/tinyxml2/blob/master/LICENSE.txt)");
+        ImGui::BulletText("meshoptimizer (https://github.com/zeux/meshoptimizer/blob/master/LICENSE.md)");
+
+        if (ImGui::Button("OK"))
+        { ImGui::CloseCurrentPopup(); }
+
+        ImGui::EndPopup();
+    }
+}
+
 } // namespace
-
-
 
 //-----------------------------------------------------------------------------
 //      GUIを描画します.
@@ -163,7 +233,11 @@ void App::DrawGui()
             { ImGui::OpenPopup(u8"PopupMenu"); }
         }
 
-        DrawPopupMenu();
+        MenuContext context = {};
+
+        DrawPopupMenu(m_WorkSpace, context);
+
+        DrawModalDialog(context);
 
     }
     // 描画コマンドを積む.

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PluginMaterial name="標準" shader_path="../shader/StandardPS.hlsl">
+    <shadow_cast editable="true" default="false"/>
+    <shadow_receive editable="true" default="false"/>
+    <blend_state editable="true" default="0"/>
+    <rasterizer_state editable="true" default="0"/>
+    <depth_state editable="true" default="1"/>
+    <float2 label="UVスクロール" target="UVOffset" default_x="0" default_y="0" step="0.1" mini="0" maxi="0" />
+    <float2 label="UVスケール" target="UVScale" default_x="1" default_y="1" step="0.1" mini="0" maxi="0" />
+    <float label="AlphaThreshold" target="AlphaThreshold" default="0" step="0.01" mini="0" maxi="1" />
+    <texture2D label="ベースカラー" target="BaseColor" default="0" />
+    <texture2D label="ORM" target="ORM" default="3" />
+    <texture2D label="法線マップ" target="Normal" default="2" />
+    <texture2D label="エミッシブ" target="Emissive" default="1" />
+</PluginMaterial>

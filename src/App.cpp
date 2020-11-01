@@ -19,6 +19,7 @@ namespace {
 // Constant Values.
 //-----------------------------------------------------------------------------
 #include "../res/shaders/Compiled/EditorVS.inc"
+#include "../res/shaders/Compiled/EditorSkinningVS.inc"
 
 
 //-----------------------------------------------------------------------------
@@ -29,6 +30,11 @@ D3D11_INPUT_ELEMENT_DESC kElements[] = {
     { "COLOR",         0, DXGI_FORMAT_R8G8B8A8_UNORM,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "TANGENT_SPACE", 0, DXGI_FORMAT_R32_UINT,          0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "TEXCOORD",      0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
+
+D3D11_INPUT_ELEMENT_DESC kSkinningElements[] = {
+    { "BONE_INDEX",  0, DXGI_FORMAT_R16G16B16A16_UINT,  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "BONE_WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
 
 } // namespace
@@ -63,9 +69,6 @@ App::~App()
 //-----------------------------------------------------------------------------
 bool App::OnInit()
 {
-    m_pDevice        = asdx::DeviceContext::Instance().GetDevice();
-    m_pDeviceContext = asdx::DeviceContext::Instance().GetContext();
-
     const char* fontPath = "../res/fonts/07やさしさゴシック.ttf";
     if (!asdx::GuiMgr::GetInstance().Init(
         m_pDevice,
@@ -88,6 +91,22 @@ bool App::OnInit()
             ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
             return false;
         }
+
+        hr = m_pDevice->CreateVertexShader(
+            EditorSkinningVS, sizeof(EditorSkinningVS), nullptr, m_SkinningVS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
+    // プラグインマネージャー初期化.
+    {
+        if (!PluginMgr::Instance().Load())
+        {
+            return false;
+        }
     }
 
     return true;
@@ -98,7 +117,9 @@ bool App::OnInit()
 //-----------------------------------------------------------------------------
 void App::OnTerm()
 {
+    PluginMgr::Instance().Term();
     m_VS.Reset();
+    m_SkinningVS.Reset();
     asdx::GuiMgr::GetInstance().Term();
 }
 

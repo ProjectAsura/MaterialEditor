@@ -71,6 +71,11 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PreBuildEvent>
+      <Command>call version.bat &gt; $(ProjectDir)..\include\AppVersion.h
+xcopy $(ProjectDir)..\..\asdx11\res\shaders\Math.hlsli $(ProjectDir)..\res\plugins\shader\ /C /Y /Q
+xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugins\shader\ /C /Y /Q</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -97,6 +102,11 @@
     <Manifest>
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
+    <PreBuildEvent>
+      <Command>call version.bat &gt; $(ProjectDir)..\include\AppVersion.h
+xcopy $(ProjectDir)..\..\asdx11\res\shaders\Math.hlsli $(ProjectDir)..\res\plugins\shader\ /C /Y /Q
+xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugins\shader\ /C /Y /Q</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\external\imguizmo\ImCurveEdit.cpp" />
@@ -124,12 +134,11 @@
     <ClCompile Include="..\src\EditorMaterial.cpp" />
     <ClCompile Include="..\src\EditorModel.cpp" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\MaterialExporter.cpp" />
-    <ClCompile Include="..\src\MeshExporter.cpp" />
     <ClCompile Include="..\src\MeshLoader.cpp" />
     <ClCompile Include="..\src\PluginMaterial.cpp" />
     <ClCompile Include="..\src\PluginMgr.cpp" />
     <ClCompile Include="..\src\PluginShader.cpp" />
+    <ClCompile Include="..\src\WorkSpace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\external\imguizmo\ImCurveEdit.h" />
@@ -140,10 +149,9 @@
     <ClInclude Include="..\include\App.h" />
     <ClInclude Include="..\include\EditorMaterial.h" />
     <ClInclude Include="..\include\EditorModel.h" />
-    <ClInclude Include="..\include\MaterialExporter.h" />
-    <ClInclude Include="..\include\MeshExporter.h" />
     <ClInclude Include="..\include\MeshLoader.h" />
     <ClInclude Include="..\include\PluginMgr.h" />
+    <ClInclude Include="..\include\WorkSpace.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -157,6 +165,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\res\plugins\shader\StandardPS.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\EditorSkinningVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="..\res\shaders\EditorVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>

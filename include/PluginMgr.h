@@ -42,10 +42,11 @@ enum UI_TYPE
 ///////////////////////////////////////////////////////////////////////////////
 enum DEFAULT_TEXTURE_TYPE
 {
-    DEFAULT_TEXTURE_WHITE,
-    DEFAULT_TEXTURE_BLACK,
-    DEFAULT_TEXTURE_NORMAL,
-    DEFAULT_TEXTURE_ORM,
+    DEFAULT_TEXTURE_WHITE       = 0,
+    DEFAULT_TEXTURE_BLACK       = 1,
+    DEFAULT_TEXTURE_NORMAL      = 2,
+    DEFAULT_TEXTURE_ORM         = 3,
+    DEFAULT_TEXTURE_VELCOITY    = 4,
 };
 
 struct UiDefShadowCast
@@ -206,16 +207,16 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefColor4& v
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefBit32& value);
 tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefTexture2D& value);
 
-void Deserialize(tinyxml2::XMLElement* element, UiDefBool& value);
-void Deserialize(tinyxml2::XMLElement* element, UiDefInt& value);
-void Deserialize(tinyxml2::XMLElement* element, UiDefFloat& value);
-void Deserialize(tinyxml2::XMLElement* element, UiDefFloat2& value);
-void Deserialize(tinyxml2::XMLElement* element, UiDefFloat3& value);
-void Deserialize(tinyxml2::XMLElement* element, UiDefFloat4& value);
-void Deserialize(tinyxml2::XMLElement* element, UiDefColor3& value);
-void Deserialize(tinyxml2::XMLElement* element, UiDefColor4& value);
-void Deserialize(tinyxml2::XMLElement* element, UiDefBit32& value);
-void Deserialize(tinyxml2::XMLElement* element, UiDefTexture2D& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefBool>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefInt>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat2>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat3>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat4>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefColor3>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefColor4>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefBit32>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefTexture2D>& value);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -228,12 +229,6 @@ public:
     std::string     Tag;
     T               Param;
     uint32_t        Offset;
-
-    tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc)
-    { return asdx::Serialize(doc, Tag.c_str(), Param); }
-
-    void Deserialize(tinyxml2::XMLElement* element)
-    { asdx::Deserialize(element, Tag.c_str(), Param); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -246,12 +241,6 @@ public:
     std::string             Tag;
     T                       Param;
     uint8_t                 Register;
-
-    tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc)
-    { return asdx::Serialize(doc, Tag.c_str(), Param); }
-
-    void Deserialize(tinyxml2::XMLElement* element)
-    { asdx::Deserialize(element, Tag.c_str(), Param); }
 };
 
 using UiBool        = UiParam<asdx::EditBool>;
@@ -264,6 +253,29 @@ using UiColor3      = UiParam<asdx::EditColor3>;
 using UiColor4      = UiParam<asdx::EditColor4>;
 using UiBit32       = UiParam<asdx::EditBit32>;
 using UiTexture2D   = UiImage<asdx::EditTexture2D>;
+
+
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiBool& value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiInt& value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiFloat& value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiFloat2& value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiFloat3& value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiFloat4& value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiColor3& value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiColor4& value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiBit32& value);
+tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiTexture2D& value);
+
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiBool>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiInt>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiFloat>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiFloat2>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiFloat3>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiFloat4>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiColor3>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiColor4>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiBit32>& value);
+void Deserialize(tinyxml2::XMLElement* element, std::vector<UiTexture2D>& value);
 
 
 
@@ -532,6 +544,11 @@ public:
     //! @brief      デフォルト値を設定します.
     //-------------------------------------------------------------------------
     void Reset(MaterialInstance* instance);
+
+    //-------------------------------------------------------------------------
+    //! @brief      テンプレートを生成します.
+    //-------------------------------------------------------------------------
+    static PluginMaterial CreateTemplate();
 
 private:
     //=========================================================================

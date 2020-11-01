@@ -22,18 +22,15 @@
     <Filter Include="external\meshoptimizer">
       <UniqueIdentifier>{f838e6c6-5f0b-4b3a-8678-aaa917179c17}</UniqueIdentifier>
     </Filter>
+    <Filter Include="リソース ファイル\plugins">
+      <UniqueIdentifier>{e484e792-f348-4120-9ad3-ef7aceca8b6d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\src\App.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\MeshExporter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\MaterialExporter.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\external\imguizmo\ImCurveEdit.cpp">
@@ -117,15 +114,12 @@
     <ClCompile Include="..\src\PluginMgr.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\WorkSpace.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\App.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\MeshExporter.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\MaterialExporter.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\external\imguizmo\ImCurveEdit.h">
@@ -155,6 +149,9 @@
     <ClInclude Include="..\include\PluginMgr.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\WorkSpace.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -162,6 +159,12 @@
   <ItemGroup>
     <FxCompile Include="..\res\shaders\EditorVS.hlsl">
       <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\EditorSkinningVS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\res\plugins\shader\StandardPS.hlsl">
+      <Filter>リソース ファイル\plugins</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

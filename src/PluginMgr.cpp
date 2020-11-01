@@ -18,6 +18,7 @@
 //-----------------------------------------------------------------------------
 static const std::string kInvalidMaterialName = "";
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // PluginMgr class
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,7 +37,7 @@ bool PluginMgr::Load()
 {
     // pluginフォルダ下にあるファイルを全部開く.
     std::string path;
-    if (!asdx::SearchFilePathA("plugin/material", path))
+    if (!asdx::SearchFilePathA("res/plugins/material", path))
     {
         ELOG("Error : Folder Not Found.");
         return false;

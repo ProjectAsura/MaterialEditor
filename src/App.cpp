@@ -105,6 +105,7 @@ bool App::OnInit()
     {
         if (!PluginMgr::Instance().Load())
         {
+            ELOG("Error : PluginMgr::Load() Failed.");
             return false;
         }
     }

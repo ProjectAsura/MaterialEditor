@@ -1299,6 +1299,14 @@ void PluginMaterial::Reset(MaterialInstance* instance)
 
         instance->m_Bit32[i].Param.SetValue(m_Bit32[i].Default);
     }
+
+    for(size_t i=0; i<m_Texture2D.size(); ++i)
+    {
+        if (m_Texture2D[i].DisplayTag != instance->m_Texture2D[i].Tag)
+        { continue; }
+
+        instance->m_Texture2D[i].Default = m_Texture2D[i].Default;
+    }
 }
 
 //-----------------------------------------------------------------------------

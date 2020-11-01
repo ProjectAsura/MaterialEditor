@@ -215,6 +215,54 @@ void DrawModalDialog(MenuContext& context)
     }
 }
 
+void DrawBackgroundSetting()
+{
+    // 背景色.
+
+    // IBL画像.
+}
+
+void DrawLightingSetting()
+{
+    // 方向.
+
+    // 強さ.
+}
+
+void DrawCameraSetting()
+{
+    // 
+}
+
+void DrawPostEffectSetting()
+{
+    // SSAO
+
+    // トーンマップ.
+
+
+    // Bloom
+
+
+    // TAA
+}
+
+void DrawModelPreview()
+{
+}
+
+void DrawShadowSetting()
+{
+}
+
+void DrawDebugSetting()
+{
+}
+
+void DrawEditorPanel()
+{
+}
+
 } // namespace
 
 //-----------------------------------------------------------------------------

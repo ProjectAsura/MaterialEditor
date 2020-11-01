@@ -42,11 +42,14 @@ enum UI_TYPE
 ///////////////////////////////////////////////////////////////////////////////
 enum DEFAULT_TEXTURE_TYPE
 {
-    DEFAULT_TEXTURE_WHITE       = 0,
-    DEFAULT_TEXTURE_BLACK       = 1,
-    DEFAULT_TEXTURE_NORMAL      = 2,
-    DEFAULT_TEXTURE_ORM         = 3,
-    DEFAULT_TEXTURE_VELCOITY    = 4,
+    DEFAULT_TEXTURE_CHECKER_BOARD   = 0,
+    DEFAULT_TEXTURE_WHITE           = 1,
+    DEFAULT_TEXTURE_BLACK           = 2,
+    DEFAULT_TEXTURE_NORMAL          = 3,
+    DEFAULT_TEXTURE_ORM             = 4,
+    DEFAULT_TEXTURE_VELCOITY        = 5,
+
+    DEFAULT_TEXTURE_COUNT
 };
 
 struct UiDefShadowCast
@@ -241,6 +244,7 @@ public:
     std::string             Tag;
     T                       Param;
     uint8_t                 Register;
+    DEFAULT_TEXTURE_TYPE    Default;
 };
 
 using UiBool        = UiParam<asdx::EditBool>;
@@ -643,12 +647,18 @@ public:
     //-------------------------------------------------------------------------
     const std::string& DrawCombo(const std::string& selected);
 
+    //-------------------------------------------------------------------------
+    //! @brief      デフォルトテクスチャを取得します.
+    //-------------------------------------------------------------------------
+    ID3D11ShaderResourceView* GetDefaultSRV(DEFAULT_TEXTURE_TYPE type) const;
+
 private:
     //=========================================================================
     // private variables.
     //=========================================================================
     static PluginMgr                        s_Instance;
     std::map<std::string, PluginMaterial*>  m_Materials;
+    asdx::RefPtr<ID3D11ShaderResourceView>  m_DefaultSRV[DEFAULT_TEXTURE_COUNT];
 
     //=========================================================================
     // private methods.

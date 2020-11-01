@@ -315,7 +315,10 @@ void PluginShader::Update
     for(size_t i=0; i<instance->m_Texture2D.size(); ++i)
     {
         const auto& info = instance->m_Texture2D[i];
-        auto pSRV = info.Param.GetSRV();
+        ID3D11ShaderResourceView* pSRV = info.Param.GetSRV();
+        if (pSRV == nullptr)
+        { pSRV = PluginMgr::Instance().GetDefaultSRV(info.Default); }
+
         pContext->PSSetShaderResources(info.Register, 1, &pSRV);
     }
 }

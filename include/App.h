@@ -9,6 +9,8 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <asdxApp.h>
+#include <asdxCameraUtil.h>
+#include <asdxConstantBuffer.h>
 #include <WorkSpace.h>
 
 
@@ -58,7 +60,11 @@ private:
     //=========================================================================
     asdx::RefPtr<ID3D11VertexShader>    m_VS;
     asdx::RefPtr<ID3D11VertexShader>    m_SkinningVS;
+    asdx::ConstantBuffer                m_SceneBuffer;
+    asdx::CameraUpdater                 m_CameraController;
     WorkSpace                           m_WorkSpace;
+    bool                                m_CameraControl;
+
 
     //=========================================================================
     // private methods.

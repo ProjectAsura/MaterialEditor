@@ -40,15 +40,15 @@ struct VSOutput
 ///////////////////////////////////////////////////////////////////////////////
 cbuffer CbScene : register(b0)
 {
-    float4x4 View;          // ビュー行列.
-    float4x4 Proj;          // 射影行列.
-    float4x4 InvView;       // ビュー行列の逆行列.
-    float4x4 InvProj;       // 射影行列の逆行列.
-    float2   UVToView;      // UVからビュー空間への変換行列.
-    float    NearClip;      // カメラのニア平面.
-    float    FarClip;       // カメラのファー平面.
-    float3   CameraPos;     // カメラ位置.
-    float    FieldOfView;   // 垂直画角.
+    float4x4    View        : packoffset(c0);
+    float4x4    Proj        : packoffset(c4);
+    float4x4    InvView     : packoffset(c8);
+    float4x4    InvProj     : packoffset(c12);
+    float3      CameraPos   : packoffset(c16);
+    float       Timer       : packoffset(c16.w);
+    float       NearClip    : packoffset(c17);
+    float       FarClip     : packoffset(c17.y);
+    float2      UVToView    : packoffset(c17.z);
 };
 
 ///////////////////////////////////////////////////////////////////////////////

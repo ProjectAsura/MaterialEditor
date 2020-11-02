@@ -37,6 +37,22 @@ D3D11_INPUT_ELEMENT_DESC kSkinningElements[] = {
     { "BONE_WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// SceneBuffer structure
+///////////////////////////////////////////////////////////////////////////////
+struct SceneBuffer
+{
+    asdx::Matrix    View;           // ビュー行列.
+    asdx::Matrix    Proj;           // 射影行列.
+    asdx::Matrix    InvView;        // ビュー行列の逆行列.
+    asdx::Matrix    InvProj;        // 射影行列の逆行列.
+    asdx::Vector3   CameraPos;      // カメラ位置.
+    float           Timer;          // グローバルタイマー.
+    float           NearClip;       // ニア平面.
+    float           FarClip;        // ファー平面.
+    asdx::Vector2   UVToView;       // UVからビュー空間への変換パラメータ.
+};
+
 } // namespace
 
 
@@ -129,6 +145,34 @@ void App::OnTerm()
 //-----------------------------------------------------------------------------
 void App::OnFrameRender(asdx::FrameEventArgs& args)
 {
+    // シーン定数バッファの更新.
+    {
+        auto fov = asdx::ToRadian(37.5f);
+        auto camera = m_CameraController.GetCamera();
+
+        auto aspect = float(m_Width) / float(m_Height);
+        auto proj = asdx::Matrix::CreatePerspectiveFieldOfView(
+            fov,
+            aspect,
+            camera.GetMinDist(),
+            camera.GetMaxDist());
+
+        SceneBuffer res = {};
+        res.View        = m_CameraController.GetView();
+        res.Proj        = proj;
+        res.InvView     = asdx::Matrix::Invert(res.View);
+        res.InvProj     = asdx::Matrix::Invert(proj);
+        res.CameraPos   = camera.GetPosition();
+        res.Timer       = float(m_Timer.GetTime());
+        res.NearClip    = camera.GetMinDist();
+        res.FarClip     = camera.GetMaxDist();
+        res.UVToView.x  = float(1.0 / double(proj._11));
+        res.UVToView.y  = float(1.0 / double(proj._22));
+
+        auto pCB = m_SceneBuffer.GetBuffer();
+        m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
+    }
+
     Draw3D();
 
     auto pRTV = m_ColorTarget2D.GetTargetView();
@@ -160,6 +204,8 @@ void App::OnKey(const asdx::KeyEventArgs& args)
 {
     asdx::GuiMgr::GetInstance().OnKey(
         args.IsKeyDown, args.IsKeyDown, args.KeyCode);
+
+    m_CameraController.OnKey(args.KeyCode, args.IsKeyDown, args.IsAltDown);
 }
 
 //-----------------------------------------------------------------------------
@@ -167,6 +213,9 @@ void App::OnKey(const asdx::KeyEventArgs& args)
 //-----------------------------------------------------------------------------
 void App::OnMouse(const asdx::MouseEventArgs& args)
 {
+    auto isAltDown  = ( GetKeyState( VK_MENU ) & 0x8000 ) != 0;
+    auto isCtrlDown = ( GetKeyState( VK_CONTROL ) & 0x800 ) != 0;
+
     asdx::GuiMgr::GetInstance().OnMouse(
         args.X,
         args.Y,
@@ -174,6 +223,22 @@ void App::OnMouse(const asdx::MouseEventArgs& args)
         args.IsLeftButtonDown,
         args.IsMiddleButtonDown,
         args.IsRightButtonDown);
+
+    m_CameraControl = false;
+
+    if (isAltDown)
+    {
+        m_CameraControl = true;
+        m_CameraController.OnMouse(
+            args.X,
+            args.Y,
+            args.WheelDelta,
+            args.IsLeftButtonDown,
+            args.IsRightButtonDown,
+            args.IsMiddleButtonDown,
+            args.IsSideButton1Down,
+            args.IsSideButton2Down);
+    }
 }
 
 //-----------------------------------------------------------------------------

@@ -133,6 +133,7 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     <ClCompile Include="..\src\AppDraw.cpp" />
     <ClCompile Include="..\src\AppExport.cpp" />
     <ClCompile Include="..\src\AppGui.cpp" />
+    <ClCompile Include="..\src\Config.cpp" />
     <ClCompile Include="..\src\EditorMaterial.cpp" />
     <ClCompile Include="..\src\EditorModel.cpp" />
     <ClCompile Include="..\src\main.cpp" />
@@ -149,6 +150,7 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     <ClInclude Include="..\external\imguizmo\ImSequencer.h" />
     <ClInclude Include="..\external\meshoptimizer\src\meshoptimizer.h" />
     <ClInclude Include="..\include\App.h" />
+    <ClInclude Include="..\include\Config.h" />
     <ClInclude Include="..\include\EditorMaterial.h" />
     <ClInclude Include="..\include\EditorModel.h" />
     <ClInclude Include="..\include\MeshLoader.h" />

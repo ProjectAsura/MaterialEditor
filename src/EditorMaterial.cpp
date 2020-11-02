@@ -96,7 +96,7 @@ void EditorMaterial::Deserialize(tinyxml2::XMLElement* element)
 //-----------------------------------------------------------------------------
 //      マテリアルシェーダを適用します.
 //-----------------------------------------------------------------------------
-PluginMaterial* EditorMaterial::Bind(ID3D11DeviceContext* pContext)
+const PluginShader* EditorMaterial::Bind(ID3D11DeviceContext* pContext)
 {
     PluginMaterial* material;
     if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
@@ -105,14 +105,25 @@ PluginMaterial* EditorMaterial::Bind(ID3D11DeviceContext* pContext)
     auto instance = m_Instances[m_SelectedMaterial];
 
     material->Bind(pContext, instance);
-    return material;
+    return material->GetShader();
 }
 
 //-----------------------------------------------------------------------------
 //      マテリアルシェーダの適用を解除します.
 //-----------------------------------------------------------------------------
-void EditorMaterial::Unbind(ID3D11DeviceContext* pContext, PluginMaterial* material)
-{ material->Unbind(pContext); }
+void EditorMaterial::Unbind(ID3D11DeviceContext* pContext, const PluginShader* shader)
+{
+    if (shader != nullptr)
+    { shader->Unbind(pContext); }
+    else
+    {
+        PluginMaterial* material;
+        if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
+        { return; }
+
+        material->Unbind(pContext);
+    }
+}
 
 //-----------------------------------------------------------------------------
 //      マテリアルを編集します.
@@ -137,6 +148,13 @@ void EditorMaterial::Edit()
 
     ImGui::PopID();
 }
+
+//-----------------------------------------------------------------------------
+//      マテリアル名を取得します.
+//-----------------------------------------------------------------------------
+const std::string& EditorMaterial::GetName() const
+{ return m_Name; }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // EditorMaterials class
@@ -201,3 +219,19 @@ EditorMaterial& EditorMaterials::GetMaterial(uint32_t index)
     return m_Materials[index];
 }
 
+//-----------------------------------------------------------------------------
+//      マテリアルを検索します.
+//-----------------------------------------------------------------------------
+bool EditorMaterials::FindMaterial(const std::string& name, EditorMaterial& material)
+{
+    for(size_t i=0; i<m_Materials.size(); ++i)
+    {
+        if (m_Materials[i].GetName() == name)
+        {
+            material = m_Materials[i];
+            return true;
+        }
+    }
+
+    return false;
+}

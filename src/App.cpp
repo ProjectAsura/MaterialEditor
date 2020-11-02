@@ -129,7 +129,7 @@ void App::OnTerm()
 //-----------------------------------------------------------------------------
 void App::OnFrameRender(asdx::FrameEventArgs& args)
 {
-
+    Draw3D();
 
     auto pRTV = m_ColorTarget2D.GetTargetView();
     m_pDeviceContext->ClearRenderTargetView(pRTV, m_ClearColor);

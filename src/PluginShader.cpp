@@ -336,6 +336,12 @@ void PluginShader::Unbind(ID3D11DeviceContext* pContext) const
         nullptr,
         nullptr
     };
+
+    ID3D11ShaderResourceView* pSRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_REGISTER_COUNT];
+    for(auto i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_REGISTER_COUNT; ++i)
+    { pSRVs[i] = nullptr; }
+
+    pContext->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_REGISTER_COUNT, pSRVs);
     pContext->PSSetSamplers(0, _countof(pSmps), pSmps);
     pContext->PSSetShader(nullptr, nullptr, 0);
 }

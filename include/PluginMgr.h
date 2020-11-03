@@ -404,7 +404,7 @@ public:
     //-------------------------------------------------------------------------
     //! @brief      ロードします.
     //-------------------------------------------------------------------------
-    bool Load(const char* path);
+    bool Load(const char* path, const char* entryPoint);
 
     //-------------------------------------------------------------------------
     //! @brief      解放処理を行います.
@@ -527,12 +527,12 @@ public:
     //-------------------------------------------------------------------------
     //! @brief      シェーダを設定します.
     //-------------------------------------------------------------------------
-    void Bind(ID3D11DeviceContext* pContext, const MaterialInstance* instance);
+    void Bind(ID3D11DeviceContext* pContext, const MaterialInstance* instance, bool lightingPass = true);
 
     //-------------------------------------------------------------------------
     //! @brief      シェーダ設定を解除します.
     //-------------------------------------------------------------------------
-    void Unbind(ID3D11DeviceContext* pContext);
+    void Unbind(ID3D11DeviceContext* pContext, bool lightingPass = true);
 
     //-------------------------------------------------------------------------
     //! @brief      マテリアルを編集します.
@@ -540,9 +540,14 @@ public:
     void Edit(MaterialInstance* instance);
 
     //-------------------------------------------------------------------------
-    //! @brief      シェーダを取得します.
+    //! @brief      ライティングシェーダを取得します.
     //-------------------------------------------------------------------------
-    const PluginShader* GetShader() const;
+    const PluginShader* GetLightingShader() const;
+
+    //-------------------------------------------------------------------------
+    //! @brief      シャドウイングシェーダを取得します.
+    //-------------------------------------------------------------------------
+    const PluginShader* GetShadowingShader() const;
 
     //-------------------------------------------------------------------------
     //! @brief      デフォルト値を設定します.
@@ -560,7 +565,8 @@ private:
     //=========================================================================
     std::string                     m_Name;
     std::string                     m_ShaderPath;
-    PluginShader                    m_Shader;
+    PluginShader                    m_LightingShader;
+    PluginShader                    m_ShadowingShader;
     UiDefShadowCast                 m_ShadowCast;
     UiDefShadowReceive              m_ShadowReceive;
     UiDefBlendState                 m_BlendState;

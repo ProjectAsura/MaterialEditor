@@ -13,7 +13,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // CbUser constant buffer.
 ///////////////////////////////////////////////////////////////////////////////
-cbuffer CbUser : register(b5)
+cbuffer CbUser
 {
     float2 UVOffset;
     float2 UVScale;
@@ -24,10 +24,10 @@ cbuffer CbUser : register(b5)
 //-----------------------------------------------------------------------------
 // Textures
 //-----------------------------------------------------------------------------
-Texture2D BaseColor  : register(t5);
-Texture2D ORM        : register(t6);
-Texture2D Normal     : register(t7);
-Texture2D Emissive   : register(t8);
+Texture2D BaseColor;
+Texture2D ORM;
+Texture2D Normal;
+Texture2D Emissive;
 
 
 //-----------------------------------------------------------------------------
@@ -110,9 +110,9 @@ float3 EvaluateDirectLight(float3 N, float3 V, float3 L, float3 Kd, float3 Ks, f
 }
 
 //-----------------------------------------------------------------------------
-//      メインエントリーポイントです.
+//      ライティング処理です.
 //-----------------------------------------------------------------------------
-PSOutput main(const VSOutput input)
+PSOutput LightingPS(const VSOutput input)
 {
     PSOutput output = (PSOutput)0;
 
@@ -129,7 +129,7 @@ PSOutput main(const VSOutput input)
     float3 orm    = ORM.Sample(AnisotropicWrap, uv).rgb;
 
     // 従接線ベクトルを計算.
-    float3 bitangent = cross(input.Normal, input.Tangent);
+    float3 bitangent = GetBitangent(input);
     float3 N = FromTangentSpaceToWorld(normal, input.Tangent, bitangent, input.Normal);
 
     // ビュー空間の深度と位置座標を取得.
@@ -153,4 +153,18 @@ PSOutput main(const VSOutput input)
     output.Color.rgb += Emissive.Sample(AnisotropicWrap, uv);
 
     return output;
+}
+
+//-----------------------------------------------------------------------------
+//      シャドウイング処理です.
+//-----------------------------------------------------------------------------
+void ShadowingPS(const VSOutput input)
+{
+    // UVアニメーション.
+    float2 uv = UVAnimation(GetTexCoord0(input), UVScale, UVOffset, UVRotate);
+
+    // ベースカラー取得.
+    float4 baseColor = BaseColor.Sample(AnisotropicWrap, uv);
+    if (baseColor.a < AlphaThreshold)
+    { discard; }
 }

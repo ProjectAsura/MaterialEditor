@@ -3,7 +3,6 @@
 // Desc : Shader Definition For Editor.
 // Copyright(c) Project Asura. All right reserved.
 //-----------------------------------------------------------------------------
-
 #ifndef EDITOR_HLSLI
 #define EDITOR_HLSLI
 
@@ -67,6 +66,8 @@ cbuffer CbLight : register(b3)
     float3   SunLightDir        : packoffset(c0);
     float    SunLightIntensity  : packoffset(c0.w);
     float    IBLIntensity       : packoffset(c1);
+    float    IBLRotate          : packoffset(c1.y);
+    float    PreExposureScale   : packoffset(c1.z);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,8 +75,17 @@ cbuffer CbLight : register(b3)
 ///////////////////////////////////////////////////////////////////////////////
 cbuffer CbShadow : register(b4)
 {
-    float4x4 ShadowMatrix;
-}
+    float4x4 ShadowMatrix   : packoffset(c0);
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// CbMaterialCommon constant buffer.
+///////////////////////////////////////////////////////////////////////////////
+cbuffer CbMaterialCommon : register(b5)
+{
+    int ShadowReceive   : packoffset(c0);       // 0:レシーブしない, 1:レシーブする.
+    int DisplayFace     : packoffset(c0.y);     // 0:両面表示, 1:背面表示, 2:前面表示 3:ワイヤーフレーム.
+};
 
 //-----------------------------------------------------------------------------
 // Textures and Samplers.
@@ -85,6 +95,8 @@ TextureCube DiffuseLD       : register(t1);
 TextureCube SpecularLD      : register(t2);
 Texture2D   SceneDepthMap   : register(t3);
 Texture2D   SceneColorMap   : register(t4);
+Texture2D   ShadowIndexMap  : register(t5);
+Texture2D   ShadowAtlasMap  : register(t6);
 
 SamplerState LinearClamp        : register(s0);
 SamplerState LinearWrap         : register(s1);
@@ -108,6 +120,10 @@ float2 GetTexCoord2(VSOutput value)
 
 float2 GetTexCoord3(VSOutput value)
 { return value.TexCoord23.zw; }
+
+float3 GetBitangent(VSOutput value)
+{ return -normalize(cross(value.Normal, value.Tangent)); }
+
 
 
 #endif//EDITOR_DEF_HLSLI

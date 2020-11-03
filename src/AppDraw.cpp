@@ -18,7 +18,7 @@ void App::DrawModel()
     auto materials = m_WorkSpace.GetMaterials();
     auto count     = model->GetMeshCount();
 
-    for(auto i=0; i<count; ++i)
+    for(auto i=0u; i<count; ++i)
     {
         auto& mesh = model->GetMesh(i);
     
@@ -30,7 +30,8 @@ void App::DrawModel()
         auto shader = material.Bind(m_pDeviceContext);
 
         // 定数バッファ設定.
-        //shader->SetCBV();
+        shader->SetCBV(m_pDeviceContext, "CbScene", m_SceneCB.GetBuffer());
+        shader->SetCBV(m_pDeviceContext, "CbLight", m_LightCB.GetBuffer());
 
         // テクスチャを設定.
         //shader->SetSRV();
@@ -69,3 +70,4 @@ void App::Draw3D()
     // TAA
 
 }
+

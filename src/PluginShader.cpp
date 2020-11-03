@@ -35,7 +35,7 @@ PluginShader::~PluginShader()
 //-----------------------------------------------------------------------------
 //      ロードします.
 //-----------------------------------------------------------------------------
-bool PluginShader::Load(const char* path)
+bool PluginShader::Load(const char* path, const char* entryPoint)
 {
     if (path == nullptr)
     {
@@ -62,7 +62,7 @@ bool PluginShader::Load(const char* path)
         wpath.c_str(),
         nullptr,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
-        "main",
+        entryPoint,
         "ps_5_0",
         compileFlag,
         0,
@@ -200,7 +200,7 @@ void PluginShader::Term()
     m_TableSRV      .clear();
     m_TableUAV      .clear();
 
-    m_PS        .Reset();
+    m_PS.Reset();
     m_EditableCB.Reset();
 }
 

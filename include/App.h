@@ -11,6 +11,8 @@
 #include <asdxApp.h>
 #include <asdxCameraUtil.h>
 #include <asdxConstantBuffer.h>
+#include <asdxVertexBuffer.h>
+#include <asdxShader.h>
 #include <WorkSpace.h>
 
 
@@ -60,10 +62,19 @@ private:
     //=========================================================================
     asdx::RefPtr<ID3D11VertexShader>    m_VS;
     asdx::RefPtr<ID3D11VertexShader>    m_SkinningVS;
-    asdx::ConstantBuffer                m_SceneBuffer;
+    asdx::ConstantBuffer                m_SceneCB;
+    asdx::ConstantBuffer                m_GuideCB;
+    asdx::ConstantBuffer                m_LightCB;
+    asdx::VertexBuffer                  m_AxisVB;
+    asdx::VertexBuffer                  m_GridVB;
+    asdx::VertexShader                  m_GuideVS;
+    asdx::PixelShader                   m_GuidePS;
+    uint32_t                            m_AxisVertexCount = 6;
+    uint32_t                            m_GridVertexCount = 0;
     asdx::CameraUpdater                 m_CameraController;
     WorkSpace                           m_WorkSpace;
-    bool                                m_CameraControl;
+    bool                                m_CameraControl = false;
+    asdx::Matrix                        m_Proj = asdx::Matrix::CreateIdentity();
 
 
     //=========================================================================
@@ -124,4 +135,6 @@ private:
     //! @brief      モデルの描画を行います.
     //-------------------------------------------------------------------------
     void DrawModel();
+
+    void DrawGuide();
 };

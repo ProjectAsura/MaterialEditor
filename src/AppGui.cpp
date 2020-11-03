@@ -185,7 +185,7 @@ void DrawPopupMenu(WorkSpace& workSpace, MenuContext& context)
     DrawFileMenu(workSpace);
 
     // ランタイム連携.
-    //DrawRuntimeLinkage(false);
+    DrawRuntimeLinkage(false);
 
     // ヘルプ.
     DrawHelp(context);
@@ -207,6 +207,8 @@ void DrawModalDialog(MenuContext& context)
         ImGui::BulletText("ImgGuizmo (https://github.com/CedricGuillemet/ImGuizmo/blob/master/LICENSE)");
         ImGui::BulletText("TinyXML-2 (https://github.com/leethomason/tinyxml2/blob/master/LICENSE.txt)");
         ImGui::BulletText("meshoptimizer (https://github.com/zeux/meshoptimizer/blob/master/LICENSE.md)");
+        ImGui::BulletText("DirectXTex ()");
+        ImGui::BulletText("assimp ()");
 
         if (ImGui::Button("OK"))
         { ImGui::CloseCurrentPopup(); }
@@ -275,7 +277,7 @@ void App::DrawGui()
         // FPS表示.
         DrawFPS(GetFPS(), 0, 0, false);
 
-        if(!ImGui::IsAnyItemHovered())
+        if(!ImGui::IsAnyItemHovered() & !m_CameraControl)
         {
             if(ImGui::IsMouseClicked(1))
             { ImGui::OpenPopup(u8"PopupMenu"); }
@@ -283,8 +285,10 @@ void App::DrawGui()
 
         MenuContext context = {};
 
+        // 右クリックメニュー.
         DrawPopupMenu(m_WorkSpace, context);
 
+        // モーダルダイアログ.
         DrawModalDialog(context);
 
     }

@@ -1016,7 +1016,13 @@ bool PluginMaterial::Load(const char* path)
     shaderPath = asdx::ToFullPath((shaderPath + m_ShaderPath).c_str());
 
     // シェーダをロード.
-    if (!m_Shader.Load(shaderPath.c_str()))
+    if (!m_LightingShader.Load(shaderPath.c_str(), "LightingPS"))
+    {
+        ELOGA("Error : PluginShader::Load() Failed. path = %s", shaderPath.c_str());
+        return false;
+    }
+
+    if (!m_ShadowingShader.Load(shaderPath.c_str(), "ShadowingPS"))
     {
         ELOGA("Error : PluginShader::Load() Failed. path = %s", shaderPath.c_str());
         return false;
@@ -1047,7 +1053,8 @@ bool PluginMaterial::Save(const char* path)
 //-----------------------------------------------------------------------------
 void PluginMaterial::Term()
 {
-    m_Shader.Term();
+    m_LightingShader.Term();
+    m_ShadowingShader.Term();
 
     m_Name.clear();
 
@@ -1085,24 +1092,39 @@ void PluginMaterial::Term()
 //-----------------------------------------------------------------------------
 //      シェーダを設定します.
 //-----------------------------------------------------------------------------
-void PluginMaterial::Bind(ID3D11DeviceContext* pContext, const MaterialInstance* instance)
+void PluginMaterial::Bind(ID3D11DeviceContext* pContext, const MaterialInstance* instance, bool lightingPass)
 {
     if (pContext == nullptr || instance == nullptr)
     { return; }
 
-    m_Shader.Bind(pContext);
-    m_Shader.Update(pContext, instance);
+    if (lightingPass)
+    {
+        m_LightingShader.Bind(pContext);
+        m_LightingShader.Update(pContext, instance);
+    }
+    else
+    {
+        m_ShadowingShader.Bind(pContext);
+        m_ShadowingShader.Update(pContext, instance);
+    }
 }
 
 //-----------------------------------------------------------------------------
 //      シェーダの設定を解除します.
 //-----------------------------------------------------------------------------
-void PluginMaterial::Unbind(ID3D11DeviceContext* pContext)
+void PluginMaterial::Unbind(ID3D11DeviceContext* pContext, bool lightingPass)
 {
     if (pContext == nullptr)
     { return; }
 
-    m_Shader.Unbind(pContext);
+    if (lightingPass)
+    {
+        m_LightingShader.Unbind(pContext);
+    }
+    else
+    {
+        m_ShadowingShader.Unbind(pContext);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -1218,10 +1240,16 @@ void PluginMaterial::Edit(MaterialInstance* instance)
 }
 
 //-----------------------------------------------------------------------------
-//      シェーダを取得します.
+//      ライティングシェーダを取得します.
 //-----------------------------------------------------------------------------
-const PluginShader* PluginMaterial::GetShader() const
-{ return &m_Shader; }
+const PluginShader* PluginMaterial::GetLightingShader() const
+{ return &m_LightingShader; }
+
+//-----------------------------------------------------------------------------
+//      シャドウイングシェーダを取得します.
+//-----------------------------------------------------------------------------
+const PluginShader* PluginMaterial::GetShadowingShader() const
+{ return &m_ShadowingShader; }
 
 //-----------------------------------------------------------------------------
 //      デフォルト値を設定します.

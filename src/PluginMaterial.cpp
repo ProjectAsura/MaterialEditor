@@ -10,6 +10,7 @@
 #include <PluginMgr.h>
 #include <asdxLogger.h>
 #include <asdxMisc.h>
+#include <asdxRenderState.h>
 
 
 namespace {
@@ -972,6 +973,35 @@ void MaterialInstance::Deserialize(tinyxml2::XMLElement* element)
     ::Deserialize(e, m_Texture2D);
 }
 
+//-----------------------------------------------------------------------------
+//      シャドウをキャストするかどうか?
+//-----------------------------------------------------------------------------
+bool MaterialInstance::CastShadow() const
+{ return m_ShadowCast.GetValue(); }
+
+//-----------------------------------------------------------------------------
+//      シャドウをレシーブするかどうか?
+//-----------------------------------------------------------------------------
+bool MaterialInstance::ReceiveShadow() const
+{ return m_ShadowReceive.GetValue(); }
+
+//-----------------------------------------------------------------------------
+//      ブレンドステートを取得します.
+//-----------------------------------------------------------------------------
+int MaterialInstance::GetBlendState() const
+{ return m_BlendState.GetValue(); }
+
+//-----------------------------------------------------------------------------
+//      深度ステンシルステートを取得します.
+//-----------------------------------------------------------------------------
+int MaterialInstance::GetDepthState() const
+{ return m_DepthStencilState.GetValue(); }
+
+//-----------------------------------------------------------------------------
+//      ラスタライザーステートを取得します.
+//-----------------------------------------------------------------------------
+int MaterialInstance::GetRasterizerState() const
+{ return m_RasterizerState.GetValue(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 // PluginMaterial class
@@ -1096,6 +1126,20 @@ void PluginMaterial::Bind(ID3D11DeviceContext* pContext, const MaterialInstance*
 {
     if (pContext == nullptr || instance == nullptr)
     { return; }
+
+    auto blendType      = asdx::BlendType(instance->GetBlendState());
+    auto depthType      = asdx::DepthType(instance->GetDepthState());
+    auto rasterizerType = asdx::RasterizerType(instance->GetRasterizerState());
+ 
+    auto pBS  = asdx::RenderState::GetInstance().GetBS(blendType);
+    auto pDSS = asdx::RenderState::GetInstance().GetDSS(depthType);
+    auto pRS  = asdx::RenderState::GetInstance().GetRS(rasterizerType);
+
+    float blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    uint32_t sampleMask = 0xffff;
+    pContext->OMSetBlendState(pBS, blendFactor, sampleMask);
+    pContext->OMSetDepthStencilState(pDSS, 0);
+    pContext->RSSetState(pRS);
 
     if (lightingPass)
     {

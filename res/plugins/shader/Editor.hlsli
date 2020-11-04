@@ -18,12 +18,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 struct VSOutput
 {
-    float4 Position   : POSITION;       // 位置座標.
+    float4 Position   : SV_POSITION;    // 位置座標.
     float4 Color      : COLOR;          // カラー.
     float3 Normal     : NORMAL;         // 法線ベクトル.
     float3 Tangent    : TANGENT;        // 接線ベクトル.
-    float4 TexCoord01 : TEXCOORD01;     // テクスチャ座標0, テクスチャ座標1.
-    float4 TexCoord23 : TEXCOORD23;     // テクスチャ座標2, テクスチャ座標3.
+    float4 TexCoord01 : TEXCOORD0;      // テクスチャ座標0, テクスチャ座標1.
+    float4 TexCoord23 : TEXCOORD1;      // テクスチャ座標2, テクスチャ座標3.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,6 +32,7 @@ struct VSOutput
 struct PSOutput
 {
     float4 Color : SV_TARGET0;
+    float4 NRM   : SV_TARGET1;  // 法線/ラフネス/メタルネス.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,6 +125,7 @@ float2 GetTexCoord3(VSOutput value)
 float3 GetBitangent(VSOutput value)
 { return -normalize(cross(value.Normal, value.Tangent)); }
 
-
+float4 EncodeNRM(float3 normal, float roughness, float metalness)
+{ return float4(PackNormal(normal), roughness, metalness); }
 
 #endif//EDITOR_DEF_HLSLI

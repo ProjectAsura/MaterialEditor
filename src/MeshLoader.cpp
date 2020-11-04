@@ -60,7 +60,7 @@ bool MeshLoader::Load(const char* filename, asdx::ResModel& model)
     for(auto i=0u; i<m_pScene->mNumMeshes; ++i)
     {
         const auto pMesh = m_pScene->mMeshes[i];
-        ParseMesh(model, pMesh);
+        ParseMesh(model, pMesh, i);
     }
     model.Meshes.shrink_to_fit();
 
@@ -83,7 +83,7 @@ bool MeshLoader::Load(const char* filename, asdx::ResModel& model)
 //-----------------------------------------------------------------------------
 //      静的メッシュデータを解析します.
 //-----------------------------------------------------------------------------
-void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh)
+void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh, uint32_t index)
 {
     // マテリアル番号を設定.
     auto matId = pSrcMesh->mMaterialIndex;
@@ -91,6 +91,10 @@ void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh)
 
     asdx::ResMesh dstMesh;
     dstMesh.MeshName = pSrcMesh->mName.C_Str();
+
+    // 名前がない場合は適当な名前を付ける.
+    if (dstMesh.MeshName == "")
+    { dstMesh.MeshName = "mesh" + std::to_string(index); }
 
     // マテリアルハッシュ生成.
     {

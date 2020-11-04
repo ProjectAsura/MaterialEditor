@@ -171,31 +171,21 @@ const std::string& EditorMesh::GetMaterialName() const
 //-----------------------------------------------------------------------------
 void EditorMesh::Draw(ID3D11DeviceContext* pContext) const
 {
-    if (!m_HasSkinningData)
+    auto pVB0    = m_VB.GetBuffer();
+    auto stride0 = m_VB.GetStride();
+    auto offset0 = 0u;
+
+    pContext->IASetVertexBuffers(0, 1, &pVB0, &stride0, &offset0);
+
+    if (m_HasSkinningData)
     {
-        auto pVB    = m_VB.GetBuffer();
-        auto stride = m_VB.GetStride();
-        pContext->IASetVertexBuffers(0, 1, &pVB, &stride, nullptr);
+        auto pVB1    = m_SkinVB.GetBuffer();
+        auto stride1 = m_SkinVB.GetStride();
+        auto offset1 = 0u;
+
+        pContext->IASetVertexBuffers(1, 1, &pVB1, &stride1, &offset1);
     }
-    else
-    {
-        ID3D11Buffer* pVBs[] = {
-            m_VB.GetBuffer(),
-            m_SkinVB.GetBuffer()
-        };
 
-        UINT strides[] = {
-            m_VB.GetStride(),
-            m_SkinVB.GetStride()
-        };
-
-        UINT offsets[] = {
-            0,
-            0
-        };
-
-        pContext->IASetVertexBuffers(0, 2, pVBs, strides, offsets);
-    }
     pContext->IASetIndexBuffer(m_IB.GetBuffer(), DXGI_FORMAT_R32_UINT, 0);
     pContext->DrawIndexed(m_IndexCount, 0, 0);
 }

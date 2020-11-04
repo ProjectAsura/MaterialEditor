@@ -30,6 +30,98 @@ WorkSpace::~WorkSpace()
 { Clear(); }
 
 //-----------------------------------------------------------------------------
+//      ワークスペースを新規作成します.
+//-----------------------------------------------------------------------------
+bool WorkSpace::New(const char* modelPath)
+{
+    if (modelPath == nullptr || m_Loading)
+    { return false; }
+
+    std::string filePath;
+    if (!asdx::SearchFilePathA(modelPath, filePath))
+    {
+        ELOG("Error : File Not Found. path = %s", modelPath);
+        return false;
+    }
+
+    // データを破棄.
+    Clear();
+
+    // 読み込みフラグを立てる.
+    m_Loading = true;
+
+    // ロード引数.
+    struct LoadArg
+    {
+        WorkSpace*      pWorkSpace;
+        std::string     Path;
+    };
+
+    // ロード関数.
+    auto loadFunc = [](void* args)
+    {
+        auto loadArg = static_cast<LoadArg*>(args);
+        if (loadArg == nullptr)
+        { return; }
+
+        auto path = loadArg->Path.c_str();
+        auto pWorkSpace = loadArg->pWorkSpace;
+
+        // モデル読み込み.
+        pWorkSpace->m_Model = new EditorModel();
+        if (!pWorkSpace->m_Model->Init(path))
+        {
+            delete pWorkSpace->m_Model;
+            pWorkSpace->m_Model = nullptr;
+
+            pWorkSpace->m_Loading = false;
+            return;
+        }
+
+        // マテリアル生成.
+        pWorkSpace->m_Materials = new EditorMaterials();
+        pWorkSpace->m_Materials->Resize(pWorkSpace->m_Model->GetMeshCount());
+
+        // マテリアル名を設定.
+        for(auto i=0u; i<pWorkSpace->m_Model->GetMeshCount(); ++i)
+        {
+            auto& mesh     = pWorkSpace->m_Model->GetMesh(i);
+            auto& material = pWorkSpace->m_Materials->GetMaterial(i);
+            material.SetName(mesh.GetMaterialName());
+        }
+
+        pWorkSpace->m_WorkDir    = asdx::ToFullPath(asdx::GetDirectoryPathA(path).c_str());
+        pWorkSpace->m_ModelPath  = asdx::ToRelativePath(pWorkSpace->m_WorkDir.c_str(), path);
+        pWorkSpace->m_Path       = "";
+        pWorkSpace->m_OutputPath = "";
+
+        // 読み込みフラグを落とす.
+        pWorkSpace->m_Loading = false;
+
+        loadArg->pWorkSpace = nullptr;
+        delete loadArg;
+    };
+
+    // 引数準備.
+    auto args = new LoadArg();
+    args->pWorkSpace = this;
+    args->Path       = filePath.c_str();
+
+    // 読み込みスレッド開始.
+    auto handle = _beginthread(loadFunc, 0, args);
+
+    // 正常終了したかどうかチェック.
+    if (handle == -1 || handle == 0)
+    {
+        // 失敗した場合は作成元でdeleteする.
+        delete args;
+        return false;
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
 //      ロード処理を行います.
 //-----------------------------------------------------------------------------
 bool WorkSpace::Load(const char* path)
@@ -49,7 +141,7 @@ bool WorkSpace::Load(const char* path)
     std::string filePath;
     if (!asdx::SearchFilePathA(path, filePath))
     {
-        ELOG("Error : File Not Found. path = %s", filePath.c_str());
+        ELOG("Error : File Not Found. path = %s", path);
         m_Loading = false;
         return false;
     }
@@ -116,16 +208,21 @@ bool WorkSpace::Load(const char* path)
     // 読み込み成功している場合は絶対にnullptrにならない.
     assert(m_Model != nullptr);
 
-    // メッシュがある場合にマテリアルを読み込む.
-    if (m_Model->GetMeshCount() >= 1u)
-    {
-        m_Materials = new EditorMaterials();
+    m_Materials = new EditorMaterials();
+    m_Materials->Resize(m_Model->GetMeshCount());
 
-        // マテリアルを読み込み.
-        m_Materials->Deserialize(root);
+    // マテリアル名を設定.
+    for(auto i=0u; i<m_Model->GetMeshCount(); ++i)
+    {
+        auto& mesh      = m_Model->GetMesh(i);
+        auto& material  = m_Materials->GetMaterial(i);
+        material.SetName(mesh.GetMaterialName());
     }
 
-    m_Path = filePath;
+    // マテリアルを読み込み.
+    m_Materials->Deserialize(root);
+
+    m_Path    = filePath;
     m_Loading = false;
     return true;
 }

@@ -121,7 +121,7 @@ private:
     //! @param[out]     model       モデルの格納先です.
     //! @param[in]      pSrcMesh    入力メッシュです.
     //-------------------------------------------------------------------------
-    void ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh);
+    void ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh, uint32_t index);
 
     //-------------------------------------------------------------------------
     //! @brief      マテリアルを解析します.

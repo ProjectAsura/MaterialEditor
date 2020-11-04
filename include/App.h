@@ -64,6 +64,7 @@ private:
     asdx::RefPtr<ID3D11VertexShader>    m_VS;
     asdx::RefPtr<ID3D11VertexShader>    m_SkinningVS;
     asdx::RefPtr<ID3D11PixelShader>     m_DefaultPS;
+    asdx::RefPtr<ID3D11PixelShader>     m_CopyPS;
     asdx::RefPtr<ID3D11InputLayout>     m_IL;
     asdx::RefPtr<ID3D11InputLayout>     m_SkinningIL;
     asdx::ConstantBuffer                m_SceneCB;
@@ -72,6 +73,7 @@ private:
     asdx::ConstantBuffer                m_MeshCB;
     asdx::VertexBuffer                  m_AxisVB;
     asdx::VertexBuffer                  m_GridVB;
+    asdx::VertexBuffer                  m_TriangleVB;
     asdx::VertexShader                  m_GuideVS;
     asdx::PixelShader                   m_GuidePS;
     uint32_t                            m_AxisVertexCount = 6;

@@ -176,6 +176,7 @@ void EditorMesh::Draw(ID3D11DeviceContext* pContext) const
     auto offset0 = 0u;
 
     pContext->IASetVertexBuffers(0, 1, &pVB0, &stride0, &offset0);
+    pContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     if (m_HasSkinningData)
     {

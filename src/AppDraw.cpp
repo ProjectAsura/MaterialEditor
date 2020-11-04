@@ -119,8 +119,9 @@ void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
 void App::Draw3D()
 {
     // シャドウマップ描画.
+#if 0
     {
-        auto pRTV = m_LightingTarget.GetTargetView();
+        auto pRTV = m_DummyTarget.GetTargetView();
         auto pDSV = m_ShadowTarget.GetTargetView();
 
         m_pDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -145,20 +146,22 @@ void App::Draw3D()
 
         DrawModel(false, asdx::BlendType::Opaque);
     }
+#endif
 
 
     // フォワードレンダリング.
     {
         ID3D11RenderTargetView* pRTV[] = {
-            m_LightingTarget.GetTargetView(),
-            m_NRMTarget.GetTargetView(),
+            m_LightingBuffer.GetTargetView(),
+            m_NRMBuffer     .GetTargetView(),
         };
 
-        auto pDSV = m_DepthTarget2D.GetTargetView();
+        auto pDSV = m_DepthBuffer.GetTargetView();
 
-        float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-        m_pDeviceContext->ClearRenderTargetView(pRTV[0], clearColor);
+        float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        m_pDeviceContext->ClearRenderTargetView(pRTV[0], m_ClearColor);
         m_pDeviceContext->ClearRenderTargetView(pRTV[1], clearColor);
+        m_pDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
         m_pDeviceContext->OMSetRenderTargets(2, pRTV, pDSV);
         m_pDeviceContext->RSSetViewports(1, &m_Viewport);
@@ -183,5 +186,8 @@ void App::Draw3D()
 
     // TAA
 
+
+    // ガイドオブジェクト描画.
+    DrawGuide();
 }
 

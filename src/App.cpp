@@ -24,6 +24,8 @@ namespace {
 #include "../res/shaders/Compiled/EditorPS.inc"
 #include "../res/shaders/Compiled/GuideVS.inc"
 #include "../res/shaders/Compiled/GuidePS.inc"
+#include "../res/shaders/Compiled/TriangleVS.inc"
+#include "../res/shaders/Compiled/CopyPS.inc"
 
 //-----------------------------------------------------------------------------
 // Global Varaibles.
@@ -42,6 +44,11 @@ D3D11_INPUT_ELEMENT_DESC kSkinningElements[] = {
     { "TEXCOORD",      0, DXGI_FORMAT_R32G32B32A32_UINT,  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "BONE_INDEX",    0, DXGI_FORMAT_R16G16B16A16_UINT,  1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "BONE_WEIGHT",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
+
+D3D11_INPUT_ELEMENT_DESC kTriangleElements[] = {
+    { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -285,12 +292,28 @@ bool App::OnInit()
             ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
             return false;
         }
+
+        hr = m_pDevice->CreateVertexShader(
+            TriangleVS, sizeof(TriangleVS), nullptr, m_TriangleVS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
     }
 
     // ピクセルシェーダ.
     {
         auto hr = m_pDevice->CreatePixelShader(
             EditorPS, sizeof(EditorPS), nullptr, m_DefaultPS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+
+        hr = m_pDevice->CreatePixelShader(
+            CopyPS, sizeof(CopyPS), nullptr, m_CopyPS.GetAddress());
         if (FAILED(hr))
         {
             ELOG("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
@@ -310,6 +333,14 @@ bool App::OnInit()
 
         hr = m_pDevice->CreateInputLayout(
             kSkinningElements, _countof(kSkinningElements), EditorSkinningVS, sizeof(EditorSkinningVS), m_SkinningIL.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+
+        hr = m_pDevice->CreateInputLayout(
+            kTriangleElements, _countof(kTriangleElements), TriangleVS, sizeof(TriangleVS), m_TriangleIL.GetAddress());
         if (FAILED(hr))
         {
             ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
@@ -343,6 +374,27 @@ bool App::OnInit()
         if (!m_MeshCB.Init(m_pDevice, sizeof(MeshBuffer)))
         {
             ELOG("Error : ConstantBuffer::Init() Failed.");
+            return false;
+        }
+    }
+
+    // 頂点バッファ.
+    {
+        struct Vertex
+        {
+            asdx::Vector2 pos;
+            asdx::Vector2 tex;
+        };
+
+        Vertex vertices[] = {
+            { asdx::Vector2(-1.0f,  1.0f), asdx::Vector2(0.0f, 0.0f) },
+            { asdx::Vector2( 3.0f,  1.0f), asdx::Vector2(2.0f, 0.0f) },
+            { asdx::Vector2(-1.0f, -3.0f), asdx::Vector2(0.0f, 2.0f) }
+        };
+
+        if (!m_TriangleVB.Init(m_pDevice, sizeof(vertices), sizeof(Vertex), vertices))
+        {
+            ELOG("Error : VertexBuffer::Init() Failed.");
             return false;
         }
     }
@@ -396,7 +448,7 @@ bool App::OnInit()
         desc.SampleDesc.Count   = 1;
         desc.SampleDesc.Quality = 0;
 
-        if (!m_LightingTarget.Create(m_pDevice, desc))
+        if (!m_LightingBuffer.Create(m_pDevice, desc))
         {
             ELOG("Error : ColorTarget2D::Create() Failed.");
             return false;
@@ -414,12 +466,31 @@ bool App::OnInit()
         desc.SampleDesc.Count = 1;
         desc.SampleDesc.Quality = 0;
 
-        if (!m_NRMTarget.Create(m_pDevice, desc))
+        if (!m_NRMBuffer.Create(m_pDevice, desc))
         {
             ELOG("Error : ColorTarget2D::Create() Failed.");
             return false;
         }
     }
+
+    // 深度用.
+    {
+        asdx::TargetDesc2D desc = {};
+        desc.Width              = m_Width;
+        desc.Height             = m_Height;
+        desc.ArraySize          = 1;
+        desc.MipLevels          = 1;
+        desc.Format             = DXGI_FORMAT_D32_FLOAT;
+        desc.SampleDesc.Count   = 1;
+        desc.SampleDesc.Quality = 0;
+
+        if (!m_DepthBuffer.Create(m_pDevice, desc))
+        {
+            ELOG("Error : DepthTarget2D::Create() Failed.");
+            return false;
+        }
+    }
+
 
     // シャドウマップ用.
     {
@@ -432,7 +503,7 @@ bool App::OnInit()
         desc.SampleDesc.Count   = 1;
         desc.SampleDesc.Quality = 0;
 
-        if (!m_ShadowTarget.Create(m_pDevice, desc))
+        if (!m_ShadowBuffer.Create(m_pDevice, desc))
         {
             ELOG("Error : DepthTarget2D::Create() Failed.");
             return false;
@@ -449,25 +520,29 @@ void App::OnTerm()
 {
     m_VS        .Reset();
     m_SkinningVS.Reset();
+    m_TriangleVS.Reset();
     m_DefaultPS .Reset();
     m_IL        .Reset();
     m_SkinningIL.Reset();
+    m_TriangleIL.Reset();
 
     m_SceneCB.Term();
     m_GuideCB.Term();
     m_LightCB.Term();
     m_MeshCB .Term();
 
-    m_AxisVB .Term();
-    m_GridVB .Term();
-    m_GuideVS.Term();
-    m_GuidePS.Term();
+    m_AxisVB    .Term();
+    m_GridVB    .Term();
+    m_TriangleVB.Term();
+    m_GuideVS   .Term();
+    m_GuidePS   .Term();
     m_AxisVertexCount = 0;
     m_GridVertexCount = 0;
 
-    m_LightingTarget.Release();
-    m_NRMTarget     .Release();
-    m_ShadowTarget  .Release();
+    m_LightingBuffer.Release();
+    m_NRMBuffer     .Release();
+    m_ShadowBuffer  .Release();
+    m_DepthBuffer   .Release();
 
     PluginMgr::Instance().Term();
     asdx::GuiMgr::GetInstance().Term();
@@ -563,8 +638,15 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
 
     // スワップチェインに描画.
     {
-        // ガイドオブジェクト描画.
-        DrawGuide();
+        // コンポジット.
+        {
+            auto pSRV = m_LightingBuffer.GetShaderResource();
+            auto pSmp = asdx::RenderState::GetInstance().GetSmp(asdx::LinearClamp);
+            m_pDeviceContext->PSSetShader(m_CopyPS.GetPtr(), nullptr, 0);
+            m_pDeviceContext->PSSetShaderResources(0, 1, &pSRV);
+            m_pDeviceContext->PSSetSamplers(0, 1, &pSmp);
+            DrawQuad();
+        }
 
         // GUI描画.
         DrawGui();
@@ -579,8 +661,10 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
 //-----------------------------------------------------------------------------
 void App::OnResize(const asdx::ResizeEventArgs& args)
 {
-    m_LightingTarget.Resize(m_pDevice, args.Width, args.Height);
-    m_ShadowTarget  .Resize(m_pDevice, args.Width, args.Height);
+    m_LightingBuffer.Resize(m_pDevice, args.Width, args.Height);
+    m_NRMBuffer     .Resize(m_pDevice, args.Width, args.Height);
+    m_ShadowBuffer  .Resize(m_pDevice, args.Width, args.Height);
+    m_DepthBuffer   .Resize(m_pDevice, args.Width, args.Height);
 }
 
 //-----------------------------------------------------------------------------
@@ -699,5 +783,32 @@ void App::DrawGuide()
 
     m_GuidePS.UnBind(m_pDeviceContext);
     m_GuideVS.UnBind(m_pDeviceContext);
+}
+
+//-----------------------------------------------------------------------------
+//      フルスクリーン矩形を描画します.
+//-----------------------------------------------------------------------------
+void App::DrawQuad()
+{
+    auto pVB    = m_TriangleVB.GetBuffer();
+    auto stride = m_TriangleVB.GetStride();
+    auto offset = 0u;
+
+    auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::None);
+    auto pBS  = asdx::RenderState::GetInstance().GetBS(asdx::BlendType::Opaque);
+    auto pRS  = asdx::RenderState::GetInstance().GetRS(asdx::RasterizerType::CullNone);
+
+    float blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    uint32_t sampleMask = 0xffff;
+
+    m_pDeviceContext->OMSetDepthStencilState(pDSS, 0);
+    m_pDeviceContext->OMSetBlendState(pBS, blendFactor, sampleMask);
+    m_pDeviceContext->RSSetState(pRS);
+    m_pDeviceContext->IASetVertexBuffers(0, 1, &pVB, &stride, &offset);
+    m_pDeviceContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_R32_UINT, 0);
+    m_pDeviceContext->IASetInputLayout(m_TriangleIL.GetPtr());
+    m_pDeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    m_pDeviceContext->VSSetShader(m_TriangleVS.GetPtr(), nullptr, 0);
+    m_pDeviceContext->Draw(3, 0);
 }
 

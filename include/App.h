@@ -63,10 +63,12 @@ private:
     //=========================================================================
     asdx::RefPtr<ID3D11VertexShader>    m_VS;
     asdx::RefPtr<ID3D11VertexShader>    m_SkinningVS;
+    asdx::RefPtr<ID3D11VertexShader>    m_TriangleVS;
     asdx::RefPtr<ID3D11PixelShader>     m_DefaultPS;
     asdx::RefPtr<ID3D11PixelShader>     m_CopyPS;
     asdx::RefPtr<ID3D11InputLayout>     m_IL;
     asdx::RefPtr<ID3D11InputLayout>     m_SkinningIL;
+    asdx::RefPtr<ID3D11InputLayout>     m_TriangleIL;
     asdx::ConstantBuffer                m_SceneCB;
     asdx::ConstantBuffer                m_GuideCB;
     asdx::ConstantBuffer                m_LightCB;
@@ -82,9 +84,10 @@ private:
     WorkSpace                           m_WorkSpace;
     bool                                m_CameraControl = false;
     asdx::Matrix                        m_Proj = asdx::Matrix::CreateIdentity();
-    asdx::ColorTarget2D                 m_LightingTarget;
-    asdx::ColorTarget2D                 m_NRMTarget;
-    asdx::DepthTarget2D                 m_ShadowTarget;
+    asdx::ColorTarget2D                 m_LightingBuffer;
+    asdx::ColorTarget2D                 m_NRMBuffer;
+    asdx::DepthTarget2D                 m_DepthBuffer;
+    asdx::DepthTarget2D                 m_ShadowBuffer;
 
     //=========================================================================
     // private methods.
@@ -146,4 +149,6 @@ private:
     void DrawModel(bool lightingPass, asdx::BlendType blendType);
 
     void DrawGuide();
+
+    void DrawQuad();
 };

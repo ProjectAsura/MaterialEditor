@@ -187,5 +187,8 @@
     <FxCompile Include="..\res\shaders\CopyPS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="..\res\shaders\TriangleVS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

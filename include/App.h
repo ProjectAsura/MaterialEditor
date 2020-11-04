@@ -13,6 +13,7 @@
 #include <asdxConstantBuffer.h>
 #include <asdxVertexBuffer.h>
 #include <asdxShader.h>
+#include <asdxRenderState.h>
 #include <WorkSpace.h>
 
 
@@ -62,9 +63,13 @@ private:
     //=========================================================================
     asdx::RefPtr<ID3D11VertexShader>    m_VS;
     asdx::RefPtr<ID3D11VertexShader>    m_SkinningVS;
+    asdx::RefPtr<ID3D11PixelShader>     m_DefaultPS;
+    asdx::RefPtr<ID3D11InputLayout>     m_IL;
+    asdx::RefPtr<ID3D11InputLayout>     m_SkinningIL;
     asdx::ConstantBuffer                m_SceneCB;
     asdx::ConstantBuffer                m_GuideCB;
     asdx::ConstantBuffer                m_LightCB;
+    asdx::ConstantBuffer                m_MeshCB;
     asdx::VertexBuffer                  m_AxisVB;
     asdx::VertexBuffer                  m_GridVB;
     asdx::VertexShader                  m_GuideVS;
@@ -75,7 +80,9 @@ private:
     WorkSpace                           m_WorkSpace;
     bool                                m_CameraControl = false;
     asdx::Matrix                        m_Proj = asdx::Matrix::CreateIdentity();
-
+    asdx::ColorTarget2D                 m_LightingTarget;
+    asdx::ColorTarget2D                 m_NRMTarget;
+    asdx::DepthTarget2D                 m_ShadowTarget;
 
     //=========================================================================
     // private methods.
@@ -119,7 +126,7 @@ private:
     //-------------------------------------------------------------------------
     //! @brief      ファイルドロップ時の処理です.
     //-------------------------------------------------------------------------
-    void OnDrop(const wchar_t** dropFiles, uint32_t fileCount) override;
+    void OnDrop(const std::vector<std::string>& dropFiles) override;
 
     //-------------------------------------------------------------------------
     //! @brief      GUIを描画します.
@@ -134,7 +141,7 @@ private:
     //-------------------------------------------------------------------------
     //! @brief      モデルの描画を行います.
     //-------------------------------------------------------------------------
-    void DrawModel();
+    void DrawModel(bool lightingPass, asdx::BlendType blendType);
 
     void DrawGuide();
 };

@@ -42,8 +42,7 @@ EditorMaterial::~EditorMaterial()
 //-----------------------------------------------------------------------------
 tinyxml2::XMLElement* EditorMaterial::Serialize(tinyxml2::XMLDocument* doc)
 {
-    auto element = doc->NewElement("material");
-    element->SetAttribute("name",               m_Name.c_str());
+    auto element = doc->NewElement(m_Name.c_str());
     element->SetAttribute("selected_material",  m_SelectedMaterial.c_str());
     element->SetAttribute("instance_count",     m_Instances.size());
 
@@ -63,11 +62,10 @@ tinyxml2::XMLElement* EditorMaterial::Serialize(tinyxml2::XMLDocument* doc)
 //-----------------------------------------------------------------------------
 void EditorMaterial::Deserialize(tinyxml2::XMLElement* element)
 {
-    auto e = element->FirstChildElement("material");
+    auto e = element->FirstChildElement(m_Name.c_str());
     if (e == nullptr)
     { return; }
 
-    m_Name              = e->Attribute("name");
     m_SelectedMaterial  = e->Attribute("selected_material");
     auto count = e->Unsigned64Attribute("instance_count");
 
@@ -96,7 +94,7 @@ void EditorMaterial::Deserialize(tinyxml2::XMLElement* element)
 //-----------------------------------------------------------------------------
 //      マテリアルシェーダを適用します.
 //-----------------------------------------------------------------------------
-const PluginShader* EditorMaterial::Bind(ID3D11DeviceContext* pContext)
+const PluginShader* EditorMaterial::Bind(ID3D11DeviceContext* pContext, bool lightingPass)
 {
     PluginMaterial* material;
     if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
@@ -104,8 +102,8 @@ const PluginShader* EditorMaterial::Bind(ID3D11DeviceContext* pContext)
 
     auto instance = m_Instances[m_SelectedMaterial];
 
-    material->Bind(pContext, instance);
-    return material->GetShader();
+    material->Bind(pContext, instance, lightingPass);
+    return (lightingPass) ? material->GetLightingShader() : material->GetShadowingShader();
 }
 
 //-----------------------------------------------------------------------------
@@ -150,10 +148,40 @@ void EditorMaterial::Edit()
 }
 
 //-----------------------------------------------------------------------------
+//      マテリアル名を設定します.
+//-----------------------------------------------------------------------------
+void EditorMaterial::SetName(const std::string& name)
+{ m_Name = name; }
+
+//-----------------------------------------------------------------------------
 //      マテリアル名を取得します.
 //-----------------------------------------------------------------------------
 const std::string& EditorMaterial::GetName() const
 { return m_Name; }
+
+//-----------------------------------------------------------------------------
+//      シャドウをキャストするかどうか?
+//-----------------------------------------------------------------------------
+bool EditorMaterial::CastShadow() const
+{
+    if (m_Instances.find(m_SelectedMaterial) == m_Instances.end())
+    { return true; }
+
+    auto instance = m_Instances.at(m_SelectedMaterial);
+    return instance->CastShadow();
+}
+
+//-----------------------------------------------------------------------------
+//      ブレンドステートを取得します.
+//-----------------------------------------------------------------------------
+int EditorMaterial::GetBlendState() const
+{
+    if (m_Instances.find(m_SelectedMaterial) == m_Instances.end())
+    { return 0; }
+
+    auto instance = m_Instances.at(m_SelectedMaterial);
+    return instance->GetBlendState();
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -180,7 +208,6 @@ EditorMaterials::~EditorMaterials()
 tinyxml2::XMLElement* EditorMaterials::Serialize(tinyxml2::XMLDocument* doc)
 {
     auto e = doc->NewElement("EditorMaterials");
-    e->SetAttribute("count", m_Materials.size());
 
     for(size_t i=0; i<m_Materials.size(); ++i)
     { e->InsertEndChild(m_Materials[i].Serialize(doc)); }
@@ -197,11 +224,17 @@ void EditorMaterials::Deserialize(tinyxml2::XMLElement* element)
     if (e == nullptr)
     { return; }
 
-    auto count = e->Unsigned64Attribute("count");
-    m_Materials.resize(count);
-
-    for(uint64_t i=0; i<count; ++i)
+    for(uint64_t i=0; i<m_Materials.size(); ++i)
     { m_Materials[i].Deserialize(e); }
+}
+
+//-----------------------------------------------------------------------------
+//      リサイズします.
+//-----------------------------------------------------------------------------
+void EditorMaterials::Resize(uint32_t count)
+{
+    m_Materials.resize(count);
+    m_Materials.shrink_to_fit();
 }
 
 //-----------------------------------------------------------------------------

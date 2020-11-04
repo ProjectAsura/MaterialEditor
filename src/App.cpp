@@ -12,6 +12,7 @@
 #include <asdxLogger.h>
 #include <asdxDeviceContext.h>
 #include <asdxRenderState.h>
+#include <asdxMisc.h>
 
 namespace {
 
@@ -20,9 +21,9 @@ namespace {
 //-----------------------------------------------------------------------------
 #include "../res/shaders/Compiled/EditorVS.inc"
 #include "../res/shaders/Compiled/EditorSkinningVS.inc"
+#include "../res/shaders/Compiled/EditorPS.inc"
 #include "../res/shaders/Compiled/GuideVS.inc"
 #include "../res/shaders/Compiled/GuidePS.inc"
-
 
 //-----------------------------------------------------------------------------
 // Global Varaibles.
@@ -38,7 +39,7 @@ D3D11_INPUT_ELEMENT_DESC kSkinningElements[] = {
     { "POSITION",      0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "COLOR",         0, DXGI_FORMAT_R8G8B8A8_UNORM,     0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "TANGENT_SPACE", 0, DXGI_FORMAT_R32_UINT,           0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TEXCOORD",      0, DXGI_FORMAT_R32G32B32A32_UINT,  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    { "TEXCOORD",      0, DXGI_FORMAT_R32G32B32A32_UINT,  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "BONE_INDEX",    0, DXGI_FORMAT_R16G16B16A16_UINT,  1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "BONE_WEIGHT",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
@@ -64,11 +65,11 @@ struct SceneBuffer
 ///////////////////////////////////////////////////////////////////////////////
 struct LightBuffer
 {
-    asdx::Vector3   SunLightDir;
-    float           SunLightIntensity;
-    float           IBLIntensity;
-    float           IBLRotation;
-    float           PreExposureScale;
+    asdx::Vector3   SunLightDir         = asdx::Vector3(0.0f, 0.0f, 1.0f);
+    float           SunLightIntensity   = 1.0f;
+    float           IBLIntensity        = 1.0f;
+    float           IBLRotation         = 0.0f;
+    float           PreExposureScale    = 1.0f;
     float           Padding0;
 };
 
@@ -87,6 +88,14 @@ struct GuideVertex
     : Position( position )
     , Color ( color )
     { /* DO_NOTHING */ }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// MeshBuffer structure
+///////////////////////////////////////////////////////////////////////////////
+struct MeshBuffer
+{
+    asdx::Matrix  World = asdx::Matrix::CreateIdentity();
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -278,6 +287,36 @@ bool App::OnInit()
         }
     }
 
+    // ピクセルシェーダ.
+    {
+        auto hr = m_pDevice->CreatePixelShader(
+            EditorPS, sizeof(EditorPS), nullptr, m_DefaultPS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
+    // 入力レイアウト.
+    {
+        auto hr = m_pDevice->CreateInputLayout(
+            kElements, _countof(kElements), EditorVS, sizeof(EditorVS), m_IL.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+
+        hr = m_pDevice->CreateInputLayout(
+            kSkinningElements, _countof(kSkinningElements), EditorSkinningVS, sizeof(EditorSkinningVS), m_SkinningIL.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
     // プラグインマネージャー初期化.
     {
         if (!PluginMgr::Instance().Load())
@@ -296,6 +335,12 @@ bool App::OnInit()
         }
 
         if (!m_LightCB.Init(m_pDevice, sizeof(LightBuffer)))
+        {
+            ELOG("Error : ConstantBuffer::Init() Failed.");
+            return false;
+        }
+
+        if (!m_MeshCB.Init(m_pDevice, sizeof(MeshBuffer)))
         {
             ELOG("Error : ConstantBuffer::Init() Failed.");
             return false;
@@ -340,6 +385,60 @@ bool App::OnInit()
         }
     }
 
+    // ライティング用.
+    {
+        asdx::TargetDesc2D desc = {};
+        desc.Width              = m_Width;
+        desc.Height             = m_Height;
+        desc.ArraySize          = 1;
+        desc.MipLevels          = 1;
+        desc.Format             = DXGI_FORMAT_R11G11B10_FLOAT;
+        desc.SampleDesc.Count   = 1;
+        desc.SampleDesc.Quality = 0;
+
+        if (!m_LightingTarget.Create(m_pDevice, desc))
+        {
+            ELOG("Error : ColorTarget2D::Create() Failed.");
+            return false;
+        }
+    }
+
+    // 法線/ラフネス/メタルネス用.
+    {
+        asdx::TargetDesc2D desc = {};
+        desc.Width = m_Width;
+        desc.Height = m_Height;
+        desc.ArraySize = 1;
+        desc.MipLevels = 1;
+        desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        desc.SampleDesc.Count = 1;
+        desc.SampleDesc.Quality = 0;
+
+        if (!m_NRMTarget.Create(m_pDevice, desc))
+        {
+            ELOG("Error : ColorTarget2D::Create() Failed.");
+            return false;
+        }
+    }
+
+    // シャドウマップ用.
+    {
+        asdx::TargetDesc2D desc = {};
+        desc.Width              = 2048;
+        desc.Height             = 2048;
+        desc.ArraySize          = 1;
+        desc.MipLevels          = 1;
+        desc.Format             = DXGI_FORMAT_D32_FLOAT;
+        desc.SampleDesc.Count   = 1;
+        desc.SampleDesc.Quality = 0;
+
+        if (!m_ShadowTarget.Create(m_pDevice, desc))
+        {
+            ELOG("Error : DepthTarget2D::Create() Failed.");
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -350,10 +449,14 @@ void App::OnTerm()
 {
     m_VS        .Reset();
     m_SkinningVS.Reset();
+    m_DefaultPS .Reset();
+    m_IL        .Reset();
+    m_SkinningIL.Reset();
 
     m_SceneCB.Term();
     m_GuideCB.Term();
     m_LightCB.Term();
+    m_MeshCB .Term();
 
     m_AxisVB .Term();
     m_GridVB .Term();
@@ -361,6 +464,10 @@ void App::OnTerm()
     m_GuidePS.Term();
     m_AxisVertexCount = 0;
     m_GridVertexCount = 0;
+
+    m_LightingTarget.Release();
+    m_NRMTarget     .Release();
+    m_ShadowTarget  .Release();
 
     PluginMgr::Instance().Term();
     asdx::GuiMgr::GetInstance().Term();
@@ -381,7 +488,6 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
     // ターゲットをクリア.
     m_pDeviceContext->ClearRenderTargetView(pRTV, m_ClearColor);
     m_pDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
 
     // シーン定数バッファの更新.
     {
@@ -437,6 +543,17 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
         m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
     }
 
+    // メッシュバッファ更新.
+    {
+        MeshBuffer res = {};
+
+        if (m_WorkSpace.GetModel() != nullptr)
+        { res.World = m_WorkSpace.GetModel()->GetWorld(); }
+
+        auto pCB = m_MeshCB.GetBuffer();
+        m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
+    }
+
     // 3D描画.
     Draw3D();
 
@@ -462,6 +579,8 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
 //-----------------------------------------------------------------------------
 void App::OnResize(const asdx::ResizeEventArgs& args)
 {
+    m_LightingTarget.Resize(m_pDevice, args.Width, args.Height);
+    m_ShadowTarget  .Resize(m_pDevice, args.Width, args.Height);
 }
 
 //-----------------------------------------------------------------------------
@@ -519,8 +638,23 @@ void App::OnTyping(uint32_t keyCode)
 //-----------------------------------------------------------------------------
 //      ドロップ時の処理です.
 //-----------------------------------------------------------------------------
-void App::OnDrop(const wchar_t** dropFiles, uint32_t fileCount)
+void App::OnDrop(const std::vector<std::string>& dropFiles)
 {
+    for (size_t i=0; i<dropFiles.size(); ++i)
+    {
+        auto ext = asdx::GetExtA(dropFiles[i].c_str());
+
+        if (ext == "fbx" || ext == "obj")
+        {
+            if (m_WorkSpace.New(dropFiles[i].c_str()))
+            { return; }
+        }
+        else if (ext == "work")
+        {
+            if (m_WorkSpace.LoadAsync(dropFiles[i].c_str()))
+            { return; }
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -536,7 +670,7 @@ void App::DrawGuide()
     auto pCB = m_GuideCB.GetBuffer();
     m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
 
-    auto pDSS =  asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::Readonly);
+    auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::Readonly);
     m_GuideVS.Bind(m_pDeviceContext);
     m_GuidePS.Bind(m_pDeviceContext);
     m_pDeviceContext->VSSetConstantBuffers(0, 1, &pCB);

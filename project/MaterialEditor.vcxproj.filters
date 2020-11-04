@@ -181,5 +181,8 @@
     <FxCompile Include="..\res\shaders\GuideVS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="..\res\shaders\EditorPS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

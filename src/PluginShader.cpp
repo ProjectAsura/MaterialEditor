@@ -15,6 +15,92 @@
 #include <asdxLogger.h>
 #include <asdxDeviceContext.h>
 
+namespace {
+
+float GetValue(const UiFloat& info)
+{
+    switch (info.Converter)
+    {
+    case CONVERTER_NONE:
+    default:
+        return info.Param.GetValue();
+
+    case CONVERTER_RADIAN:
+        return asdx::ToRadian(info.Param.GetValue());
+
+    case CONVERTER_DEGREE:
+        return asdx::ToDegree(info.Param.GetValue());
+    }
+}
+
+asdx::Vector2 GetValue(const UiFloat2& info)
+{
+    switch (info.Converter)
+    {
+    case CONVERTER_NONE:
+    default:
+        return info.Param.GetValue();
+
+    case CONVERTER_RADIAN:
+        return asdx::Vector2(
+            asdx::ToRadian(info.Param.GetValue().x),
+            asdx::ToRadian(info.Param.GetValue().y));
+
+    case CONVERTER_DEGREE:
+        return asdx::Vector2(
+            asdx::ToDegree(info.Param.GetValue().x),
+            asdx::ToDegree(info.Param.GetValue().y));
+    }
+}
+
+asdx::Vector3 GetValue(const UiFloat3& info)
+{
+    switch (info.Converter)
+    {
+    case CONVERTER_NONE:
+    default:
+        return info.Param.GetValue();
+
+    case CONVERTER_RADIAN:
+        return asdx::Vector3(
+            asdx::ToRadian(info.Param.GetValue().x),
+            asdx::ToRadian(info.Param.GetValue().y),
+            asdx::ToRadian(info.Param.GetValue().z));
+
+    case CONVERTER_DEGREE:
+        return asdx::Vector3(
+            asdx::ToDegree(info.Param.GetValue().x),
+            asdx::ToDegree(info.Param.GetValue().y),
+            asdx::ToDegree(info.Param.GetValue().z));
+    }
+}
+
+asdx::Vector4 GetValue(const UiFloat4& info)
+{
+    switch (info.Converter)
+    {
+    case CONVERTER_NONE:
+    default:
+        return info.Param.GetValue();
+
+    case CONVERTER_RADIAN:
+        return asdx::Vector4(
+            asdx::ToRadian(info.Param.GetValue().x),
+            asdx::ToRadian(info.Param.GetValue().y),
+            asdx::ToRadian(info.Param.GetValue().z),
+            asdx::ToRadian(info.Param.GetValue().w));
+
+    case CONVERTER_DEGREE:
+        return asdx::Vector4(
+            asdx::ToDegree(info.Param.GetValue().x),
+            asdx::ToDegree(info.Param.GetValue().y),
+            asdx::ToDegree(info.Param.GetValue().z),
+            asdx::ToDegree(info.Param.GetValue().w));
+    }
+}
+
+} // namespace
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // PluginShader class
@@ -262,28 +348,28 @@ void PluginShader::Update
     for(size_t i=0; i<instance->m_Float.size(); ++i)
     {
         const auto& info = instance->m_Float[i];
-        auto val = info.Param.GetValue();
+        auto val = GetValue(info);
         memcpy(ptr + info.Offset, &val, sizeof(val));
     }
 
     for(size_t i=0; i<instance->m_Float2.size(); ++i)
     {
         const auto& info = instance->m_Float2[i];
-        auto val = info.Param.GetValue();
+        auto val = GetValue(info);
         memcpy(ptr + info.Offset, &val, sizeof(val));
     }
 
     for(size_t i=0; i<instance->m_Float3.size(); ++i)
     {
         const auto& info = instance->m_Float3[i];
-        auto val = info.Param.GetValue();
+        auto val = GetValue(info);
         memcpy(ptr + info.Offset, &val, sizeof(val));
     }
 
     for(size_t i=0; i<instance->m_Float4.size(); ++i)
     {
         const auto& info = instance->m_Float4[i];
-        auto val = info.Param.GetValue();
+        auto val = GetValue(info);
         memcpy(ptr + info.Offset, &val, sizeof(val));
     }
 

@@ -134,15 +134,13 @@ PSOutput LightingPS(const VSOutput input)
     float3 N = FromTangentSpaceToWorld(normal, input.Tangent, bitangent, input.Normal);
 
     // ビュー空間の深度と位置座標を取得.
-    float  viewDepth = ToViewDepth(input.Position.z, NearClip, FarClip);
-    float3 viewPos   = ToViewPos(GetTexCoord0(input), viewDepth, UVToView);
+    float3 viewPos = GetViewPosition(input);
 
     // ワールド空間の位置を復元.
-    float4 worldPos = mul(InvView, float4(viewPos, 1.0f));
-    worldPos.xyz /= worldPos.w;
+    float3 worldPos = ToWorldPosition(viewPos);
 
     // 視線ベクトルライトベクトルを算出.
-    float3 V = normalize(CameraPos.xyz - worldPos.xyz);
+    float3 V = normalize(CameraPos - worldPos);
     float3 L = normalize(SunLightDir);
 
     float3 kd = ToKd(baseColor.rgb, orm.z);
@@ -151,7 +149,9 @@ PSOutput LightingPS(const VSOutput input)
     // ライティング.
     output.Color.rgb += EvaluateIBL(N, V, kd, ks, orm.y, orm.x);
     output.Color.rgb += EvaluateDirectLight(N, V, L, kd, ks, orm.y);
-    output.Color.rgb += Emissive.Sample(AnisotropicWrap, uv);
+    output.Color.rgb += Emissive.Sample(AnisotropicWrap, uv).rgb;
+
+    output.NRM = EncodeNRM(N, orm.y, orm.z);
 
     return output;
 }

@@ -7,7 +7,8 @@
     <depth_state editable="true" default="1"/>
     <float2 label="UVスクロール" target="UVOffset" default_x="0" default_y="0" step="0.1" mini="0" maxi="0" />
     <float2 label="UVスケール" target="UVScale" default_x="1" default_y="1" step="0.1" mini="0" maxi="0" />
-    <float label="AlphaThreshold" target="AlphaThreshold" default="0" step="0.01" mini="0" maxi="1" />
+    <float label="UV回転" target="UVRotate" default="0" step="0.1" mini="-360.0" maxi="360.0" converter="1" />
+    <float label="アルファテスト閾値" target="AlphaThreshold" default="0" step="0.01" mini="0" maxi="1" />
     <texture2D label="ベースカラー" target="BaseColor" default="0" />
     <texture2D label="ORM" target="ORM" default="3" />
     <texture2D label="法線マップ" target="Normal" default="2" />

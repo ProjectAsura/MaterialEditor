@@ -13,6 +13,7 @@
 #include <asdxDeviceContext.h>
 #include <asdxRenderState.h>
 #include <asdxMisc.h>
+#include <asdxAppHistoryMgr.h>
 
 namespace {
 
@@ -272,6 +273,12 @@ bool App::OnInit()
         fontPath))
     {
         ELOGA("Error : GuiMgr::Init() Failed.");
+        return false;
+    }
+
+    if (!asdx::AppHistoryMgr::GetInstance().Init(100))
+    {
+        ELOG("Error : AppHistoryMgr::Init() Failed.");
         return false;
     }
 
@@ -554,6 +561,8 @@ void App::OnTerm()
 
     PluginMgr::Instance().Term();
     asdx::GuiMgr::GetInstance().Term();
+
+    asdx::AppHistoryMgr::GetInstance().Term();
 }
 
 //-----------------------------------------------------------------------------

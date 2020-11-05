@@ -137,6 +137,7 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat& pa
     element->SetAttribute("step",    param.Step);
     element->SetAttribute("mini",    param.Mini);
     element->SetAttribute("maxi",    param.Maxi);
+    element->SetAttribute("converter", int(param.Converter));
     return element;
 }
 
@@ -153,6 +154,7 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat2& p
     element->SetAttribute("step",       param.Step);
     element->SetAttribute("mini",       param.Mini);
     element->SetAttribute("maxi",       param.Maxi);
+    element->SetAttribute("converter", int(param.Converter));
     return element;
 }
 
@@ -170,6 +172,7 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat3& p
     element->SetAttribute("step",       param.Step);
     element->SetAttribute("mini",       param.Mini);
     element->SetAttribute("maxi",       param.Maxi);
+    element->SetAttribute("converter", int(param.Converter));
     return element;
 }
 
@@ -188,6 +191,7 @@ tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc, const UiDefFloat4& p
     element->SetAttribute("step",       param.Step);
     element->SetAttribute("mini",       param.Mini);
     element->SetAttribute("maxi",       param.Maxi);
+    element->SetAttribute("converter", int(param.Converter));
     return element;
 }
 
@@ -374,6 +378,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat>& param)
         p.Step       = e->FloatAttribute("step");
         p.Mini       = e->FloatAttribute("mini");
         p.Maxi       = e->FloatAttribute("maxi");
+        p.Converter  = CONVERTER_TYPE(e->IntAttribute("converter"));
         param.push_back(p);
 
         e = e->NextSiblingElement("float");
@@ -399,6 +404,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat2>& param)
         p.Step          = e->FloatAttribute("step");
         p.Mini          = e->FloatAttribute("mini");
         p.Maxi          = e->FloatAttribute("maxi");
+        p.Converter     = CONVERTER_TYPE(e->IntAttribute("converter"));
         param.push_back(p);
 
         e = e->NextSiblingElement("float2");
@@ -425,6 +431,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat3>& param)
         p.Step          = e->FloatAttribute("step");
         p.Mini          = e->FloatAttribute("mini");
         p.Maxi          = e->FloatAttribute("maxi");
+        p.Converter     = CONVERTER_TYPE(e->IntAttribute("converter"));
         param.push_back(p);
 
         e = e->NextSiblingElement("float3");
@@ -452,6 +459,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat4>& param)
         p.Step          = e->FloatAttribute("step");
         p.Mini          = e->FloatAttribute("mini");
         p.Maxi          = e->FloatAttribute("maxi");
+        p.Converter     = CONVERTER_TYPE(e->IntAttribute("converter"));
         param.push_back(p);
 
         e = e->NextSiblingElement("float4");
@@ -1411,6 +1419,7 @@ PluginMaterial PluginMaterial::CreateTemplate()
     floatParam.Default      = 0.0f;
     floatParam.Mini         = 0.0f;
     floatParam.Maxi         = 1.0f;
+    floatParam.Converter    = CONVERTER_NONE;
     temp.m_Float.push_back(floatParam);
 
     UiDefFloat2 float2Param = {};
@@ -1420,6 +1429,7 @@ PluginMaterial PluginMaterial::CreateTemplate()
     float2Param.Default    = asdx::Vector2(0.0f, 0.0f);
     float2Param.Mini       = 0.0f;
     float2Param.Maxi       = 1.0f;
+    float2Param.Converter  = CONVERTER_NONE;
     temp.m_Float2.push_back(float2Param);
 
     UiDefTexture2D texture2dParam = {};

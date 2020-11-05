@@ -370,6 +370,7 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
         instance->m_Bool[i].Tag = mat->m_Bool[i].DisplayTag;
         instance->m_Bool[i].Param.SetValue(mat->m_Bool[i].Default);
         instance->m_Bool[i].Offset = info.Offset;
+        instance->m_Bool[i].Converter = CONVERTER_NONE;
     }
 
     instance->m_Int.resize(mat->m_Int.size());
@@ -380,6 +381,7 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
         instance->m_Int[i].Tag = mat->m_Int[i].DisplayTag;
         instance->m_Int[i].Param.SetValue(mat->m_Int[i].Default);
         instance->m_Int[i].Offset = info.Offset;
+        instance->m_Int[i].Converter = CONVERTER_NONE;
     }
 
     instance->m_Float.resize(mat->m_Float.size());
@@ -390,6 +392,7 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
         instance->m_Float[i].Tag = mat->m_Float[i].DisplayTag;
         instance->m_Float[i].Param.SetValue(mat->m_Float[i].Default);
         instance->m_Float[i].Offset = info.Offset;
+        instance->m_Float[i].Converter = mat->m_Float[i].Converter;
     }
 
     instance->m_Float2.resize(mat->m_Float2.size());
@@ -400,6 +403,7 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
         instance->m_Float2[i].Tag = mat->m_Float2[i].DisplayTag;
         instance->m_Float2[i].Param.SetValue(mat->m_Float2[i].Default);
         instance->m_Float2[i].Offset = info.Offset;
+        instance->m_Float2[i].Converter = mat->m_Float2[i].Converter;
     }
 
     instance->m_Float3.resize(mat->m_Float3.size());
@@ -410,6 +414,7 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
         instance->m_Float3[i].Tag = mat->m_Float3[i].DisplayTag;
         instance->m_Float3[i].Param.SetValue(mat->m_Float3[i].Default);
         instance->m_Float3[i].Offset = info.Offset;
+        instance->m_Float3[i].Converter = mat->m_Float3[i].Converter;
     }
 
     instance->m_Float4.resize(mat->m_Float4.size());
@@ -420,6 +425,7 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
         instance->m_Float4[i].Tag = mat->m_Float4[i].DisplayTag;
         instance->m_Float4[i].Param.SetValue(mat->m_Float4[i].Default);
         instance->m_Float4[i].Offset = info.Offset;
+        instance->m_Float4[i].Converter = mat->m_Float4[i].Converter;
     }
 
     instance->m_Color3.resize(mat->m_Color3.size());
@@ -430,6 +436,7 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
         instance->m_Color3[i].Tag = mat->m_Color3[i].DisplayTag;
         instance->m_Color3[i].Param.SetValue(mat->m_Color3[i].Default);
         instance->m_Color3[i].Offset = info.Offset;
+        instance->m_Color3[i].Converter = CONVERTER_NONE;
     }
 
     instance->m_Color4.resize(mat->m_Color4.size());
@@ -440,6 +447,7 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
         instance->m_Color4[i].Tag = mat->m_Color4[i].DisplayTag;
         instance->m_Color4[i].Param.SetValue(mat->m_Color4[i].Default);
         instance->m_Color4[i].Offset = info.Offset;
+        instance->m_Color4[i].Converter = CONVERTER_NONE;
     }
 
     instance->m_Bit32.resize(mat->m_Bit32.size());
@@ -450,6 +458,7 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
         instance->m_Bit32[i].Tag = mat->m_Bit32[i].DisplayTag;
         instance->m_Bit32[i].Param.SetValue(mat->m_Bit32[i].Default);
         instance->m_Bit32[i].Offset = info.Offset;
+        instance->m_Bit32[i].Converter = CONVERTER_NONE;
     }
 
     instance->m_Texture2D.resize(mat->m_Texture2D.size());

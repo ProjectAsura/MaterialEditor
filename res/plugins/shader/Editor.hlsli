@@ -134,6 +134,28 @@ float2 GetTexCoord3(VSOutput value)
 float3 GetBitangent(VSOutput value)
 { return -normalize(cross(value.Normal, value.Tangent)); }
 
+float GetViewDepth(VSOutput value)
+{ return ToViewDepth(value.Position.z, NearClip, FarClip); }
+
+float3 GetViewPosition(VSOutput value)
+{
+    float viewDepth = GetViewDepth(value);
+    return ToViewPos(GetTexCoord0(value), viewDepth, UVToView);
+}
+
+float3 ToWorldPosition(float3 viewPos)
+{
+    float4 worldPos = mul(InvView, float4(viewPos, 1.0f));
+    worldPos.xyz /= worldPos.w;
+    return worldPos.xyz;
+}
+
+float3 GetWorldPosition(VSOutput value)
+{
+    float3 viewPos = GetViewPosition(value);
+    return ToWorldPosition(viewPos);
+}
+
 float4 EncodeNRM(float3 normal, float roughness, float metalness)
 { return float4(PackNormal(normal), roughness, metalness); }
 

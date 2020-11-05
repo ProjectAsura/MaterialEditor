@@ -130,19 +130,30 @@ void EditorMaterial::Edit()
 {
     ImGui::PushID(m_Name.c_str());
 
-    // マテリアル選択コンボボックス.
-    m_SelectedMaterial = PluginMgr::Instance().DrawCombo(m_SelectedMaterial);
-
-    PluginMaterial* material;
-    if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
+    if (ImGui::CollapsingHeader(m_Name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::PopID();
-        return;
-    }
+        // マテリアル選択コンボボックス.
+        m_SelectedMaterial = PluginMgr::Instance().DrawCombo(m_SelectedMaterial);
 
-    // マテリアル編集.
-    auto instance = m_Instances[m_SelectedMaterial];
-    material->Edit(instance);
+        PluginMaterial* material;
+        if (PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
+        {
+            // 存在チェック.
+            if (m_Instances.find(m_SelectedMaterial) == m_Instances.end())
+            {
+                m_Instances[m_SelectedMaterial] = 
+                    PluginMgr::Instance().CreateInstance(m_SelectedMaterial);
+            }
+
+            // マテリアル編集.
+            auto instance = m_Instances[m_SelectedMaterial];
+            material->Edit(instance);
+        }
+        else
+        {
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), u8"無効なマテリアルです.");
+        }
+    }
 
     ImGui::PopID();
 }

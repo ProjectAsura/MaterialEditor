@@ -12,6 +12,11 @@
 #include "Math.hlsli"
 #include "BRDF.hlsli"
 
+/* 
+    b0 - b10 : システム使用.
+    t0 - t10 : システム使用.
+    s0 - s8  : システム使用.
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 // MSOutput structure
@@ -98,6 +103,10 @@ Texture2D   SceneDepthMap   : register(t3);
 Texture2D   SceneColorMap   : register(t4);
 Texture2D   ShadowIndexMap  : register(t5);
 Texture2D   ShadowAtlasMap  : register(t6);
+//Texture2D   ReservedMap0    : register(t7);
+//Texture2D   ReservedMap1    : register(t8);
+//Texture2D   ReservedMap2    : register(t9);
+//Texture2D   ReservedMap3    : register(t10);
 
 SamplerState LinearClamp        : register(s0);
 SamplerState LinearWrap         : register(s1);

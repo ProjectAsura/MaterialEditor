@@ -316,7 +316,7 @@ void Deserialize(tinyxml2::XMLElement* element, UiDefDepthState& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefBool>& param)
 {
-    auto e = element->FirstChildElement("Bool");
+    auto e = element->FirstChildElement("bool");
     if (e == nullptr)
     { return; }
 
@@ -328,7 +328,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefBool>& param)
         p.Default    = e->BoolAttribute("default");
         param.push_back(p);
 
-        e = e->NextSiblingElement("Bool");
+        e = e->NextSiblingElement("bool");
     }
 }
 
@@ -337,7 +337,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefBool>& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefInt>& param)
 {
-    auto e = element->FirstChildElement("Int");
+    auto e = element->FirstChildElement("int");
     if (e == nullptr)
     { return; }
 
@@ -352,7 +352,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefInt>& param)
         p.Maxi       = e->IntAttribute("maxi");
         param.push_back(p);
 
-        e = e->NextSiblingElement("Int");
+        e = e->NextSiblingElement("int");
     }
 }
 
@@ -361,7 +361,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefInt>& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat>& param)
 {
-    auto e = element->FirstChildElement("Float");
+    auto e = element->FirstChildElement("float");
     if (e == nullptr)
     { return; }
 
@@ -376,7 +376,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat>& param)
         p.Maxi       = e->FloatAttribute("maxi");
         param.push_back(p);
 
-        e = e->NextSiblingElement("Float");
+        e = e->NextSiblingElement("float");
     }
 }
 
@@ -385,7 +385,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat>& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat2>& param)
 {
-    auto e = element->FirstChildElement("Float2");
+    auto e = element->FirstChildElement("float2");
     if (e == nullptr)
     { return; }
 
@@ -401,7 +401,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat2>& param)
         p.Maxi          = e->FloatAttribute("maxi");
         param.push_back(p);
 
-        e = e->NextSiblingElement("Float2");
+        e = e->NextSiblingElement("float2");
     }
 }
 
@@ -410,7 +410,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat2>& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat3>& param)
 {
-    auto e = element->FirstChildElement("Float3");
+    auto e = element->FirstChildElement("float3");
     if (e == nullptr)
     { return; }
 
@@ -427,7 +427,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat3>& param)
         p.Maxi          = e->FloatAttribute("maxi");
         param.push_back(p);
 
-        e = e->NextSiblingElement("Float3");
+        e = e->NextSiblingElement("float3");
     }
 }
 
@@ -436,7 +436,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat3>& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat4>& param)
 {
-    auto e = element->FirstChildElement("Float4");
+    auto e = element->FirstChildElement("float4");
     if (e == nullptr)
     { return; }
 
@@ -454,7 +454,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat4>& param)
         p.Maxi          = e->FloatAttribute("maxi");
         param.push_back(p);
 
-        e = e->NextSiblingElement("Float4");
+        e = e->NextSiblingElement("float4");
     }
 }
 
@@ -463,7 +463,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefFloat4>& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefColor3>& param)
 {
-    auto e = element->FirstChildElement("Color3");
+    auto e = element->FirstChildElement("color3");
     if (e == nullptr)
     { return; }
 
@@ -486,7 +486,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefColor3>& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefColor4>& param)
 {
-    auto e = element->FirstChildElement("Color4");
+    auto e = element->FirstChildElement("color4");
     if (e == nullptr)
     { return; }
 
@@ -510,7 +510,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefColor4>& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefBit32>& param)
 {
-    auto e = element->FirstChildElement("Bit32");
+    auto e = element->FirstChildElement("bit32");
     if (e == nullptr)
     { return; }
 
@@ -531,7 +531,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefBit32>& param)
 //-----------------------------------------------------------------------------
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefTexture2D>& param)
 {
-    auto e = element->FirstChildElement("Texture2D");
+    auto e = element->FirstChildElement("texture2D");
     if (e == nullptr)
     { return; }
 
@@ -1294,92 +1294,6 @@ const PluginShader* PluginMaterial::GetLightingShader() const
 //-----------------------------------------------------------------------------
 const PluginShader* PluginMaterial::GetShadowingShader() const
 { return &m_ShadowingShader; }
-
-//-----------------------------------------------------------------------------
-//      デフォルト値を設定します.
-//-----------------------------------------------------------------------------
-void PluginMaterial::Reset(MaterialInstance* instance)
-{
-    for(size_t i=0; i<m_Bool.size(); ++i)
-    {
-        if (m_Bool[i].DisplayTag != instance->m_Bool[i].Tag)
-        { continue; }
-
-        instance->m_Bool[i].Param.SetValue(m_Bool[i].Default);
-    }
-
-    for(size_t i=0; i<m_Int.size(); ++i)
-    {
-        if (m_Int[i].DisplayTag != instance->m_Int[i].Tag)
-        { continue; }
-
-        instance->m_Int[i].Param.SetValue(m_Int[i].Default);
-    }
-
-    for(size_t i=0; i<m_Float.size(); ++i)
-    {
-        if (m_Float[i].DisplayTag != instance->m_Float[i].Tag)
-        { continue; }
-
-        instance->m_Float[i].Param.SetValue(m_Float[i].Default);
-    }
-
-    for(size_t i=0; i<m_Float2.size(); ++i)
-    {
-        if (m_Float2[i].DisplayTag != instance->m_Float2[i].Tag)
-        { continue; }
-
-        instance->m_Float2[i].Param.SetValue(m_Float2[i].Default);
-    }
-
-    for(size_t i=0; i<m_Float3.size(); ++i)
-    {
-        if (m_Float3[i].DisplayTag != instance->m_Float3[i].Tag)
-        { continue; }
-
-        instance->m_Float3[i].Param.SetValue(m_Float3[i].Default);
-    }
-
-    for(size_t i=0; i<m_Float4.size(); ++i)
-    {
-        if (m_Float4[i].DisplayTag != instance->m_Float4[i].Tag)
-        { continue; }
-
-        instance->m_Float4[i].Param.SetValue(m_Float4[i].Default);
-    }
-
-    for(size_t i=0; i<m_Color3.size(); ++i)
-    {
-        if (m_Color3[i].DisplayTag != instance->m_Color3[i].Tag)
-        { continue; }
-
-        instance->m_Color3[i].Param.SetValue(m_Color3[i].Default);
-    }
-
-    for(size_t i=0; i<m_Color4.size(); ++i)
-    {
-        if (m_Color4[i].DisplayTag != instance->m_Color4[i].Tag)
-        { continue; }
-
-        instance->m_Color4[i].Param.SetValue(m_Color4[i].Default);
-    }
-
-    for(size_t i=0; i<m_Bit32.size(); ++i)
-    {
-        if (m_Bit32[i].DisplayTag != instance->m_Bit32[i].Tag)
-        { continue; }
-
-        instance->m_Bit32[i].Param.SetValue(m_Bit32[i].Default);
-    }
-
-    for(size_t i=0; i<m_Texture2D.size(); ++i)
-    {
-        if (m_Texture2D[i].DisplayTag != instance->m_Texture2D[i].Tag)
-        { continue; }
-
-        instance->m_Texture2D[i].Default = m_Texture2D[i].Default;
-    }
-}
 
 //-----------------------------------------------------------------------------
 //      シリアライズします.

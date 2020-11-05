@@ -508,6 +508,13 @@ bool App::OnInit()
             ELOG("Error : DepthTarget2D::Create() Failed.");
             return false;
         }
+
+        desc.Format = DXGI_FORMAT_R8_UINT;
+        if (!m_DummyColorBuffer.Create(m_pDevice, desc))
+        {
+            ELOG("Error : ColorTarget2D::Create() Failed.");
+            return false;
+        }
     }
 
     return true;
@@ -543,6 +550,7 @@ void App::OnTerm()
     m_NRMBuffer     .Release();
     m_ShadowBuffer  .Release();
     m_DepthBuffer   .Release();
+    m_DummyColorBuffer.Release();
 
     PluginMgr::Instance().Term();
     asdx::GuiMgr::GetInstance().Term();

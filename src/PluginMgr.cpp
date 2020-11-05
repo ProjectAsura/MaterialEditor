@@ -359,8 +359,108 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
     auto instance = new MaterialInstance();
     instance->m_MaterialName = name;
 
-    // パラメータ初期化.
-    mat->Reset(instance);
+    auto shader = mat->GetLightingShader();
+
+    // パラメータ生成.
+    instance->m_Bool.resize(mat->m_Bool.size());
+    for (size_t i = 0; i < instance->m_Bool.size(); ++i)
+    {
+        PluginShader::MemberInfo info = {};
+        shader->FindMemberInfo("CbUser", mat->m_Bool[i].Target, info);
+        instance->m_Bool[i].Tag = mat->m_Bool[i].DisplayTag;
+        instance->m_Bool[i].Param.SetValue(mat->m_Bool[i].Default);
+        instance->m_Bool[i].Offset = info.Offset;
+    }
+
+    instance->m_Int.resize(mat->m_Int.size());
+    for (size_t i = 0; i < instance->m_Int.size(); ++i)
+    {
+        PluginShader::MemberInfo info = {};
+        shader->FindMemberInfo("CbUser", mat->m_Int[i].Target, info);
+        instance->m_Int[i].Tag = mat->m_Int[i].DisplayTag;
+        instance->m_Int[i].Param.SetValue(mat->m_Int[i].Default);
+        instance->m_Int[i].Offset = info.Offset;
+    }
+
+    instance->m_Float.resize(mat->m_Float.size());
+    for (size_t i = 0; i < instance->m_Float.size(); ++i)
+    {
+        PluginShader::MemberInfo info = {};
+        shader->FindMemberInfo("CbUser", mat->m_Float[i].Target, info);
+        instance->m_Float[i].Tag = mat->m_Float[i].DisplayTag;
+        instance->m_Float[i].Param.SetValue(mat->m_Float[i].Default);
+        instance->m_Float[i].Offset = info.Offset;
+    }
+
+    instance->m_Float2.resize(mat->m_Float2.size());
+    for (size_t i = 0; i < instance->m_Float2.size(); ++i)
+    {
+        PluginShader::MemberInfo info = {};
+        shader->FindMemberInfo("CbUser", mat->m_Float2[i].Target, info);
+        instance->m_Float2[i].Tag = mat->m_Float2[i].DisplayTag;
+        instance->m_Float2[i].Param.SetValue(mat->m_Float2[i].Default);
+        instance->m_Float2[i].Offset = info.Offset;
+    }
+
+    instance->m_Float3.resize(mat->m_Float3.size());
+    for (size_t i = 0; i < instance->m_Float3.size(); ++i)
+    {
+        PluginShader::MemberInfo info = {};
+        shader->FindMemberInfo("CbUser", mat->m_Float3[i].Target, info);
+        instance->m_Float3[i].Tag = mat->m_Float3[i].DisplayTag;
+        instance->m_Float3[i].Param.SetValue(mat->m_Float3[i].Default);
+        instance->m_Float3[i].Offset = info.Offset;
+    }
+
+    instance->m_Float4.resize(mat->m_Float4.size());
+    for (size_t i = 0; i < instance->m_Float4.size(); ++i)
+    {
+        PluginShader::MemberInfo info = {};
+        shader->FindMemberInfo("CbUser", mat->m_Float4[i].Target, info);
+        instance->m_Float4[i].Tag = mat->m_Float4[i].DisplayTag;
+        instance->m_Float4[i].Param.SetValue(mat->m_Float4[i].Default);
+        instance->m_Float4[i].Offset = info.Offset;
+    }
+
+    instance->m_Color3.resize(mat->m_Color3.size());
+    for (size_t i = 0; i < instance->m_Color3.size(); ++i)
+    {
+        PluginShader::MemberInfo info = {};
+        shader->FindMemberInfo("CbUser", mat->m_Color3[i].Target, info);
+        instance->m_Color3[i].Tag = mat->m_Color3[i].DisplayTag;
+        instance->m_Color3[i].Param.SetValue(mat->m_Color3[i].Default);
+        instance->m_Color3[i].Offset = info.Offset;
+    }
+
+    instance->m_Color4.resize(mat->m_Color4.size());
+    for (size_t i = 0; i < instance->m_Color4.size(); ++i)
+    {
+        PluginShader::MemberInfo info = {};
+        shader->FindMemberInfo("CbUser", mat->m_Color4[i].Target, info);
+        instance->m_Color4[i].Tag = mat->m_Color4[i].DisplayTag;
+        instance->m_Color4[i].Param.SetValue(mat->m_Color4[i].Default);
+        instance->m_Color4[i].Offset = info.Offset;
+    }
+
+    instance->m_Bit32.resize(mat->m_Bit32.size());
+    for (size_t i = 0; i < instance->m_Bit32.size(); ++i)
+    {
+        PluginShader::MemberInfo info = {};
+        shader->FindMemberInfo("CbUser", mat->m_Bit32[i].Target, info);
+        instance->m_Bit32[i].Tag = mat->m_Bit32[i].DisplayTag;
+        instance->m_Bit32[i].Param.SetValue(mat->m_Bit32[i].Default);
+        instance->m_Bit32[i].Offset = info.Offset;
+    }
+
+    instance->m_Texture2D.resize(mat->m_Texture2D.size());
+    for (size_t i = 0; i < instance->m_Texture2D.size(); ++i)
+    {
+        uint8_t slot = 0;
+        shader->FindTextureSlot(mat->m_Texture2D[i].Target, slot);
+        instance->m_Texture2D[i].Tag      = mat->m_Texture2D[i].DisplayTag;
+        instance->m_Texture2D[i].Default  = mat->m_Texture2D[i].Default;
+        instance->m_Texture2D[i].Register = slot;
+    }
 
     return instance;
 }
@@ -383,20 +483,21 @@ void PluginMgr::DeleteInstance(MaterialInstance*& instance)
 const std::string& PluginMgr::DrawCombo(const std::string& selectedItem)
 {
     PluginMaterial* selectedMat = nullptr;
-    ImGui::BeginCombo(u8"マテリアル", selectedItem.c_str());
-
-    for(auto& itr : m_Materials)
+    if (ImGui::BeginCombo(u8"マテリアルタイプ", selectedItem.c_str()))
     {
-        auto selected = (itr.first == selectedItem);
-        if (ImGui::Selectable(itr.first.c_str(), selected))
-            selectedMat = itr.second;
-        if (selected)
-            ImGui::SetItemDefaultFocus();
+        for (auto& itr : m_Materials)
+        {
+            auto selected = (itr.first == selectedItem);
+            if (ImGui::Selectable(itr.first.c_str(), selected))
+                selectedMat = itr.second;
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
     }
-    ImGui::EndCombo();
 
     if (selectedMat == nullptr)
-    { return kInvalidMaterialName; }
+    { return selectedItem; }
     
     return selectedMat->GetName();
 }

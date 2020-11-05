@@ -86,6 +86,7 @@ private:
     asdx::Matrix                        m_Proj = asdx::Matrix::CreateIdentity();
     asdx::ColorTarget2D                 m_LightingBuffer;
     asdx::ColorTarget2D                 m_NRMBuffer;
+    asdx::ColorTarget2D                 m_DummyColorBuffer;
     asdx::DepthTarget2D                 m_DepthBuffer;
     asdx::DepthTarget2D                 m_ShadowBuffer;
 

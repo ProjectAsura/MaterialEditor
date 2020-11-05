@@ -121,10 +121,13 @@ void App::Draw3D()
     // シャドウマップ描画.
 #if 0
     {
-        auto pRTV = m_DummyTarget.GetTargetView();
+        auto pRTV = m_DummyColorTarget.GetTargetView();
         auto pDSV = m_ShadowTarget.GetTargetView();
 
         m_pDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+        // レンダーターゲットは本来不要だが，
+        // 設定しないとピクセルシェーダが起動せずアルファ抜きが出来ないため設定する.
         m_pDeviceContext->OMSetRenderTargets(1, &pRTV, pDSV);
 
         D3D11_VIEWPORT viewport = {};
@@ -147,7 +150,6 @@ void App::Draw3D()
         DrawModel(false, asdx::BlendType::Opaque);
     }
 #endif
-
 
     // フォワードレンダリング.
     {
@@ -172,7 +174,7 @@ void App::Draw3D()
     }
 
 
-    // SSAO.
+    // GTAO & GTSO
 
 
     // SSR

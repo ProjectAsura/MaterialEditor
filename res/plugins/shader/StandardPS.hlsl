@@ -9,25 +9,26 @@
 //-----------------------------------------------------------------------------
 #include "Editor.hlsli"
 
+/* ユーザー定義データはスロット番号11から開始してください. 10番まではシステム使用とします.*/
 
 ///////////////////////////////////////////////////////////////////////////////
 // CbUser constant buffer.
 ///////////////////////////////////////////////////////////////////////////////
-cbuffer CbUser
+cbuffer CbUser : register(b11)
 {
-    float2 UVOffset;
-    float2 UVScale;
-    float  UVRotate;
-    float  AlphaThreshold;
+    float2 UVOffset         : packoffset(c0);
+    float2 UVScale          : packoffset(c0.z);
+    float  UVRotate         : packoffset(c1);
+    float  AlphaThreshold   : packoffset(c1.y);
 };
 
 //-----------------------------------------------------------------------------
 // Textures
 //-----------------------------------------------------------------------------
-Texture2D BaseColor;
-Texture2D ORM;
-Texture2D Normal;
-Texture2D Emissive;
+Texture2D BaseColor : register(t11);
+Texture2D ORM       : register(t12);
+Texture2D Normal    : register(t13);
+Texture2D Emissive  : register(t14);
 
 
 //-----------------------------------------------------------------------------

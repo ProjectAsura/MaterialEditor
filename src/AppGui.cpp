@@ -29,6 +29,8 @@ static const char* kWorkFilter = "Work File(*.work)\0*.work\0\0";
 struct MenuContext
 {
     bool ShowLicense = false;
+    EditorModel* pModel = nullptr;
+    EditorMaterials* pMaterials = nullptr;
 };
 
 
@@ -146,6 +148,7 @@ void DrawHelp(MenuContext& context)
 
     if (ImGui::MenuItem(u8"ヘルプファイル"))
     {
+        // ヘルプファイルを開く.
     }
 
     if (ImGui::MenuItem(u8"バージョン情報"))
@@ -165,10 +168,7 @@ void DrawHelp(MenuContext& context)
     }
 
     if (ImGui::MenuItem(u8"ライセンス"))
-    {
-        context.ShowLicense = true;
-    }
-
+    { context.ShowLicense = true; }
 
     ImGui::EndMenu();
 }
@@ -217,28 +217,61 @@ void DrawModalDialog(MenuContext& context)
     }
 }
 
-void DrawBackgroundSetting()
+void DrawMaterialTab(MenuContext& context)
 {
-    // 背景色.
+    if (!ImGui::BeginTabItem(u8"マテリアル"))
+    { return; }
 
-    // IBL画像.
+    if (context.pModel == nullptr || context.pMaterials == nullptr)
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), u8"マテリアルがありません");
+        ImGui::EndTabItem();
+        return;
+    }
+
+    // 名前フィルタ.
+
+    // マテリアルタイプフィルタ.
+
+
+    auto count = context.pMaterials->GetCount();
+    for(auto i=0u; i<count; ++i)
+    {
+        auto& material = context.pMaterials->GetMaterial(i);
+
+        // 名前でフィルタ.
+
+        // タイプでフィルタ.
+
+        // マテリアル編集.
+        material.Edit();
+    }
+
+    ImGui::EndTabItem();
 }
 
-void DrawLightingSetting()
+
+void DrawLightPanel()
 {
     // 方向.
 
     // 強さ.
+
+    // IBL画像.
+
+    // IBL強度.
 }
 
-void DrawCameraSetting()
+void DrawCameraPanel()
 {
     // 
 }
 
-void DrawPostEffectSetting()
+void DrawPostEffectPanel()
 {
-    // SSAO
+    // GTAO
+
+    // GTSO
 
     // トーンマップ.
 
@@ -249,11 +282,11 @@ void DrawPostEffectSetting()
     // TAA
 }
 
-void DrawModelPreview()
+void DrawModelPreviewPanel()
 {
 }
 
-void DrawShadowSetting()
+void DrawShadowPanel()
 {
 }
 
@@ -261,8 +294,20 @@ void DrawDebugSetting()
 {
 }
 
-void DrawEditorPanel()
+void DrawEditorTab(MenuContext& context)
 {
+    if (!ImGui::Begin(u8"プロパティ"))
+    { return; }
+
+    if (ImGui::BeginTabBar(u8"Panels", ImGuiTabBarFlags_TabListPopupButton | ImGuiTabBarFlags_FittingPolicyScroll))
+    {
+        // マテリアルタブ.
+        DrawMaterialTab(context);
+
+        ImGui::EndTabBar();
+    }
+
+    ImGui::End();
 }
 
 } // namespace
@@ -284,9 +329,13 @@ void App::DrawGui()
         }
 
         MenuContext context = {};
+        context.pModel     = m_WorkSpace.GetModel();
+        context.pMaterials = m_WorkSpace.GetMaterials();
 
         // 右クリックメニュー.
         DrawPopupMenu(m_WorkSpace, context);
+
+        DrawEditorTab(context);
 
         // モーダルダイアログ.
         DrawModalDialog(context);

@@ -43,7 +43,36 @@ struct PanelSetting
     //-------------------------------------------------------------------------
     //! @brief      デシリアライズします.
     //-------------------------------------------------------------------------
+    void Deserialize(tinyxml2::XMLElement* element, const char* tag);
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// BackgroundSetting structure
+///////////////////////////////////////////////////////////////////////////////
+struct BackgroundSetting
+{
+    asdx::EditColor3 ClearColor;
+    asdx::EditBool   ShowTexture;
+
+    //-------------------------------------------------------------------------
+    //! @brief      コンストラクタです.
+    //-------------------------------------------------------------------------
+    BackgroundSetting();
+
+    //-------------------------------------------------------------------------
+    //! @brief      シリアライズします.
+    //-------------------------------------------------------------------------
+    tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc);
+
+    //-------------------------------------------------------------------------
+    //! @brief      デシリアライズします.
+    //-------------------------------------------------------------------------
     void Deserialize(tinyxml2::XMLElement* element);
+
+    //-------------------------------------------------------------------------
+    //! @brief      編集処理を行います.
+    //-------------------------------------------------------------------------
+    void Edit();
 };
 
 
@@ -77,7 +106,7 @@ struct CameraSetting
     void Deserialize(tinyxml2::XMLElement* element);
 
     //-------------------------------------------------------------------------
-    //! @brief      編集します.
+    //! @brief      編集処理を行います.
     //-------------------------------------------------------------------------
     void Edit();
 };
@@ -113,33 +142,6 @@ struct DebugSetting
     void Edit();
 };
 
-///////////////////////////////////////////////////////////////////////////////
-// LightSetting structure
-///////////////////////////////////////////////////////////////////////////////
-struct LightSetting
-{
-    asdx::EditFloat3    SunLightDir;
-    asdx::EditFloat     SunLightIntensity;
-    std::string         SphereIBLPath;
-    asdx::EditFloat     IBLIntensity;
-    asdx::EditFloat     IBLRotation;
-
-    //-------------------------------------------------------------------------
-    //! @brief      コンストラクタです.
-    //-------------------------------------------------------------------------
-    LightSetting();
-
-    //-------------------------------------------------------------------------
-    //! @brief      シリアライズします.
-    //-------------------------------------------------------------------------
-    tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc);
-
-    //-------------------------------------------------------------------------
-    //! @brief      デシリアライズします.
-    //-------------------------------------------------------------------------
-    void Deserialize(tinyxml2::XMLElement* element);
-};
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Config struct
@@ -149,14 +151,14 @@ struct Config
     int             MainWindowWidth     = 1920;
     int             MainWindowHeight    = 1080;
     bool            ShowFPS             = true;
-    CameraSetting   Camera;
-    DebugSetting    Debug;
-
     PanelSetting    PanelEdit           = PanelSetting(true,  1410,  10, 500, 500);
     PanelSetting    PanelMesh           = PanelSetting(false, 1510, 520, 400, 400);
 //    PanelSetting    PanelBoneTree   = PanelSetting(false, 10, 80, 400, 300);
 //    PanelSetting    PanelBoneDetail = PanelSetting(false, 10, 390, 400, 320);
 
+    BackgroundSetting   Background;
+    CameraSetting       Camera;
+    DebugSetting        Debug;
 
     bool Load(const char* path);
     bool Save(const char* path);

@@ -60,6 +60,55 @@ void PanelSetting::Deserialize(tinyxml2::XMLElement* element, const char* tag)
     Size.y  = e->FloatAttribute("h");
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// BackgroundSetting
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+BackgroundSetting::BackgroundSetting()
+: ClearColor (0.18f, 0.18f, 0.18f)
+, ShowTexture(false)
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* BackgroundSetting::Serialize(tinyxml2::XMLDocument* doc)
+{
+    auto e = doc->NewElement("BackgroundSetting");
+    e->InsertEndChild(asdx::Serialize(doc, "ClearColor",  ClearColor));
+    e->InsertEndChild(asdx::Serialize(doc, "ShowTexture", ShowTexture));
+    return e;
+}
+
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void BackgroundSetting::Deserialize(tinyxml2::XMLElement* element)
+{
+    auto e = element->FirstChildElement("BackgroundSetting");
+    if (e == nullptr)
+    { return; }
+
+    asdx::Deserialize(e, "ClearColor",  ClearColor);
+    asdx::Deserialize(e, "ShowTexture", ShowTexture);
+}
+
+//-----------------------------------------------------------------------------
+//      編集処理を行います.
+//-----------------------------------------------------------------------------
+void BackgroundSetting::Edit()
+{
+    if (!ImGui::CollapsingHeader(u8"背景"))
+    { return; }
+
+    ClearColor.DrawPicker(u8"クリアカラー");
+    ShowTexture.DrawCheckbox(u8"背景画像表示");
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // CameraSetting
@@ -242,6 +291,7 @@ bool Config::Load(const char* path)
     PanelEdit.Deserialize(root, "PanelEdit");
     PanelMesh.Deserialize(root, "PanelMesh");
 
+    Background.Deserialize(root);
     Camera.Deserialize(root);
     Debug.Deserialize(root);
 
@@ -275,6 +325,10 @@ bool Config::Save(const char* path)
 
     root->InsertEndChild(PanelEdit.Serialize(&doc, "PanelEdit"));
     root->InsertEndChild(PanelMesh.Serialize(&doc, "PanelMesh"));
+
+    root->InsertEndChild(Background.Serialize(&doc));
+    root->InsertEndChild(Camera.Serialize(&doc));
+    root->InsertEndChild(Debug.Serialize(&doc));
 
 
     doc.InsertEndChild(root);

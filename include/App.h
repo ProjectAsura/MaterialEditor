@@ -15,6 +15,7 @@
 #include <asdxShader.h>
 #include <asdxRenderState.h>
 #include <WorkSpace.h>
+#include <Config.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,6 +83,7 @@ private:
     uint32_t                            m_GridVertexCount = 0;
     asdx::CameraUpdater                 m_CameraController;
     WorkSpace                           m_WorkSpace;
+    Config                              m_Config;
     bool                                m_CameraControl = false;
     asdx::Matrix                        m_Proj = asdx::Matrix::CreateIdentity();
     asdx::ColorTarget2D                 m_LightingBuffer;

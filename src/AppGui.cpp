@@ -13,6 +13,7 @@
 #include <asdxMisc.h>
 #include <imgui.h>
 #include <AppVersion.h>
+#include <Config.h>
 
 
 namespace {
@@ -28,10 +29,23 @@ static const char* kWorkFilter = "Work File(*.work)\0*.work\0\0";
 ///////////////////////////////////////////////////////////////////////////////
 struct MenuContext
 {
-    bool ShowLicense = false;
-    EditorModel* pModel = nullptr;
-    EditorMaterials* pMaterials = nullptr;
+    bool                ShowLicense = false;
+    EditorModel*        pModel = nullptr;
+    EditorMaterials*    pMaterials = nullptr;
+    Config*             pConfig = nullptr;
 };
+
+ImVec2 ToImVec2(const asdx::Vector2& value)
+{ return ImVec2(value.x, value.y); }
+
+ImVec4 ToImVec4(const asdx::Vector4& value)
+{ return ImVec4(value.x, value.y, value.z, value.w); }
+
+asdx::Vector2 FromImVec2(const ImVec2& value)
+{ return asdx::Vector2(value.x, value.y); }
+
+asdx::Vector4 FromImVec4(const ImVec4& value)
+{ return asdx::Vector4(value.x, value.y, value.z, value.w); }
 
 
 //-----------------------------------------------------------------------------
@@ -251,7 +265,7 @@ void DrawMaterialTab(MenuContext& context)
 }
 
 
-void DrawLightPanel()
+void DrawLightTab()
 {
     // 方向.
 
@@ -262,41 +276,36 @@ void DrawLightPanel()
     // IBL強度.
 }
 
-void DrawCameraPanel()
+void DrawConfigTab(MenuContext& context)
 {
-    // 
+    if (!ImGui::BeginTabItem(u8"設定"))
+    { return; }
+
+    // 背景.
+    context.pConfig->Background.Edit();
+
+    // カメラ.
+    context.pConfig->Camera.Edit();
+
+    // デバッグ.
+    context.pConfig->Debug.Edit();
+
+    ImGui::EndTabItem();
 }
 
-void DrawPostEffectPanel()
-{
-    // GTAO
-
-    // GTSO
-
-    // トーンマップ.
-
-
-    // Bloom
-
-
-    // TAA
-}
-
-void DrawModelPreviewPanel()
-{
-}
-
-void DrawShadowPanel()
-{
-}
-
-void DrawDebugSetting()
-{
-}
 
 void DrawEditorTab(MenuContext& context)
 {
-    if (!ImGui::Begin(u8"プロパティ"))
+    if (!context.pConfig->PanelEdit.Open)
+    { return; }
+
+    auto pos  = ToImVec2(context.pConfig->PanelEdit.Pos);
+    auto size = ToImVec2(context.pConfig->PanelEdit.Size);
+
+    ImGui::SetNextWindowPos (pos,  ImGuiCond_Once);
+    ImGui::SetNextWindowSize(size, ImGuiCond_Once);
+
+    if (!ImGui::Begin(u8"編集", &context.pConfig->PanelEdit.Open))
     { return; }
 
     if (ImGui::BeginTabBar(u8"Panels", ImGuiTabBarFlags_TabListPopupButton | ImGuiTabBarFlags_FittingPolicyScroll))
@@ -304,8 +313,18 @@ void DrawEditorTab(MenuContext& context)
         // マテリアルタブ.
         DrawMaterialTab(context);
 
+        // 設定タブ.
+        DrawConfigTab(context);
+
+
         ImGui::EndTabBar();
     }
+
+    // ウィンドウ位置とサイズを更新.
+    pos  = ImGui::GetWindowPos();
+    size = ImGui::GetWindowSize();
+    context.pConfig->PanelEdit.Pos  = FromImVec2(pos);
+    context.pConfig->PanelEdit.Size = FromImVec2(size);
 
     ImGui::End();
 }
@@ -331,6 +350,7 @@ void App::DrawGui()
         MenuContext context = {};
         context.pModel     = m_WorkSpace.GetModel();
         context.pMaterials = m_WorkSpace.GetMaterials();
+        context.pConfig    = &m_Config;
 
         // 右クリックメニュー.
         DrawPopupMenu(m_WorkSpace, context);

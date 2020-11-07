@@ -779,7 +779,7 @@ void App::DrawGuide()
     m_pDeviceContext->OMSetDepthStencilState(pDSS, 0);
 
     // グリッドの描画.
-    if (m_GridVertexCount > 0 /*&& m_Config.Debug.DrawGrid*/)
+    if (m_GridVertexCount > 0 && m_Config.Debug.DrawGrid.GetValue())
     {
         auto pVB    = m_GridVB.GetBuffer();
         auto stride = m_GridVB.GetStride();
@@ -789,7 +789,7 @@ void App::DrawGuide()
     }
 
     // 軸の描画.
-    if (m_AxisVertexCount > 0 /*&& m_Config.Debug.DrawAxis*/)
+    if (m_AxisVertexCount > 0 && m_Config.Debug.DrawAxis.GetValue())
     {
         auto pVB    = m_AxisVB.GetBuffer();
         auto stride = m_AxisVB.GetStride();

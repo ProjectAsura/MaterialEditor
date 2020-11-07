@@ -153,6 +153,7 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     <ClInclude Include="..\include\Config.h" />
     <ClInclude Include="..\include\EditorMaterial.h" />
     <ClInclude Include="..\include\EditorModel.h" />
+    <ClInclude Include="..\include\LightMgr.h" />
     <ClInclude Include="..\include\MeshLoader.h" />
     <ClInclude Include="..\include\PluginMgr.h" />
     <ClInclude Include="..\include\WorkSpace.h" />

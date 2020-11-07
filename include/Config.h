@@ -152,7 +152,7 @@ struct Config
     int             MainWindowWidth     = 1920;
     int             MainWindowHeight    = 1080;
     bool            ShowFPS             = true;
-    PanelSetting    PanelEdit           = PanelSetting(true,  1510,  10, 400, 1000);
+    PanelSetting    PanelEdit           = PanelSetting(true,  1510,  10, 400, 1060);
     PanelSetting    PanelMesh           = PanelSetting(false, 1510, 520, 400, 400);
 //    PanelSetting    PanelBoneTree   = PanelSetting(false, 10, 80, 400, 300);
 //    PanelSetting    PanelBoneDetail = PanelSetting(false, 10, 390, 400, 320);

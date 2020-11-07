@@ -1216,7 +1216,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
 
     if (m_DepthState.Editable)
     {
-        instance->m_DepthStencilState.DrawCombo(
+        instance->m_DepthState.DrawCombo(
             u8"深度設定",
             _countof(kDepthState),
             kDepthState);

@@ -897,6 +897,11 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiTexture2D>& value)
 //      コンストラクタです.
 //-----------------------------------------------------------------------------
 MaterialInstance::MaterialInstance()
+: m_ShadowCast      (false)
+, m_ShadowReceive   (false)
+, m_BlendState      (0)
+, m_RasterizerState (0)
+, m_DepthState      (1)
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -915,11 +920,11 @@ MaterialInstance::~MaterialInstance()
 tinyxml2::XMLElement* MaterialInstance::Serialize(tinyxml2::XMLDocument* doc)
 {
     auto element = doc->NewElement(m_MaterialName.c_str());
-    element->SetAttribute("shadow_cast", m_ShadowCast.GetValue());
-    element->SetAttribute("shadow_receive", m_ShadowReceive.GetValue());
-    element->SetAttribute("blend_state", m_BlendState.GetValue());
-    element->SetAttribute("rasterizer_state", m_RasterizerState.GetValue());
-    element->SetAttribute("depth_state", m_DepthStencilState.GetValue());
+    element->SetAttribute("shadow_cast",        m_ShadowCast        .GetValue());
+    element->SetAttribute("shadow_receive",     m_ShadowReceive     .GetValue());
+    element->SetAttribute("blend_state",        m_BlendState        .GetValue());
+    element->SetAttribute("rasterizer_state",   m_RasterizerState   .GetValue());
+    element->SetAttribute("depth_state",        m_DepthState        .GetValue());
 
     for(size_t i=0; i<m_Bool.size(); ++i)
     { element->InsertEndChild(::Serialize(doc, m_Bool[i])); }
@@ -967,7 +972,7 @@ void MaterialInstance::Deserialize(tinyxml2::XMLElement* element)
     m_ShadowReceive     .SetValue(e->BoolAttribute("shadow_receive"));
     m_BlendState        .SetValue(e->IntAttribute("blend_state"));
     m_RasterizerState   .SetValue(e->IntAttribute("rasterizer_state"));
-    m_DepthStencilState .SetValue(e->IntAttribute("depth_state"));
+    m_DepthState        .SetValue(e->IntAttribute("depth_state"));
 
     ::Deserialize(e, m_Bool);
     ::Deserialize(e, m_Int);
@@ -1000,10 +1005,10 @@ int MaterialInstance::GetBlendState() const
 { return m_BlendState.GetValue(); }
 
 //-----------------------------------------------------------------------------
-//      深度ステンシルステートを取得します.
+//      深度ステートを取得します.
 //-----------------------------------------------------------------------------
 int MaterialInstance::GetDepthState() const
-{ return m_DepthStencilState.GetValue(); }
+{ return m_DepthState.GetValue(); }
 
 //-----------------------------------------------------------------------------
 //      ラスタライザーステートを取得します.
@@ -1196,7 +1201,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
     if (m_BlendState.Editable)
     {
         instance->m_BlendState.DrawCombo(
-            u8"ブレンドステート",
+            u8"ブレンド設定",
             _countof(kBlendState),
             kBlendState);
     }
@@ -1204,7 +1209,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
     if (m_RasterizerState.Editable)
     {
         instance->m_RasterizerState.DrawCombo(
-            u8"ラスタライザーステート",
+            u8"表示面",
             _countof(kRasterizerState),
             kRasterizerState);
     }
@@ -1212,7 +1217,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
     if (m_DepthState.Editable)
     {
         instance->m_DepthStencilState.DrawCombo(
-            u8"深度ステート",
+            u8"深度設定",
             _countof(kDepthState),
             kDepthState);
     }

@@ -175,7 +175,7 @@ void CameraSetting::Edit()
     Type.DrawCombo(u8"タイプ", _countof(kCameraTypeLabel), kCameraTypeLabel);
 
     FieldOfView .DrawSlider(u8"垂直画角", 0.1f, 1.0f, 360.0f);
-    NearClip    .DrawSlider(u8"ニアクリップ平面", 0.1, 0.01f, 1000000.0f);
+    NearClip    .DrawSlider(u8"ニアクリップ平面", 0.1f, 0.01f, 1000000.0f);
     FarClip     .DrawSlider(u8"ファークリップ平面", 1.0f, 0.01f, 10000000.0f);
     RotateGain  .DrawSlider(u8"回転量", 0.001f, -100.0f, 100.0f);
     DollyGain   .DrawSlider(u8"ドリー量", 0.001f, -100.0f, 100.0f);

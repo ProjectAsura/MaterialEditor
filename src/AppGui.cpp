@@ -22,7 +22,15 @@ namespace {
 // Constant Values.
 //-----------------------------------------------------------------------------
 static const char* kWorkFilter = "Work File(*.work)\0*.work\0\0";
-
+static const char* kLicenses[] = {
+    "Dear Imgui (https://github.com/ocornut/imgui/blob/master/LICENSE.txt)",
+    "ImgGuizmo (https://github.com/CedricGuillemet/ImGuizmo/blob/master/LICENSE)",
+    "TinyXML-2 (https://github.com/leethomason/tinyxml2/blob/master/LICENSE.txt)",
+    "meshoptimizer (https://github.com/zeux/meshoptimizer/blob/master/LICENSE.md)",
+    "DirectXTex ()",
+    "assimp ()",
+};
+static const ImVec4 kRed = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 
 ///////////////////////////////////////////////////////////////////////////////
 // MenuContext structure
@@ -51,10 +59,10 @@ asdx::Vector4 FromImVec4(const ImVec4& value)
 //-----------------------------------------------------------------------------
 //      FPSを表示します.
 //-----------------------------------------------------------------------------
-void DrawFPS(float fps, uint64_t vertexCount, uint64_t meshletCount, bool connect)
+void DrawFPS(float fps, uint64_t polygonCount, bool connect)
 {
     ImGui::SetNextWindowPos (ImVec2(10,  10));
-    ImGui::SetNextWindowSize(ImVec2(150, 60));
+    ImGui::SetNextWindowSize(ImVec2(160, 60));
 
     auto flags = ImGuiWindowFlags_NoMove
                | ImGuiWindowFlags_NoResize
@@ -65,8 +73,8 @@ void DrawFPS(float fps, uint64_t vertexCount, uint64_t meshletCount, bool connec
     // FPS
     ImGui::Text(u8"FPS : %.2f", fps);
 
-    // 頂点数
-    ImGui::Text(u8"頂点数 : %lu", vertexCount);
+    // ポリゴン数
+    ImGui::Text(u8"ポリゴン数 : %lu", polygonCount);
 
     if (connect)
     { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), u8"接続"); }
@@ -208,21 +216,18 @@ void DrawPopupMenu(WorkSpace& workSpace, MenuContext& context)
 }
 
 //-----------------------------------------------------------------------------
-//      モーダルダイアログを表示します.
+//      ライセンスを表示します.
 //-----------------------------------------------------------------------------
-void DrawModalDialog(MenuContext& context)
+void DrawLicenseDialog(MenuContext& context)
 {
     if (context.ShowLicense)
     { ImGui::OpenPopup("License"); }
 
     if (ImGui::BeginPopupModal("License"))
     {
-        ImGui::BulletText("Dear Imgui (https://github.com/ocornut/imgui/blob/master/LICENSE.txt)");
-        ImGui::BulletText("ImgGuizmo (https://github.com/CedricGuillemet/ImGuizmo/blob/master/LICENSE)");
-        ImGui::BulletText("TinyXML-2 (https://github.com/leethomason/tinyxml2/blob/master/LICENSE.txt)");
-        ImGui::BulletText("meshoptimizer (https://github.com/zeux/meshoptimizer/blob/master/LICENSE.md)");
-        ImGui::BulletText("DirectXTex ()");
-        ImGui::BulletText("assimp ()");
+        auto count = _countof(kLicenses);
+        for(auto i=0u; i<count; ++i)
+        { ImGui::BulletText(kLicenses[i]); }
 
         if (ImGui::Button("OK"))
         { ImGui::CloseCurrentPopup(); }
@@ -231,6 +236,18 @@ void DrawModalDialog(MenuContext& context)
     }
 }
 
+//-----------------------------------------------------------------------------
+//      モーダルダイアログを表示します.
+//-----------------------------------------------------------------------------
+void DrawModalDialog(MenuContext& context)
+{
+    // ライセンス表示.
+    DrawLicenseDialog(context);
+}
+
+//-----------------------------------------------------------------------------
+//      マテリアルタブを描画します.
+//-----------------------------------------------------------------------------
 void DrawMaterialTab(MenuContext& context)
 {
     if (!ImGui::BeginTabItem(u8"マテリアル"))
@@ -238,7 +255,7 @@ void DrawMaterialTab(MenuContext& context)
 
     if (context.pModel == nullptr || context.pMaterials == nullptr)
     {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), u8"マテリアルがありません");
+        ImGui::TextColored(kRed, u8"マテリアルがありません");
         ImGui::EndTabItem();
         return;
     }
@@ -265,17 +282,22 @@ void DrawMaterialTab(MenuContext& context)
 }
 
 
+//-----------------------------------------------------------------------------
+//      ライトタブを描画します.
+//-----------------------------------------------------------------------------
 void DrawLightTab()
 {
-    // 方向.
+    if (!ImGui::BeginTabItem(u8"ライト"))
+    { return; }
 
-    // 強さ.
+    // ライト一覧を表示.
 
-    // IBL画像.
-
-    // IBL強度.
+    ImGui::EndTabItem();
 }
 
+//-----------------------------------------------------------------------------
+//      設定タブを描画します.
+//-----------------------------------------------------------------------------
 void DrawConfigTab(MenuContext& context)
 {
     if (!ImGui::BeginTabItem(u8"設定"))
@@ -293,8 +315,10 @@ void DrawConfigTab(MenuContext& context)
     ImGui::EndTabItem();
 }
 
-
-void DrawEditorTab(MenuContext& context)
+//-----------------------------------------------------------------------------
+//      編集パネルを描画します.
+//-----------------------------------------------------------------------------
+void DrawEditorPanel(MenuContext& context)
 {
     if (!context.pConfig->PanelEdit.Open)
     { return; }
@@ -308,13 +332,24 @@ void DrawEditorTab(MenuContext& context)
     if (!ImGui::Begin(u8"編集", &context.pConfig->PanelEdit.Open))
     { return; }
 
-    if (ImGui::BeginTabBar(u8"Panels", ImGuiTabBarFlags_TabListPopupButton | ImGuiTabBarFlags_FittingPolicyScroll))
+    int flag = 0;
+    flag |= ImGuiTabBarFlags_TabListPopupButton;
+    flag |= ImGuiTabBarFlags_FittingPolicyScroll;
+    if (ImGui::BeginTabBar(u8"Panels", flag))
     {
         // マテリアルタブ.
         DrawMaterialTab(context);
 
         // 設定タブ.
         DrawConfigTab(context);
+
+        // ライトタブ.
+        DrawLightTab();
+
+        // モーションタブ.
+
+
+        // アイテムタブ/
 
 
         ImGui::EndTabBar();
@@ -338,8 +373,11 @@ void App::DrawGui()
 {
     asdx::GuiMgr::GetInstance().Update(m_Width, m_Height);
     {
+        auto count = (m_WorkSpace.GetModel() != nullptr) 
+            ? m_WorkSpace.GetModel()->CalcPolygonCount() : 0ull;
+
         // FPS表示.
-        DrawFPS(GetFPS(), 0, 0, false);
+        DrawFPS(GetFPS(), count, false);
 
         if(!ImGui::IsAnyItemHovered() & !m_CameraControl)
         {
@@ -355,7 +393,8 @@ void App::DrawGui()
         // 右クリックメニュー.
         DrawPopupMenu(m_WorkSpace, context);
 
-        DrawEditorTab(context);
+        // 編集パネル.
+        DrawEditorPanel(context);
 
         // モーダルダイアログ.
         DrawModalDialog(context);

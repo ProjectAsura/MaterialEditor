@@ -379,7 +379,7 @@ private:
     asdx::EditBool              m_ShadowReceive;
     asdx::EditInt               m_BlendState;
     asdx::EditInt               m_RasterizerState;
-    asdx::EditInt               m_DepthStencilState;
+    asdx::EditInt               m_DepthState;
     std::vector<UiBool>         m_Bool;
     std::vector<UiInt>          m_Int;
     std::vector<UiFloat>        m_Float;

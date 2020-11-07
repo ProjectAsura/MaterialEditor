@@ -203,6 +203,12 @@ bool EditorMesh::HasSkinningData() const
 const BoundingBox& EditorMesh::GetBox() const
 { return m_Box; }
 
+//-----------------------------------------------------------------------------
+//      ポリゴン数を取得します.
+//-----------------------------------------------------------------------------
+uint32_t EditorMesh::GetPolygonCount() const
+{ return m_IndexCount / 3; }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // EditorModel class
@@ -372,4 +378,16 @@ void EditorModel::UpdateWorld()
     m_World._41 = m_Translation.x;
     m_World._42 = m_Translation.y;
     m_World._43 = m_Translation.z;
+}
+
+//-----------------------------------------------------------------------------
+//      ポリゴン数を計算します.
+//-----------------------------------------------------------------------------
+uint64_t EditorModel::CalcPolygonCount() const
+{
+    uint64_t count = 0;
+    for(size_t i=0; i<m_Meshes.size(); ++i)
+    { count += m_Meshes[i].GetPolygonCount(); }
+
+    return count;
 }

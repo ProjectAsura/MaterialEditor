@@ -10,6 +10,10 @@
 #include <LightMgr.h>
 #include <asdxMisc.h>
 #include <asdxLogger.h>
+#include <asdxDeviceContext.h>
+#include <asdxRenderState.h>
+#include <DirectXTex.h>
+#include <imgui.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,58 +33,255 @@ EditorLight::~EditorLight()
 { Reset(); }
 
 //-----------------------------------------------------------------------------
+//      ファイルをロードします.
+//-----------------------------------------------------------------------------
+bool EditorLight::Load(const char* path)
+{
+    tinyxml2::XMLDocument doc;
+    auto ret = doc.LoadFile(path);
+    if (ret != tinyxml2::XML_SUCCESS)
+    {
+        ELOGA("Error : File Load Failed. path = %s", path);
+        return false;
+    }
+
+    auto root = doc.FirstChildElement("EditorLight");
+    if (root == nullptr)
+    {
+        ELOGA("Error : Root Not Found.");
+        return false;
+    }
+
+    {
+        auto e = root->FirstChildElement("SunLight");
+        if (e != nullptr)
+        {
+            SunLightDir.x       = e->FloatAttribute("x");
+            SunLightDir.y       = e->FloatAttribute("y");
+            SunLightDir.z       = e->FloatAttribute("z");
+            SunLightIntensity   = e->FloatAttribute("intensity");
+
+            SunLightDir.Normalize();
+        }
+    }
+
+    {
+        auto e = root->FirstChildElement("Background");
+        if (e != nullptr)
+        {
+            BackgroundPath = e->Attribute("path");
+        }
+    }
+
+    {
+        auto e = root->FirstChildElement("IBL");
+        if (e != nullptr)
+        {
+            DiffuseIBLPath  = e->Attribute("diffuse_path");
+            SpecularIBLPath = e->Attribute("specular_path");
+            IBLIntensity    = e->FloatAttribute("intensity");
+        }
+    }
+
+    if (!LoadTexture())
+    { return false; }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      ファイルをセーブします.
+//-----------------------------------------------------------------------------
+bool EditorLight::Save(const char* path)
+{
+    tinyxml2::XMLDocument doc;
+    doc.InsertEndChild(doc.NewDeclaration());
+
+    auto root = doc.NewElement("EditorLight");
+    root->SetAttribute("tag", Tag.c_str());
+
+    {
+        auto e = doc.NewElement("SunLight");
+        e->SetAttribute("x", SunLightDir.x);
+        e->SetAttribute("y", SunLightDir.y);
+        e->SetAttribute("z", SunLightDir.z);
+        e->SetAttribute("intensity", SunLightIntensity);
+        root->InsertEndChild(e);
+    }
+
+    {
+        auto e = doc.NewElement("Background");
+        e->SetAttribute("path", BackgroundPath.c_str());
+        root->InsertEndChild(e);
+    }
+
+    {
+        auto e = doc.NewElement("IBL");
+        e->SetAttribute("diffuse_path", DiffuseIBLPath.c_str());
+        e->SetAttribute("specular_path", SpecularIBLPath.c_str());
+        e->SetAttribute("intensity", IBLIntensity);
+        root->InsertEndChild(e);
+    }
+
+    auto ret = doc.SaveFile(path);
+    if (ret != tinyxml2::XML_SUCCESS)
+    {
+        ELOGA("Error : File Save Failed. path = %s", path);
+        return false;
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      テクスチャをロードします.
+//-----------------------------------------------------------------------------
+bool EditorLight::LoadTexture()
+{
+    std::string diffusePath;
+    if (!asdx::SearchFilePathA(DiffuseIBLPath.c_str(), diffusePath))
+    {
+        ELOGA("Error : File Not Found. path = %s", DiffuseIBLPath.c_str());
+        return false;
+    }
+
+    std::string specularPath;
+    if (!asdx::SearchFilePathA(SpecularIBLPath.c_str(), specularPath))
+    {
+        ELOGA("Error : File Not Found. path = %s", SpecularIBLPath.c_str());
+        return false;
+    }
+
+    auto pDevice = asdx::DeviceContext::Instance().GetDevice();
+
+    std::string backgroundPath;
+    // 背景キューブマップ読み込み.
+    if (asdx::SearchFilePathA(BackgroundPath.c_str(), backgroundPath))
+    {
+        auto path = asdx::ToStringW(backgroundPath);
+
+        DirectX::ScratchImage scrathImage;
+        auto hr = DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, scrathImage);
+        if (SUCCEEDED(hr))
+        {
+            if (m_Background.GetPtr() != nullptr)
+            { m_Background.Reset(); }
+
+            hr = DirectX::CreateShaderResourceViewEx(
+                pDevice,
+                scrathImage.GetImages(),
+                scrathImage.GetImageCount(),
+                scrathImage.GetMetadata(),
+                D3D11_USAGE_DEFAULT,
+                D3D11_BIND_SHADER_RESOURCE,
+                0,
+                0,
+                false,
+                m_Background.GetAddress());
+            if (FAILED(hr))
+            {
+                ELOGA("Error : DirectX::CreateShaderResourceViewEx() Failed. errcode = 0x%x", hr);
+            }
+        }
+    }
+
+    // DiffuseLDキューブマップ読み込み.
+    {
+        auto path = asdx::ToStringW(diffusePath);
+
+        DirectX::ScratchImage scrathImage;
+        auto hr = DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, scrathImage);
+        if (FAILED(hr))
+        {
+            ELOGA("Error : DirectX::LoadFromDDSFile() Failed. path = %s", diffusePath.c_str());
+            return false;
+        }
+
+        if (m_DiffuseLD.GetPtr() != nullptr)
+        { m_DiffuseLD.Reset(); }
+
+        hr = DirectX::CreateShaderResourceViewEx(
+            pDevice,
+            scrathImage.GetImages(),
+            scrathImage.GetImageCount(),
+            scrathImage.GetMetadata(),
+            D3D11_USAGE_DEFAULT,
+            D3D11_BIND_SHADER_RESOURCE,
+            0,
+            0,
+            false,
+            m_DiffuseLD.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOGA("Error : DirectX::CreateShaderResourceViewEx() Faile. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
+    // SpecularLDキューブマップ読み込み.
+    {
+        auto path = asdx::ToStringW(specularPath);
+
+        DirectX::ScratchImage scrathImage;
+        auto hr = DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, scrathImage);
+        if (FAILED(hr))
+        {
+            ELOGA("Error : DirectX::LoadFromDDSFile() Failed. path = %s", diffusePath.c_str());
+            return false;
+        }
+
+        if (m_SpecularLD.GetPtr() != nullptr)
+        { m_SpecularLD.Reset(); }
+
+        hr = DirectX::CreateShaderResourceViewEx(
+            pDevice,
+            scrathImage.GetImages(),
+            scrathImage.GetImageCount(),
+            scrathImage.GetMetadata(),
+            D3D11_USAGE_DEFAULT,
+            D3D11_BIND_SHADER_RESOURCE,
+            0,
+            0,
+            false,
+            m_SpecularLD.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOGA("Error : DirectX::CreateShaderResourceViewEx() Faile. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
 //      テクスチャを破棄します.
 //-----------------------------------------------------------------------------
 void EditorLight::Reset()
 {
-    m_Original_SRV  .Reset();
-    m_DiffuseLD_SRV .Reset();
-    m_DiffuseLD_UAV .Reset();
-    m_SpecularLD_SRV.Reset();
-    m_SpecularLD_UAV.Reset();
+    m_Background.Reset();
+    m_DiffuseLD .Reset();
+    m_SpecularLD.Reset();
 }
 
-//-----------------------------------------------------------------------------
-//      シリアライズします.
-//-----------------------------------------------------------------------------
-tinyxml2::XMLElement* EditorLight::Serialize(tinyxml2::XMLDocument* doc)
-{
-    auto e = doc->NewElement("Light");
-
-
-    return e;
-}
-
-//-----------------------------------------------------------------------------
-//      デシリアライズします.
-//-----------------------------------------------------------------------------
-void EditorLight::Deserialize(tinyxml2::XMLElement* element)
-{
-    auto e = element->FirstChildElement("Light");
-    if (e == nullptr)
-    { return; }
-
-
-
-}
 
 //-----------------------------------------------------------------------------
 //      背景用キューブマップを取得します.
 //-----------------------------------------------------------------------------
-ID3D11ShaderResourceView* EditorLight::GetOriginal() const
-{ return m_Original_SRV.GetPtr(); }
+ID3D11ShaderResourceView* EditorLight::GetBackground() const
+{ return m_Background.GetPtr(); }
 
 //-----------------------------------------------------------------------------
 //      ディフューズLDキューブマップを取得します.
 //-----------------------------------------------------------------------------
 ID3D11ShaderResourceView* EditorLight::GetDiffuseLD() const
-{ return m_DiffuseLD_SRV.GetPtr(); }
+{ return m_DiffuseLD.GetPtr(); }
 
 //-----------------------------------------------------------------------------
 //      スペキュラーLDキューブマップを取得します.
 //-----------------------------------------------------------------------------
 ID3D11ShaderResourceView* EditorLight::GetSpecularLD() const
-{ return m_SpecularLD_SRV.GetPtr(); }
+{ return m_SpecularLD.GetPtr(); }
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,33 +298,41 @@ LightMgr& LightMgr::Instance()
 //-----------------------------------------------------------------------------
 //      初期化処理を行います.
 //-----------------------------------------------------------------------------
-bool LightMgr::Init(const char* path)
+bool LightMgr::Init()
 {
-    std::string filePath;
-    if (!asdx::SearchFilePathA(path, filePath))
+    // EnvBRDFをロード.
+
+
+    // lightsフォルダ下のライト設定ファイル(xml)をロードしていく.
     {
-        ELOGA("Error : File Not Found. path = %s", path);
-        return false;
+        std::string dir;
+        if (!asdx::SearchFilePathA("../res/lights", dir))
+        {
+            ELOGA("Error : Folder Not Found.");
+            return false;
+        }
+
+        std::list<std::string> lightPresets;
+        if (!asdx::SearchFilesA(dir.c_str(), ".xml", lightPresets))
+        {
+            ELOGA("Error : File Not Found.");
+            return false;
+        }
+
+        m_Light.resize(lightPresets.size());
+        auto idx = 0;
+
+        for(auto& itr : lightPresets)
+        {
+            if (!m_Light[idx].Load(itr.c_str()))
+            { 
+                ELOGA("Error : Light Load Failed. path = %s", itr.c_str());
+                return false;
+            }
+
+            idx++;
+        }
     }
-
-    tinyxml2::XMLDocument doc;
-    auto ret = doc.LoadFile(filePath.c_str());
-    if (ret != tinyxml2::XML_SUCCESS)
-    {
-        ELOGA("Error : File Load Failed. path = %s", filePath.c_str());
-        return false;
-    }
-
-    auto root = doc.FirstChildElement("LightPreset");
-    if (root == nullptr)
-    {
-        ELOGA("Error : Root Node Not Found.");
-        return false;
-    }
-
-    // ライトをデシリアライズ.
-
-
 
     return true;
 }
@@ -136,32 +345,39 @@ void LightMgr::Term()
     for(size_t i=0; i<m_Light.size(); ++i)
     { m_Light[i].Reset(); }
 
-    m_SkyBox    .Term();
-    m_LightCB   .Term();
-
-    m_PrefilterDiffuseCS.Reset();
-    m_PrefilterSpcularCS.Reset();
+    m_SkyBox .Term();
     m_EnvBRDF.Reset();
 
     m_CurrentIndex = 0;
 }
 
 //-----------------------------------------------------------------------------
-//      更新処理を行います.
+//      編集処理を行います.
 //-----------------------------------------------------------------------------
-void LightMgr::Update(ID3D11DeviceContext* pContext)
+void LightMgr::Edit()
 {
     for(size_t i=0; i<m_Light.size(); ++i)
     {
-
     }
 }
 
 //-----------------------------------------------------------------------------
 //      描画処理を行います.
 //-----------------------------------------------------------------------------
-void LightMgr::Draw(ID3D11DeviceContext* pContext)
+void LightMgr::Draw
+(
+    ID3D11DeviceContext*    pContext,
+    const asdx::Vector3&    cameraPos,
+    const asdx::Matrix&     view,
+    const asdx::Matrix&     proj
+)
 {
+    if (m_CurrentIndex >= m_Light.size())
+    { return; }
+
+    auto pSRV = m_Light[m_CurrentIndex].GetBackground();
+    auto pSmp = asdx::RenderState::GetInstance().GetSmp(asdx::LinearClamp);
+    m_SkyBox.Draw(pContext, pSRV, pSmp, 10000.0f, cameraPos, view, proj);
 }
 
 //-----------------------------------------------------------------------------
@@ -171,55 +387,12 @@ ID3D11ShaderResourceView* LightMgr::GetEnvBRDF() const
 { return m_EnvBRDF.GetPtr(); }
 
 //-----------------------------------------------------------------------------
-//      背景用キューブマップを取得します.
-//-----------------------------------------------------------------------------
-ID3D11ShaderResourceView* LightMgr::GetOriginal() const
-{
-    if (m_CurrentIndex >= m_Light.size())
-    { return nullptr; }
-
-    return m_Light[m_CurrentIndex].GetOriginal();
-}
-
-//-----------------------------------------------------------------------------
 //      DiffuseLDキューブマップを取得します.
 //-----------------------------------------------------------------------------
-ID3D11ShaderResourceView* LightMgr::GetDiffuseLD() const
+const EditorLight* LightMgr::GetLight() const
 {
     if (m_CurrentIndex >= m_Light.size())
     { return nullptr; }
 
-    return m_Light[m_CurrentIndex].GetDiffuseLD();
-}
-
-//-----------------------------------------------------------------------------
-//      SpecularLDキューブマップを取得します.
-//-----------------------------------------------------------------------------
-ID3D11ShaderResourceView* LightMgr::GetSpecularLD() const
-{
-    if (m_CurrentIndex >= m_Light.size())
-    { return nullptr; }
-
-    return m_Light[m_CurrentIndex].GetSpecularLD();
-}
-
-//-----------------------------------------------------------------------------
-//      定数バッファを取得します.
-//-----------------------------------------------------------------------------
-ID3D11Buffer* LightMgr::GetBuffer() const
-{ return m_LightCB.GetBuffer(); }
-
-//-----------------------------------------------------------------------------
-//      DiffuseLDキューブマップを生成します.
-//-----------------------------------------------------------------------------
-void LightMgr::ConvolutionDiffuse(ID3D11DeviceContext* pContext, EditorLight& light)
-{
-
-}
-
-//-----------------------------------------------------------------------------
-//      SpecularLDキューブマップを生成します.
-//-----------------------------------------------------------------------------
-void LightMgr::ConvolutionSpecular(ID3D11DeviceContext* pContext, EditorLight& light)
-{
+    return &m_Light[m_CurrentIndex];
 }

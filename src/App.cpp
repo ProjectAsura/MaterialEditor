@@ -25,6 +25,8 @@ namespace {
 #include "../res/shaders/Compiled/EditorPS.inc"
 #include "../res/shaders/Compiled/GuideVS.inc"
 #include "../res/shaders/Compiled/GuidePS.inc"
+#include "../res/shaders/Compiled/ShadowVS.inc"
+#include "../res/shaders/Compiled/ShadowSkinningVS.inc"
 #include "../res/shaders/Compiled/TriangleVS.inc"
 #include "../res/shaders/Compiled/CopyPS.inc"
 
@@ -301,6 +303,22 @@ bool App::OnInit()
         }
 
         hr = m_pDevice->CreateVertexShader(
+            ShadowVS, sizeof(ShadowVS), nullptr, m_ShadowVS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+
+        hr = m_pDevice->CreateVertexShader(
+            ShadowSkinningVS, sizeof(ShadowSkinningVS), nullptr, m_ShadowSkinningVS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+
+        hr = m_pDevice->CreateVertexShader(
             TriangleVS, sizeof(TriangleVS), nullptr, m_TriangleVS.GetAddress());
         if (FAILED(hr))
         {
@@ -331,7 +349,11 @@ bool App::OnInit()
     // 入力レイアウト.
     {
         auto hr = m_pDevice->CreateInputLayout(
-            kElements, _countof(kElements), EditorVS, sizeof(EditorVS), m_IL.GetAddress());
+            kElements,
+            _countof(kElements),
+            EditorVS,
+            sizeof(EditorVS),
+            m_IL.GetAddress());
         if (FAILED(hr))
         {
             ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
@@ -339,7 +361,11 @@ bool App::OnInit()
         }
 
         hr = m_pDevice->CreateInputLayout(
-            kSkinningElements, _countof(kSkinningElements), EditorSkinningVS, sizeof(EditorSkinningVS), m_SkinningIL.GetAddress());
+            kSkinningElements,
+            _countof(kSkinningElements),
+            EditorSkinningVS,
+            sizeof(EditorSkinningVS),
+            m_SkinningIL.GetAddress());
         if (FAILED(hr))
         {
             ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
@@ -347,7 +373,35 @@ bool App::OnInit()
         }
 
         hr = m_pDevice->CreateInputLayout(
-            kTriangleElements, _countof(kTriangleElements), TriangleVS, sizeof(TriangleVS), m_TriangleIL.GetAddress());
+            kElements,
+            _countof(kElements),
+            ShadowVS,
+            sizeof(ShadowVS),
+            m_ShadowIL.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+
+        hr = m_pDevice->CreateInputLayout(
+            kSkinningElements,
+            _countof(kSkinningElements),
+            ShadowSkinningVS,
+            sizeof(ShadowSkinningVS),
+            m_ShadowSkinningIL.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+
+        hr = m_pDevice->CreateInputLayout(
+            kTriangleElements,
+            _countof(kTriangleElements),
+            TriangleVS,
+            sizeof(TriangleVS),
+            m_TriangleIL.GetAddress());
         if (FAILED(hr))
         {
             ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
@@ -539,6 +593,11 @@ void App::OnTerm()
     m_IL        .Reset();
     m_SkinningIL.Reset();
     m_TriangleIL.Reset();
+
+    m_ShadowVS          .Reset();
+    m_ShadowSkinningVS  .Reset();
+    m_ShadowIL          .Reset();
+    m_ShadowSkinningIL  .Reset();
 
     m_SceneCB.Term();
     m_GuideCB.Term();
@@ -745,7 +804,24 @@ void App::OnDrop(const std::vector<std::string>& dropFiles)
     {
         auto ext = asdx::GetExtA(dropFiles[i].c_str());
 
-        if (ext == "fbx" || ext == "obj")
+        if (ext == "fbx" 
+         || ext == "obj"
+         || ext == "3ds"
+         || ext == "dae"
+         || ext == "collada"
+         || ext == "blend"
+         || ext == "dxf"
+         || ext == "gltf"
+         || ext == "glb"
+         || ext == "lwo"
+         || ext == "mdl"
+         || ext == "md2"
+         || ext == "md3"
+         || ext == "md5"
+         || ext == "ms3d"
+         || ext == "ply"
+         || ext == "stl"
+         || ext == "x")
         {
             if (m_WorkSpace.New(dropFiles[i].c_str()))
             { return; }
@@ -812,8 +888,8 @@ void App::DrawQuad()
     auto offset = 0u;
 
     auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::None);
-    auto pBS  = asdx::RenderState::GetInstance().GetBS(asdx::BlendType::Opaque);
-    auto pRS  = asdx::RenderState::GetInstance().GetRS(asdx::RasterizerType::CullNone);
+    auto pBS  = asdx::RenderState::GetInstance().GetBS (asdx::BlendType::Opaque);
+    auto pRS  = asdx::RenderState::GetInstance().GetRS (asdx::RasterizerType::CullNone);
 
     float blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     uint32_t sampleMask = 0xffff;

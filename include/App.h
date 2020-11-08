@@ -64,11 +64,15 @@ private:
     //=========================================================================
     asdx::RefPtr<ID3D11VertexShader>    m_VS;
     asdx::RefPtr<ID3D11VertexShader>    m_SkinningVS;
+    asdx::RefPtr<ID3D11VertexShader>    m_ShadowVS;
+    asdx::RefPtr<ID3D11VertexShader>    m_ShadowSkinningVS;
     asdx::RefPtr<ID3D11VertexShader>    m_TriangleVS;
     asdx::RefPtr<ID3D11PixelShader>     m_DefaultPS;
     asdx::RefPtr<ID3D11PixelShader>     m_CopyPS;
     asdx::RefPtr<ID3D11InputLayout>     m_IL;
     asdx::RefPtr<ID3D11InputLayout>     m_SkinningIL;
+    asdx::RefPtr<ID3D11InputLayout>     m_ShadowIL;
+    asdx::RefPtr<ID3D11InputLayout>     m_ShadowSkinningIL;
     asdx::RefPtr<ID3D11InputLayout>     m_TriangleIL;
     asdx::ConstantBuffer                m_SceneCB;
     asdx::ConstantBuffer                m_GuideCB;

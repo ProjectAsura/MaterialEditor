@@ -35,9 +35,10 @@ public:
     std::string         Tag;
     asdx::Vector3       SunLightDir;
     float               SunLightIntensity;
-    std::string         IBLPath;
+    std::string         BackgroundPath;
+    std::string         DiffuseIBLPath;
+    std::string         SpecularIBLPath;
     float               IBLIntensity;
-    float               IBLRotation;
 
     //-------------------------------------------------------------------------
     //! @brief      コンストラクタです.
@@ -50,24 +51,24 @@ public:
     ~EditorLight();
 
     //-------------------------------------------------------------------------
+    //! @brief      ファイルをロードします.
+    //-------------------------------------------------------------------------
+    bool Load(const char* path);
+
+    //-------------------------------------------------------------------------
+    //! @brief      ファイルをセーブします.
+    //-------------------------------------------------------------------------
+    bool Save(const char* path);
+
+    //-------------------------------------------------------------------------
     //! @brief      テクスチャを破棄します.
     //-------------------------------------------------------------------------
     void Reset();
 
     //-------------------------------------------------------------------------
-    //! @brief      シリアライズします.
-    //-------------------------------------------------------------------------
-    tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc);
-
-    //-------------------------------------------------------------------------
-    //! @brief      デシリアライズします.
-    //-------------------------------------------------------------------------
-    void Deserialize(tinyxml2::XMLElement* element);
-
-    //-------------------------------------------------------------------------
     //! @brief      背景用キューブマップを取得します.
     //-------------------------------------------------------------------------
-    ID3D11ShaderResourceView* GetOriginal() const;
+    ID3D11ShaderResourceView* GetBackground() const;
 
     //-------------------------------------------------------------------------
     //! @brief      DiffuseLDキューブマップを取得します.
@@ -83,16 +84,14 @@ private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    asdx::RefPtr<ID3D11ShaderResourceView>  m_Original_SRV;
-    asdx::RefPtr<ID3D11ShaderResourceView>  m_DiffuseLD_SRV;
-    asdx::RefPtr<ID3D11UnorderedAccessView> m_DiffuseLD_UAV;
-    asdx::RefPtr<ID3D11ShaderResourceView>  m_SpecularLD_SRV;
-    asdx::RefPtr<ID3D11UnorderedAccessView> m_SpecularLD_UAV;
+    asdx::RefPtr<ID3D11ShaderResourceView>  m_Background;
+    asdx::RefPtr<ID3D11ShaderResourceView>  m_DiffuseLD;
+    asdx::RefPtr<ID3D11ShaderResourceView>  m_SpecularLD;
 
     //=========================================================================
     // private methods.
     //=========================================================================
-    /* NOTHING */
+    bool LoadTexture();
 };
 
 
@@ -124,7 +123,7 @@ public:
     //-------------------------------------------------------------------------
     //! @brief      初期化処理を行います.
     //-------------------------------------------------------------------------
-    bool Init(const char* path);
+    bool Init();
 
     //-------------------------------------------------------------------------
     //! @brief      終了処理を行います.
@@ -134,12 +133,16 @@ public:
     //-------------------------------------------------------------------------
     //! @brief      更新処理を行います.
     //-------------------------------------------------------------------------
-    void Update(ID3D11DeviceContext* pContext);
+    void Edit();
 
     //-------------------------------------------------------------------------
-    //! @brief      描画処理を行います.
+    //! @brief      背景描画処理を行います.
     //-------------------------------------------------------------------------
-    void Draw(ID3D11DeviceContext* pContext);
+    void Draw(
+        ID3D11DeviceContext*    pContext,
+        const asdx::Vector3&    cameraPos,
+        const asdx::Matrix&     view,
+        const asdx::Matrix&     proj);
 
     //-------------------------------------------------------------------------
     //! @brief      環境BRDFを取得します.
@@ -147,24 +150,9 @@ public:
     ID3D11ShaderResourceView* GetEnvBRDF() const;
 
     //-------------------------------------------------------------------------
-    //! @brief      
+    //! @brief      ライトを取得します.
     //-------------------------------------------------------------------------
-    ID3D11ShaderResourceView* GetOriginal() const;
-
-    //-------------------------------------------------------------------------
-    //! @brief      DiffuseLDキューブマップを取得します.
-    //-------------------------------------------------------------------------
-    ID3D11ShaderResourceView* GetDiffuseLD() const;
-
-    //-------------------------------------------------------------------------
-    //! @brief      SpecularLDキューブマップを取得します.
-    //-------------------------------------------------------------------------
-    ID3D11ShaderResourceView* GetSpecularLD() const;
-
-    //-------------------------------------------------------------------------
-    //! @brief      定数バッファを取得します.
-    //-------------------------------------------------------------------------
-    ID3D11Buffer* GetBuffer() const;
+    const EditorLight* GetLight() const;
 
 private:
     //=========================================================================
@@ -174,22 +162,10 @@ private:
     std::vector<EditorLight>                m_Light;
     size_t                                  m_CurrentIndex;
     asdx::SkyBox                            m_SkyBox;
-    asdx::RefPtr<ID3D11ComputeShader>       m_PrefilterDiffuseCS;
-    asdx::RefPtr<ID3D11ComputeShader>       m_PrefilterSpcularCS;
     asdx::RefPtr<ID3D11ShaderResourceView>  m_EnvBRDF;
-    asdx::ConstantBuffer                    m_LightCB;
 
     //=========================================================================
     // private methods.
     //=========================================================================
-
-    //-------------------------------------------------------------------------
-    //! @brief      DiffuseLDキューブマップを生成します.
-    //-------------------------------------------------------------------------
-    void ConvolutionDiffuse (ID3D11DeviceContext* pContext, EditorLight& light);
-
-    //-------------------------------------------------------------------------
-    //! @brief      SpecularLDキューブマップを生成します.
-    //-------------------------------------------------------------------------
-    void ConvolutionSpecular(ID3D11DeviceContext* pContext, EditorLight& light);
+    /* NOTHING */
 };

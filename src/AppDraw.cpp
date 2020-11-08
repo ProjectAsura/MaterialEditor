@@ -42,13 +42,29 @@ void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
 
         if (mesh.HasSkinningData())
         {
-            m_pDeviceContext->VSSetShader(m_SkinningVS.GetPtr(), nullptr, 0);
-            m_pDeviceContext->IASetInputLayout(m_SkinningIL.GetPtr());
+            if (lightingPass)
+            {
+                m_pDeviceContext->VSSetShader(m_SkinningVS.GetPtr(), nullptr, 0);
+                m_pDeviceContext->IASetInputLayout(m_SkinningIL.GetPtr());
+            }
+            else
+            {
+                m_pDeviceContext->VSSetShader(m_ShadowSkinningVS.GetPtr(), nullptr, 0);
+                m_pDeviceContext->IASetInputLayout(m_ShadowSkinningIL.GetPtr());
+            }
         }
         else
         {
-            m_pDeviceContext->VSSetShader(m_VS.GetPtr(), nullptr, 0);
-            m_pDeviceContext->IASetInputLayout(m_IL.GetPtr());
+            if (lightingPass)
+            {
+                m_pDeviceContext->VSSetShader(m_VS.GetPtr(), nullptr, 0);
+                m_pDeviceContext->IASetInputLayout(m_IL.GetPtr());
+            }
+            else
+            {
+                m_pDeviceContext->VSSetShader(m_ShadowVS.GetPtr(), nullptr, 0);
+                m_pDeviceContext->IASetInputLayout(m_ShadowIL.GetPtr());
+            }
         }
 
         m_pDeviceContext->VSSetConstantBuffers(0, 1, &pSceneCB);

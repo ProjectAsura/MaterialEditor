@@ -111,6 +111,38 @@ struct CameraSetting
     void Edit();
 };
 
+//////////////////////////////////////////////////////////////////////////////
+// ModelPreviewSetting structure
+///////////////////////////////////////////////////////////////////////////////
+struct ModelPreviewSetting
+{
+    asdx::EditFloat3    Scale;
+    asdx::EditFloat3    Rotation;
+    asdx::EditFloat3    Translation;
+    asdx::EditBool      AutoRotation;
+    asdx::EditFloat     AutoRotationSpeed;
+
+    //-------------------------------------------------------------------------
+    //! @brief      コンストラクタです.
+    //-------------------------------------------------------------------------
+    ModelPreviewSetting();
+
+    //-------------------------------------------------------------------------
+    //! @brief      シリアライズします.
+    //-------------------------------------------------------------------------
+    tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument* doc);
+
+    //-------------------------------------------------------------------------
+    //! @brief      デシリアライズします.
+    //-------------------------------------------------------------------------
+    void Deserialize(tinyxml2::XMLElement* element);
+
+    //-------------------------------------------------------------------------
+    //! @brief      編集処理を行います.
+    //-------------------------------------------------------------------------
+    void Edit();
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // DebugSetting structure
@@ -159,6 +191,7 @@ struct Config
 
     BackgroundSetting   Background;
     CameraSetting       Camera;
+    ModelPreviewSetting ModelPreview;
     DebugSetting        Debug;
 
     bool Load(const char* path);

@@ -100,6 +100,7 @@ private:
     bool                                m_ReloadShader  = false; // リロード要求.
     bool                                m_PrevLoadState = false; // 前フレームのロードフラグ.
     float                               m_LoadingPos    = 0.0f;
+    float                               m_AutoRotationY = 0.0f;
 
     //=========================================================================
     // private methods.

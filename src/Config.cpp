@@ -185,6 +185,68 @@ void CameraSetting::Edit()
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// ModelPreviewSetting structure
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+ModelPreviewSetting::ModelPreviewSetting()
+: Scale             (1.0f, 1.0f, 1.0f)
+, Rotation          (0.0f, 0.0f, 0.0f)
+, Translation       (0.0f, 0.0f, 0.0f)
+, AutoRotation      (false)
+, AutoRotationSpeed (0.0f)
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      シリアライズします.
+//-----------------------------------------------------------------------------
+tinyxml2::XMLElement* ModelPreviewSetting::Serialize(tinyxml2::XMLDocument* doc)
+{
+    auto e = doc->NewElement("ModelPreview");
+    e->InsertEndChild(asdx::Serialize(doc, "Scale", Scale));
+    e->InsertEndChild(asdx::Serialize(doc, "Rotation", Rotation));
+    e->InsertEndChild(asdx::Serialize(doc, "Translation", Translation));
+    e->InsertEndChild(asdx::Serialize(doc, "AutoRotation", AutoRotation));
+    e->InsertEndChild(asdx::Serialize(doc, "AutoRotationSpeed", AutoRotationSpeed));
+    return e;
+}
+
+//-----------------------------------------------------------------------------
+//      デシリアライズします.
+//-----------------------------------------------------------------------------
+void ModelPreviewSetting::Deserialize(tinyxml2::XMLElement* element)
+{
+    auto e = element->FirstChildElement("ModelPreview");
+    if (e == nullptr)
+    { return; }
+
+    asdx::Deserialize(e, "Scale", Scale);
+    asdx::Deserialize(e, "Rotation", Rotation);
+    asdx::Deserialize(e, "Translation", Translation);
+    asdx::Deserialize(e, "AutoRotation", AutoRotation);
+    asdx::Deserialize(e, "AutoRotationSpeed", AutoRotationSpeed);
+}
+
+//-----------------------------------------------------------------------------
+//      編集処理を行います.
+//-----------------------------------------------------------------------------
+void ModelPreviewSetting::Edit()
+{
+    if (!ImGui::CollapsingHeader(u8"モデルプレビュー"))
+    { return; }
+
+    Scale            .DrawSlider(u8"拡大縮小");
+    Rotation         .DrawSlider(u8"回転", 0.1f, -360.0f, 360.0f);
+    Translation      .DrawSlider(u8"平行移動");
+    AutoRotation     .DrawCheckbox(u8"自動回転");
+    AutoRotationSpeed.DrawSlider(u8"自動回転速度");
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 // DebugSetting structure
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -293,6 +355,7 @@ bool Config::Load(const char* path)
 
     Background.Deserialize(root);
     Camera.Deserialize(root);
+    ModelPreview.Deserialize(root);
     Debug.Deserialize(root);
 
     return true;
@@ -328,6 +391,7 @@ bool Config::Save(const char* path)
 
     root->InsertEndChild(Background.Serialize(&doc));
     root->InsertEndChild(Camera.Serialize(&doc));
+    root->InsertEndChild(ModelPreview.Serialize(&doc));
     root->InsertEndChild(Debug.Serialize(&doc));
 
 

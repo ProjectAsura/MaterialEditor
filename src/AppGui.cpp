@@ -297,6 +297,8 @@ void DrawLightTab()
     ImGui::EndTabItem();
 }
 
+
+
 //-----------------------------------------------------------------------------
 //      設定タブを描画します.
 //-----------------------------------------------------------------------------
@@ -310,6 +312,9 @@ void DrawConfigTab(MenuContext& context)
 
     // カメラ.
     context.pConfig->Camera.Edit();
+
+    // モデルプレビュー.
+    context.pConfig->ModelPreview.Edit();
 
     // デバッグ.
     context.pConfig->Debug.Edit();
@@ -351,7 +356,7 @@ void DrawEditorPanel(MenuContext& context)
         // モーションタブ.
 
 
-        // アイテムタブ/
+        // アイテムタブ
 
 
         ImGui::EndTabBar();

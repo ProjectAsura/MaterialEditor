@@ -724,10 +724,11 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
 
     // ライトバッファ更新.
     {
+        LightBuffer res = {};
+
         auto light = LightMgr::Instance().GetLight();
         if (light != nullptr)
         {
-            LightBuffer res = {};
             res.SunLightDir         = light->SunLightDir;
             res.SunLightIntensity   = light->SunLightIntensity;
             res.IBLIntensity        = light->IBLIntensity;
@@ -740,18 +741,34 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
 
             if (res.PreExposureScale < 0.0f)
             { res.PreExposureScale = 0.0f;}
-
-            auto pCB = m_LightCB.GetBuffer();
-            m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
         }
+
+        auto pCB = m_LightCB.GetBuffer();
+        m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
     }
 
     // メッシュバッファ更新.
     {
         MeshBuffer res = {};
 
-        if (m_WorkSpace.GetModel() != nullptr)
-        { res.World = m_WorkSpace.GetModel()->GetWorld(); }
+        auto model = m_WorkSpace.GetModel();
+        if (model != nullptr)
+        {
+            auto rotation = m_Config.ModelPreview.Rotation.GetValue();
+            model->SetScale(m_Config.ModelPreview.Scale.GetValue());
+            model->SetRotate(rotation);
+            model->SetTranslation(m_Config.ModelPreview.Translation.GetValue());
+
+            // 自動回転.
+            if (m_Config.ModelPreview.AutoRotation.GetValue())
+            {
+                auto speed = m_Config.ModelPreview.AutoRotationSpeed.GetValue();
+                m_AutoRotationY += speed * float(m_Timer.GetElapsedTime() * 1000.0f);
+                model->SetRotate(asdx::Vector3(0.0f, m_AutoRotationY, 0.0f) + rotation);
+            }
+
+            res.World = model->GetWorld();
+        }
 
         auto pCB = m_MeshCB.GetBuffer();
         m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);

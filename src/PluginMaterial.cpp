@@ -1093,6 +1093,26 @@ bool PluginMaterial::Save(const char* path)
 }
 
 //-----------------------------------------------------------------------------
+//      シェーダをリロードします.
+//-----------------------------------------------------------------------------
+bool PluginMaterial::ReloadShader()
+{
+    if (!m_LightingShader.Reload())
+    {
+        ELOGA("Error : PluginShader::Reload() Failed.");
+        return false;
+    }
+
+    if (!m_ShadowingShader.Reload())
+    {
+        ELOGA("Error : PluginShader::Reload() Failed.");
+        return false;
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
 //      解放処理を行います.
 //-----------------------------------------------------------------------------
 void PluginMaterial::Term()
@@ -1393,7 +1413,7 @@ void PluginMaterial::Deserialize(tinyxml2::XMLDocument* doc)
 PluginMaterial PluginMaterial::CreateTemplate()
 {
     PluginMaterial temp;
-    temp.m_Name                     = u8"TemplateMaterial";
+    temp.m_Name                     = u8"マテリアルテンプレート";
     temp.m_ShaderPath               = "../shader/StandardPS.hlsl";
     temp.m_ShadowCast.Default       = true;
     temp.m_ShadowCast.Editable      = true;
@@ -1437,6 +1457,40 @@ PluginMaterial PluginMaterial::CreateTemplate()
     float2Param.Maxi       = 1.0f;
     float2Param.Converter  = CONVERTER_NONE;
     temp.m_Float2.push_back(float2Param);
+
+    UiDefFloat3 float3Param = {};
+    float3Param.DisplayTag = u8"3次元ベクトル";
+    float3Param.Target     = "Vec3Param";
+    float3Param.Step       = 0.1f;
+    float3Param.Default    = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    float3Param.Mini       = 0.0f;
+    float3Param.Maxi       = 1.0f;
+    float3Param.Converter  = CONVERTER_NONE;
+    temp.m_Float3.push_back(float3Param);
+
+    UiDefFloat4 float4Param = {};
+    float4Param.DisplayTag = u8"4次元ベクトル";
+    float4Param.Target     = "Vec3Param";
+    float4Param.Step       = 0.1f;
+    float4Param.Default    = asdx::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    float4Param.Mini       = 0.0f;
+    float4Param.Maxi       = 1.0f;
+    float4Param.Converter  = CONVERTER_NONE;
+    temp.m_Float4.push_back(float4Param);
+
+    UiDefColor3 color3Param = {};
+    color3Param.DisplayTag  = u8"RGBカラー";
+    color3Param.Target      = "Color3Param";
+    color3Param.Default     = asdx::Vector3(1.0f, 1.0f, 1.0f);
+    color3Param.Wheel       = false;
+    temp.m_Color3.push_back(color3Param);
+
+    UiDefColor4 color4Param = {};
+    color4Param.DisplayTag  = u8"RGBAカラー";
+    color4Param.Target      = "Color4Param";
+    color4Param.Default     = asdx::Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    color4Param.Wheel       = false;
+    temp.m_Color4.push_back(color4Param);
 
     UiDefTexture2D texture2dParam = {};
     texture2dParam.DisplayTag   = u8"テクスチャ0";

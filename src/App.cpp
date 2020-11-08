@@ -784,6 +784,16 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
 
     // 画面に表示.
     Present(0);
+
+    // 同期を取る.
+    PluginMgr::Instance().Sync();
+
+    // シェーダをリロード.
+    if (m_ReloadShader)
+    {
+        PluginMgr::Instance().ReloadShader();
+        m_ReloadShader = false;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -807,6 +817,10 @@ void App::OnKey(const asdx::KeyEventArgs& args)
 
     m_CameraController.OnKey(
         args.KeyCode, args.IsKeyDown, args.IsAltDown);
+
+    // シェーダをリロード.
+    if (args.IsKeyDown && args.KeyCode == VK_F5)
+    { m_ReloadShader = true; }
 }
 
 //-----------------------------------------------------------------------------
@@ -884,6 +898,130 @@ void App::OnDrop(const std::vector<std::string>& dropFiles)
         {
             if (m_WorkSpace.LoadAsync(dropFiles[i].c_str()))
             { return; }
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      モデルを描画します.
+//-----------------------------------------------------------------------------
+void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
+{
+    if (m_WorkSpace.IsLoading())
+    { return; }
+
+    auto model = m_WorkSpace.GetModel();
+    if (model == nullptr)
+    { return; }
+
+    auto materials = m_WorkSpace.GetMaterials();
+    auto count     = model->GetMeshCount();
+
+    auto pSceneCB = m_SceneCB.GetBuffer();
+    auto pLightCB = m_LightCB.GetBuffer();
+    auto pMeshCB  = m_MeshCB .GetBuffer();
+
+    auto light = LightMgr::Instance().GetLight();
+
+    for(auto i=0u; i<count; ++i)
+    {
+        auto& mesh      = model->GetMesh(i);
+        auto& material  = materials->GetMaterial(i);
+    
+        if (!lightingPass && !material.CastShadow())
+        { continue; }
+
+        if (material.GetBlendState() != blendType)
+        { continue; }
+
+        if (mesh.HasSkinningData())
+        {
+            if (lightingPass)
+            {
+                m_pDeviceContext->VSSetShader(m_SkinningVS.GetPtr(), nullptr, 0);
+                m_pDeviceContext->IASetInputLayout(m_SkinningIL.GetPtr());
+            }
+            else
+            {
+                m_pDeviceContext->VSSetShader(m_ShadowSkinningVS.GetPtr(), nullptr, 0);
+                m_pDeviceContext->IASetInputLayout(m_ShadowSkinningIL.GetPtr());
+            }
+        }
+        else
+        {
+            if (lightingPass)
+            {
+                m_pDeviceContext->VSSetShader(m_VS.GetPtr(), nullptr, 0);
+                m_pDeviceContext->IASetInputLayout(m_IL.GetPtr());
+            }
+            else
+            {
+                m_pDeviceContext->VSSetShader(m_ShadowVS.GetPtr(), nullptr, 0);
+                m_pDeviceContext->IASetInputLayout(m_ShadowIL.GetPtr());
+            }
+        }
+
+        m_pDeviceContext->VSSetConstantBuffers(0, 1, &pSceneCB);
+        m_pDeviceContext->VSSetConstantBuffers(1, 1, &pMeshCB);
+
+        // マテリアル更新 & 設定.
+        auto shader = material.Bind(m_pDeviceContext, lightingPass);
+        if (shader != nullptr)
+        {
+            // 定数バッファ設定.
+            shader->SetCBV(m_pDeviceContext, "CbScene", pSceneCB);
+            shader->SetCBV(m_pDeviceContext, "CbLight", pLightCB);
+
+            if (lightingPass && light != nullptr)
+            {
+                // IBL設定.
+                shader->SetSRV(m_pDeviceContext, "EnvBRDF", LightMgr::Instance().GetEnvBRDF());
+                shader->SetSRV(m_pDeviceContext, "DiffuseLD",  light->GetDiffuseLD());
+                shader->SetSRV(m_pDeviceContext, "SpecularLD", light->GetSpecularLD());
+
+                // シャドウマップ設定.
+            }
+
+            // メッシュを描画.
+            mesh.Draw(m_pDeviceContext);
+
+            // マテリアル設定を解除.
+            material.Unbind(m_pDeviceContext, shader);
+        }
+        else
+        {
+            if (lightingPass)
+            {
+                auto pSRV = PluginMgr::Instance().GetDefaultSRV(DEFAULT_TEXTURE_CHECKER_BOARD);
+                auto pSmp = asdx::RenderState::GetInstance().GetSmp(asdx::LinearClamp);
+
+                m_pDeviceContext->PSSetShader(m_DefaultPS.GetPtr(), nullptr, 0);
+                m_pDeviceContext->PSSetConstantBuffers(0, 1, &pLightCB);
+                m_pDeviceContext->PSSetShaderResources(0, 1, &pSRV);
+                m_pDeviceContext->PSSetSamplers(0, 1, &pSmp);
+            }
+            else
+            {
+                m_pDeviceContext->PSSetShader(nullptr, nullptr, 0);
+            }
+
+            float blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+            uint32_t sampleMask = 0xffff;
+            auto pBS  = asdx::RenderState::GetInstance().GetBS(blendType);
+            auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::Default);
+            auto pRS  = asdx::RenderState::GetInstance().GetRS(asdx::RasterizerType::CullNone);
+            m_pDeviceContext->OMSetBlendState(pBS, blendFactor, sampleMask);
+            m_pDeviceContext->OMSetDepthStencilState(pDSS, 0);
+            m_pDeviceContext->RSSetState(pRS);
+
+            mesh.Draw(m_pDeviceContext);
+
+            ID3D11ShaderResourceView* pNullSRV[] = { nullptr };
+            ID3D11SamplerState* pNullSmp[] = { nullptr };
+
+            m_pDeviceContext->PSSetShaderResources(0, 1, pNullSRV);
+            m_pDeviceContext->PSSetSamplers(0, 1, pNullSmp);
+            m_pDeviceContext->PSSetShader(nullptr, nullptr, 0);
         }
     }
 }

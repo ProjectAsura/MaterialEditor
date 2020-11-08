@@ -138,7 +138,12 @@ bool PluginShader::Load(const char* path, const char* entryPoint)
         return false;
     }
 
+#if defined(DEBUG) || defined(_DEBUG)
+    UINT compileFlag = D3DCOMPILE_DEBUG;
+#else
     UINT compileFlag = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif
+
 
     asdx::RefPtr<ID3DBlob> pBlob;
     asdx::RefPtr<ID3DBlob> pErrorBlob;
@@ -272,6 +277,190 @@ bool PluginShader::Load(const char* path, const char* entryPoint)
             return false;
         }
     }
+
+    m_Path       = path;
+    m_EntryPoint = entryPoint;
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      リロードします.
+//-----------------------------------------------------------------------------
+bool PluginShader::Reload()
+{
+    if (m_Path.empty())
+    {
+        ELOGA("Error : Invalid Argument.");
+        return false;
+    }
+
+    auto temp = asdx::ToStringW(m_Path.c_str());
+
+    std::wstring wpath;
+    if (!asdx::SearchFilePathW(temp.c_str(), wpath))
+    {
+        ELOGA("Error : File Not Found. path = %s", m_Path.c_str());
+        return false;
+    }
+
+#if defined(DEBUG) || defined(_DEBUG)
+    UINT compileFlag = D3DCOMPILE_DEBUG;
+#else
+    UINT compileFlag = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif
+
+    asdx::RefPtr<ID3DBlob> pBlob;
+    asdx::RefPtr<ID3DBlob> pErrorBlob;
+
+    // ピクセルシェーダをロード.
+    auto hr = D3DCompileFromFile(
+        wpath.c_str(),
+        nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        m_EntryPoint.c_str(),
+        "ps_5_0",
+        compileFlag,
+        0,
+        pBlob.GetAddress(),
+        pErrorBlob.GetAddress());
+
+    if (FAILED(hr))
+    {
+        ELOGA("Error : D3DCompileFromFile() Failed. errcode = 0x%x, msg = %s",
+            hr, reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
+        return false;
+    }
+
+    asdx::RefPtr<ID3D11ShaderReflection> pReflection;
+
+    // シェーダリフレクション生成.
+    hr = D3DReflect(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), IID_PPV_ARGS(pReflection.GetAddress()));
+    if (FAILED(hr))
+    {
+        ELOGA("Error : D3DReflect() Failed. errcode = 0x%x", hr);
+        return false;
+    }
+
+    // 辞書を作成.
+    std::map<std::string, BufferInfo> bufferTable;
+    std::map<std::string, uint8_t> tableCBV;
+    std::map<std::string, uint8_t> tableSRV;
+    std::map<std::string, uint8_t> tableUAV;
+    {
+        D3D11_SHADER_DESC shaderDesc = {};
+        hr = pReflection->GetDesc(&shaderDesc);
+        if (FAILED(hr))
+        {
+            ELOGA("Error : ID3D11ShaderReflection::GetDesc() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+
+        for(auto i=0u; i<shaderDesc.ConstantBuffers; ++i)
+        {
+            auto reflectionCB = pReflection->GetConstantBufferByIndex(i);
+            if (pReflection == nullptr)
+            { continue; }
+
+            D3D11_SHADER_BUFFER_DESC bufferDesc = {};
+            hr = reflectionCB->GetDesc(&bufferDesc);
+            if (FAILED(hr))
+            { continue; }
+
+            BufferInfo info;
+            info.BufferSize = bufferDesc.Size;
+
+            for(auto j=0u; j<bufferDesc.Variables; ++j)
+            {
+                auto reflectionVariable = reflectionCB->GetVariableByIndex(j);
+                if (reflectionVariable == nullptr)
+                { continue; }
+
+                D3D11_SHADER_VARIABLE_DESC variableDesc = {};
+                hr = reflectionVariable->GetDesc(&variableDesc);
+                if (FAILED(hr))
+                { continue; }
+
+                MemberInfo member;
+                member.Offset = variableDesc.StartOffset;
+                member.Size   = variableDesc.Size;
+                info.MemberTable[variableDesc.Name] = member;
+            }
+
+            bufferTable[bufferDesc.Name] = info;
+        }
+
+        for(auto i=0u; i<shaderDesc.BoundResources; ++i)
+        {
+            D3D11_SHADER_INPUT_BIND_DESC bindDesc = {};
+            hr = pReflection->GetResourceBindingDesc(i, &bindDesc);
+            if (FAILED(hr))
+            { continue; }
+
+            switch(bindDesc.Type)
+            {
+            case D3D_SIT_CBUFFER:
+            case D3D_SIT_TBUFFER:
+                tableCBV[bindDesc.Name] = uint8_t(bindDesc.BindPoint);
+                break;
+
+            case D3D_SIT_TEXTURE:
+            case D3D_SIT_STRUCTURED:
+            case D3D_SIT_BYTEADDRESS:
+                tableSRV[bindDesc.Name] = uint8_t(bindDesc.BindPoint);
+                break;
+
+            case D3D_SIT_UAV_RWTYPED:
+            case D3D_SIT_UAV_RWSTRUCTURED:
+            case D3D_SIT_UAV_APPEND_STRUCTURED:
+            case D3D_SIT_UAV_CONSUME_STRUCTURED:
+            case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+                tableUAV[bindDesc.Name] = uint8_t(bindDesc.BindPoint);
+                break;
+            }
+        }
+    }
+
+    auto pDevice = asdx::DeviceContext::Instance().GetDevice();
+    asdx::RefPtr<ID3D11PixelShader> pPS;
+    hr = pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, pPS.GetAddress());
+    if (FAILED(hr))
+    {
+        ELOGA("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
+        return false;
+    }
+
+    asdx::RefPtr<ID3D11Buffer> pCB;
+    if (bufferTable.find("CbUser") != bufferTable.end())
+    {
+        auto info = bufferTable["CbUser"];
+
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth  = info.BufferSize;
+        desc.Usage      = D3D11_USAGE_DYNAMIC;
+        desc.BindFlags  = D3D11_BIND_CONSTANT_BUFFER;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+        hr = pDevice->CreateBuffer(&desc, nullptr, pCB.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOGA("Error : ID3D11Device::CreateBuffer() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
+    auto pOldPS = m_PS.Detach();
+    auto pOldCB = m_EditableCB.Detach();
+    PluginMgr::Instance().DisposeShader(pOldPS);
+    PluginMgr::Instance().DisposeBuffer(pOldCB);
+
+    // 新しいものに差し替え.
+    m_PS            = pPS;
+    m_EditableCB    = pCB;
+    m_BufferTable   = bufferTable;
+    m_TableCBV      = tableCBV;
+    m_TableSRV      = tableSRV;
+    m_TableUAV      = tableUAV;
 
     return true;
 }

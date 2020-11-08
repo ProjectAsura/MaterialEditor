@@ -336,6 +336,25 @@ void PluginMgr::Term()
 }
 
 //-----------------------------------------------------------------------------
+//      シェーダをリロードします.
+//-----------------------------------------------------------------------------
+void PluginMgr::ReloadShader()
+{
+    auto failed  = 0;
+    auto success = 0;
+    for (auto& itr : m_Materials)
+    { 
+        auto ret = itr.second->ReloadShader();
+        if (ret)
+        { success++; }
+        else
+        { failed++; }
+    }
+
+    ILOGA("---- Reload Shader: %d success,  %d failed. ----", success, failed);
+}
+
+//-----------------------------------------------------------------------------
 //      マテリアルを検索します.
 //-----------------------------------------------------------------------------
 bool PluginMgr::FindMaterial(const std::string& name, PluginMaterial** result)
@@ -516,3 +535,28 @@ const std::string& PluginMgr::DrawCombo(const std::string& selectedItem)
 //-----------------------------------------------------------------------------
 ID3D11ShaderResourceView* PluginMgr::GetDefaultSRV(DEFAULT_TEXTURE_TYPE type) const
 { return m_DefaultSRV[type].GetPtr(); }
+
+//-----------------------------------------------------------------------------
+//      シェーダを破棄します.
+//-----------------------------------------------------------------------------
+void PluginMgr::DisposeShader(ID3D11PixelShader*& pItem)
+{
+    m_ShaderDisposer.Push(pItem);
+}
+
+//-----------------------------------------------------------------------------
+//      バッファを破棄します.
+//-----------------------------------------------------------------------------
+void PluginMgr::DisposeBuffer(ID3D11Buffer*& pItem)
+{
+    m_BufferDisposer.Push(pItem);
+}
+
+//-----------------------------------------------------------------------------
+//      同期タイミングを設定します.
+//-----------------------------------------------------------------------------
+void PluginMgr::Sync()
+{
+    m_ShaderDisposer.FrameSync();
+    m_BufferDisposer.FrameSync();
+}

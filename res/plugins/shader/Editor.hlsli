@@ -45,15 +45,17 @@ struct PSOutput
 ///////////////////////////////////////////////////////////////////////////////
 cbuffer CbScene : register(b0)
 {
-    float4x4    View        : packoffset(c0);
-    float4x4    Proj        : packoffset(c4);
-    float4x4    InvView     : packoffset(c8);
-    float4x4    InvProj     : packoffset(c12);
-    float3      CameraPos   : packoffset(c16);
-    float       Timer       : packoffset(c16.w);
-    float       NearClip    : packoffset(c17);
-    float       FarClip     : packoffset(c17.y);
-    float2      UVToView    : packoffset(c17.z);
+    float4x4    View          : packoffset(c0);
+    float4x4    Proj          : packoffset(c4);
+    float4x4    InvView       : packoffset(c8);
+    float4x4    InvProj       : packoffset(c12);
+    float3      CameraPos     : packoffset(c16);
+    float       Timer         : packoffset(c16.w);
+    float       NearClip      : packoffset(c17);
+    float       FarClip       : packoffset(c17.y);
+    float2      UVToView      : packoffset(c17.z);
+    float2      ScreenSize    : packoffset(c18);
+    float2      InvScreenSize : packoffset(c18.z);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -118,6 +120,11 @@ SamplerState AnisotropicClamp   : register(s6);
 SamplerState AnisotropicWrap    : register(s7);
 SamplerState AnisotropicMirror  : register(s8);
 
+//-----------------------------------------------------------------------------
+//      スクリーンUVを取得します.
+//-----------------------------------------------------------------------------
+float2 GetScreenUV(VSOutput value)
+{ return value.Position.xy * InvScreenSize; }
 
 //-----------------------------------------------------------------------------
 //      テクスチャ座標0を取得します.
@@ -161,7 +168,7 @@ float GetViewDepth(VSOutput value)
 float3 GetViewPosition(VSOutput value)
 {
     float viewDepth = GetViewDepth(value);
-    return ToViewPos(GetTexCoord0(value), viewDepth, UVToView);
+    return ToViewPos(GetScreenUV(value), viewDepth, UVToView);
 }
 
 //-----------------------------------------------------------------------------

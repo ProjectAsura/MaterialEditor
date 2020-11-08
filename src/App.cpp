@@ -72,6 +72,8 @@ struct SceneBuffer
     float           NearClip;       // ニア平面.
     float           FarClip;        // ファー平面.
     asdx::Vector2   UVToView;       // UVからビュー空間への変換パラメータ.
+    asdx::Vector2   ScreenSize;     // スクリーンサイズ.
+    asdx::Vector2   InvScreenSize;  // スクリーンサイズの逆数.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -707,16 +709,18 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
             fov, aspect, nearClip, farClip);
 
         SceneBuffer res = {};
-        res.View        = m_CameraController.GetView();
-        res.Proj        = m_Proj;
-        res.InvView     = asdx::Matrix::Invert(res.View);
-        res.InvProj     = asdx::Matrix::Invert(m_Proj);
-        res.CameraPos   = camera.GetPosition();
-        res.Timer       = float(m_Timer.GetTime());
-        res.NearClip    = nearClip;
-        res.FarClip     = farClip;
-        res.UVToView.x  = float(1.0 / double(m_Proj._11));
-        res.UVToView.y  = float(1.0 / double(m_Proj._22));
+        res.View            = m_CameraController.GetView();
+        res.Proj            = m_Proj;
+        res.InvView         = asdx::Matrix::Invert(res.View);
+        res.InvProj         = asdx::Matrix::Invert(m_Proj);
+        res.CameraPos       = camera.GetPosition();
+        res.Timer           = float(m_Timer.GetTime());
+        res.NearClip        = nearClip;
+        res.FarClip         = farClip;
+        res.UVToView.x      = float(1.0 / double(m_Proj._11));
+        res.UVToView.y      = float(1.0 / double(m_Proj._22));
+        res.ScreenSize      = asdx::Vector2(float(m_Width), float(m_Height));
+        res.InvScreenSize   = asdx::Vector2(1.0f / float(m_Width), 1.0f / float(m_Height));
 
         auto pCB = m_SceneCB.GetBuffer();
         m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);

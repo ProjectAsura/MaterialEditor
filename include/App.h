@@ -97,7 +97,9 @@ private:
     asdx::ColorTarget2D                 m_DummyColorBuffer;
     asdx::DepthTarget2D                 m_DepthBuffer;
     asdx::DepthTarget2D                 m_ShadowBuffer;
-    bool                                m_ReloadShader; // リロード要求.
+    bool                                m_ReloadShader  = false; // リロード要求.
+    bool                                m_PrevLoadState = false; // 前フレームのロードフラグ.
+    float                               m_LoadingPos    = 0.0f;
 
     //=========================================================================
     // private methods.

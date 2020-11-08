@@ -668,6 +668,20 @@ void App::OnTerm()
 //-----------------------------------------------------------------------------
 void App::OnFrameMove(asdx::FrameEventArgs& args)
 {
+    auto isLoading = m_WorkSpace.IsLoading();
+    if (m_PrevLoadState != isLoading)
+    {
+        // 読み込み終わった時.
+        if (!isLoading)
+        {
+            m_LoadingPos = 0;
+
+            // カメラ位置をモデルに合わせて再設定.
+        }
+    }
+
+    m_PrevLoadState = isLoading;
+
     // シーン定数バッファの更新.
     {
         auto fov = asdx::ToRadian(37.5f);

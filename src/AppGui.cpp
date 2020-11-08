@@ -30,7 +30,8 @@ static const char* kLicenses[] = {
     "DirectXTex ()",
     "assimp ()",
 };
-static const ImVec4 kRed = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+static const ImVec4 kRed   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+static const ImVec4 kGreen = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
 
 ///////////////////////////////////////////////////////////////////////////////
 // MenuContext structure
@@ -364,6 +365,23 @@ void DrawEditorPanel(MenuContext& context)
     ImGui::End();
 }
 
+//-----------------------------------------------------------------------------
+//      ローディング表示を行います.
+//-----------------------------------------------------------------------------
+void DrawLoading(float x, float y)
+{
+    auto flag = 0;
+    flag |= ImGuiWindowFlags_NoResize;
+    flag |= ImGuiWindowFlags_NoMove;
+    flag |= ImGuiWindowFlags_NoTitleBar;
+    flag |= ImGuiWindowFlags_NoFocusOnAppearing;
+    flag |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+    ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Always);
+    ImGui::Begin(u8"Loading", nullptr, flag);
+    ImGui::TextColored(kGreen,u8"Now Loading ...");
+    ImGui::End();
+}
+
 } // namespace
 
 //-----------------------------------------------------------------------------
@@ -398,6 +416,16 @@ void App::DrawGui()
 
         // モーダルダイアログ.
         DrawModalDialog(context);
+
+        // ロード中.
+        if (m_WorkSpace.IsLoading())
+        {
+            const auto speed = 1500.0f;
+            m_LoadingPos += speed * float(m_Timer.GetElapsedTime());
+            auto x = float(m_Width - int(m_LoadingPos) % m_Width);
+            auto y = float(m_Height - 100);
+            DrawLoading(x, y);
+        }
 
     }
     // 描画コマンドを積む.

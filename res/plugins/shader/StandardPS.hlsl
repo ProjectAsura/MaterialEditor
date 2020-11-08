@@ -68,7 +68,7 @@ PSOutput LightingPS(const VSOutput input)
     float3 ks = ToKs(baseColor.rgb, orm.z);
 
     // ライティング.
-    output.Color.rgb += EvaluateIBLIsotropy(N, V, kd, ks, orm.y, orm.x);
+    output.Color.rgb += EvaluateIBLIsotropy(N, V, kd, ks, orm.x, orm.y, orm.z);
     output.Color.rgb += EvaluateDirectLightIsotropicGGX(N, V, L, kd, ks, orm.y);
     output.Color.rgb += Emissive.Sample(AnisotropicWrap, uv).rgb;
     output.Color.a = 1.0f;

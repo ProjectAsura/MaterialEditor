@@ -14,6 +14,7 @@
 #include <imgui.h>
 #include <AppVersion.h>
 #include <Config.h>
+#include <LightMgr.h>
 
 
 namespace {
@@ -31,7 +32,7 @@ static const char* kLicenses[] = {
     "assimp ()",
 };
 static const ImVec4 kRed   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-static const ImVec4 kGreen = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+static const ImVec4 kCyan  = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
 
 ///////////////////////////////////////////////////////////////////////////////
 // MenuContext structure
@@ -291,7 +292,7 @@ void DrawLightTab()
     if (!ImGui::BeginTabItem(u8"ライト"))
     { return; }
 
-    // ライト一覧を表示.
+    LightMgr::Instance().Edit();
 
     ImGui::EndTabItem();
 }
@@ -378,7 +379,7 @@ void DrawLoading(float x, float y)
     flag |= ImGuiWindowFlags_NoBringToFrontOnFocus;
     ImGui::SetNextWindowPos(ImVec2(x, y), ImGuiCond_Always);
     ImGui::Begin(u8"Loading", nullptr, flag);
-    ImGui::TextColored(kGreen,u8"Now Loading ...");
+    ImGui::TextColored(kCyan, u8"Now Loading ...");
     ImGui::End();
 }
 
@@ -420,7 +421,7 @@ void App::DrawGui()
         // ロード中.
         if (m_WorkSpace.IsLoading())
         {
-            const auto speed = 1500.0f;
+            const auto speed = 300.0f;
             m_LoadingPos += speed * float(m_Timer.GetElapsedTime());
             auto x = float(m_Width - int(m_LoadingPos) % m_Width);
             auto y = float(m_Height - 100);

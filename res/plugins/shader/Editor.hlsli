@@ -255,8 +255,9 @@ float3 EvaluateIBLIsotropy
     float3  V,              // 視線ベクトル.
     float3  Kd,             // 拡散反射率.
     float3  Ks,             // 鏡面反射率.
+    float   occlusion,      // オクルージョン.
     float   roughness,      // 線形ラフネス.
-    float   occlusion       // オクルージョン.
+    float   metalness       // メタルネス.
 )
 {
     float  NoV = abs(dot(N, V));
@@ -274,8 +275,10 @@ float3 EvaluateIBLIsotropy
     float  Ems  = 1.0f - Ess;
     float3 Fave = Ks + (1.0f / 21.0f) * (1.0f - Ks);
     float3 Fms  = FssEss * Fave / (1.0f - (1.0f - Ess) * Fave);
+    float3 Edss = 1.0f - (FssEss + Fms * Ems);
+    float3 subSurface = lerp(Kd * Edss, 0.0f, metalness);
 
-    return diffuse + (FssEss * specular + Fms * Ems * diffuse);
+    return diffuse + (FssEss * specular + (Fms * Ems + subSurface) * diffuse);
 }
 
 //-----------------------------------------------------------------------------
@@ -289,8 +292,9 @@ float3 EvaluateIBLAnisotropy
     float3  V,              // 視線ベクトル.
     float3  Kd,             // 拡散反射率.
     float3  Ks,             // 鏡面反射率.
-    float   roughness,      // 線形ラフネス.
     float   occlusion,      // アンビエントオクルージョン.
+    float   roughness,      // 線形ラフネス.
+    float   metalness,      // メタルネス.
     float   anisotropy      // 異方率.
 )
 {
@@ -309,8 +313,10 @@ float3 EvaluateIBLAnisotropy
     float  Ems  = 1.0f - Ess;
     float3 Fave = Ks + (1.0f / 21.0f) * (1.0f - Ks);
     float3 Fms  = FssEss * Fave / (1.0f - (1.0f - Ess) * Fave);
+    float3 Edss = 1.0f - (FssEss + Fms * Ems);
+    float3 subSurface = lerp(Kd * Edss, 0.0f, metalness);
 
-    return diffuse + (FssEss * specular + Fms * Ems * diffuse);
+    return diffuse + (FssEss * specular + (Fms * Ems + subSurface) * diffuse);
 }
 
 //-----------------------------------------------------------------------------

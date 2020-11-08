@@ -320,10 +320,10 @@ LightMgr& LightMgr::Instance()
 //-----------------------------------------------------------------------------
 bool LightMgr::Init()
 {
+    auto pDevice = asdx::DeviceContext::Instance().GetDevice();
+
     // EnvBRDFをロード.
     {
-        auto pDevice = asdx::DeviceContext::Instance().GetDevice();
-
         std::string path;
         if (!asdx::SearchFilePathA("../res/lights/env_brdf.dds", path))
         {
@@ -360,6 +360,13 @@ bool LightMgr::Init()
             ELOGA("Error : DirectX::CreateShaderResourceViewEx() Faile. errcode = 0x%x", hr);
             return false;
         }
+    }
+
+    // スカイボックス初期化.
+    if (!m_SkyBox.Init(pDevice))
+    {
+        ELOG("Error : SkyBox::Init() Failed.");
+        return false;
     }
 
     // lightsフォルダ下のライト設定ファイル(xml)をロードしていく.
@@ -417,6 +424,12 @@ void LightMgr::Edit()
 {
     for(size_t i=0; i<m_Light.size(); ++i)
     {
+        ImGui::PushID(int(i));
+        if (ImGui::CollapsingHeader(m_Light[i].Tag.c_str()))
+        {
+            // キューブマップ描画.
+        }
+        ImGui::PopID();
     }
 }
 
@@ -428,15 +441,25 @@ void LightMgr::Draw
     ID3D11DeviceContext*    pContext,
     const asdx::Vector3&    cameraPos,
     const asdx::Matrix&     view,
-    const asdx::Matrix&     proj
+    const asdx::Matrix&     proj,
+    float                   farClip
 )
 {
     if (m_CurrentIndex >= m_Light.size())
     { return; }
 
     auto pSRV = m_Light[m_CurrentIndex].GetBackground();
-    auto pSmp = asdx::RenderState::GetInstance().GetSmp(asdx::LinearClamp);
-    m_SkyBox.Draw(pContext, pSRV, pSmp, 10000.0f, cameraPos, view, proj);
+    if (pSRV == nullptr)
+    { return; }
+
+    float blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    uint32_t sampleMask = 0xffff;
+    auto pSmp = asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::LinearClamp);
+    auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::None);
+    auto pBS  = asdx::RenderState::GetInstance().GetBS (asdx::BlendType::Opaque);
+    pContext->OMSetDepthStencilState(pDSS, 0);
+    pContext->OMSetBlendState(pBS, blendFactor, sampleMask);
+    m_SkyBox.Draw(pContext, pSRV, pSmp, farClip * 0.5f, cameraPos, view, proj);
 }
 
 //-----------------------------------------------------------------------------

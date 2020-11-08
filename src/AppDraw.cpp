@@ -62,10 +62,22 @@ void App::Draw3D()
         m_pDeviceContext->ClearRenderTargetView(pRTV[0], m_ClearColor);
         m_pDeviceContext->ClearRenderTargetView(pRTV[1], clearColor);
         m_pDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-        m_pDeviceContext->OMSetRenderTargets(2, pRTV, pDSV);
         m_pDeviceContext->RSSetViewports(1, &m_Viewport);
         m_pDeviceContext->RSSetScissorRects(1, &m_ScissorRect);
+
+        if (m_Config.Background.ShowTexture.GetValue())
+        {
+            m_pDeviceContext->OMSetRenderTargets(1, pRTV, nullptr);
+            LightMgr::Instance().Draw(
+                m_pDeviceContext,
+                m_CameraController.GetCamera().GetPosition(),
+                m_CameraController.GetView(),
+                m_Proj,
+                m_Config.Camera.FarClip.GetValue());
+        }
+
+
+        m_pDeviceContext->OMSetRenderTargets(2, pRTV, pDSV);
 
         DrawModel(true, asdx::BlendType::Opaque);
     }

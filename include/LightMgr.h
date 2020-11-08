@@ -142,7 +142,8 @@ public:
         ID3D11DeviceContext*    pContext,
         const asdx::Vector3&    cameraPos,
         const asdx::Matrix&     view,
-        const asdx::Matrix&     proj);
+        const asdx::Matrix&     proj,
+        float                   farClip);
 
     //-------------------------------------------------------------------------
     //! @brief      環境BRDFを取得します.

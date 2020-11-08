@@ -57,6 +57,7 @@ D3D11_INPUT_ELEMENT_DESC kTriangleElements[] = {
     { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // SceneBuffer structure
 ///////////////////////////////////////////////////////////////////////////////
@@ -672,11 +673,23 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
     if (m_PrevLoadState != isLoading)
     {
         // 読み込み終わった時.
-        if (!isLoading)
+        if (!isLoading && m_WorkSpace.GetModel() != nullptr)
         {
             m_LoadingPos = 0;
 
+            auto nearClip = m_Config.Camera.NearClip.GetValue();
+            auto farClip  = m_Config.Camera.FarClip .GetValue();
+
             // カメラ位置をモデルに合わせて再設定.
+            auto& box   = m_WorkSpace.GetModel()->GetBox();
+            auto size   = box.maxi - box.mini;
+            auto length = size.Length();
+            auto target = (box.maxi + box.mini) * 0.5f;
+            auto pos    = asdx::Vector3(target.x, target.y, target.z + nearClip + length);
+            auto upward = asdx::Vector3(0.0f, 1.0f, 0.0f);
+
+            m_CameraController.GetCamera().Reset();
+            m_CameraController.Init(pos, target, upward, nearClip, farClip);
         }
     }
 
@@ -685,14 +698,13 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
     // シーン定数バッファの更新.
     {
         auto fov = asdx::ToRadian(37.5f);
-        auto camera = m_CameraController.GetCamera();
+        auto camera   = m_CameraController.GetCamera();
+        auto nearClip = m_Config.Camera.NearClip.GetValue();
+        auto farClip  = m_Config.Camera.FarClip .GetValue();
 
         auto aspect = float(m_Width) / float(m_Height);
         m_Proj = asdx::Matrix::CreatePerspectiveFieldOfView(
-            fov,
-            aspect,
-            camera.GetMinDist(),
-            camera.GetMaxDist());
+            fov, aspect, nearClip, farClip);
 
         SceneBuffer res = {};
         res.View        = m_CameraController.GetView();
@@ -701,8 +713,8 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
         res.InvProj     = asdx::Matrix::Invert(m_Proj);
         res.CameraPos   = camera.GetPosition();
         res.Timer       = float(m_Timer.GetTime());
-        res.NearClip    = camera.GetMinDist();
-        res.FarClip     = camera.GetMaxDist();
+        res.NearClip    = nearClip;
+        res.FarClip     = farClip;
         res.UVToView.x  = float(1.0 / double(m_Proj._11));
         res.UVToView.y  = float(1.0 / double(m_Proj._22));
 

@@ -69,6 +69,7 @@ private:
     asdx::RefPtr<ID3D11VertexShader>    m_TriangleVS;
     asdx::RefPtr<ID3D11PixelShader>     m_DefaultPS;
     asdx::RefPtr<ID3D11PixelShader>     m_CopyPS;
+    asdx::RefPtr<ID3D11PixelShader>     m_OETFPS;
     asdx::RefPtr<ID3D11InputLayout>     m_IL;
     asdx::RefPtr<ID3D11InputLayout>     m_SkinningIL;
     asdx::RefPtr<ID3D11InputLayout>     m_ShadowIL;
@@ -78,6 +79,7 @@ private:
     asdx::ConstantBuffer                m_GuideCB;
     asdx::ConstantBuffer                m_LightCB;
     asdx::ConstantBuffer                m_MeshCB;
+    asdx::ConstantBuffer                m_OETFCB;
     asdx::VertexBuffer                  m_AxisVB;
     asdx::VertexBuffer                  m_GridVB;
     asdx::VertexBuffer                  m_TriangleVB;
@@ -109,6 +111,11 @@ private:
     //! @brief      終了時の処理です.
     //-------------------------------------------------------------------------
     void OnTerm() override;
+
+    //-------------------------------------------------------------------------
+    //! @brief      フレーム遷移処理です.
+    //-------------------------------------------------------------------------
+    void OnFrameMove(asdx::FrameEventArgs& args) override;
 
     //-------------------------------------------------------------------------
     //! @brief      フレーム描画処理です.

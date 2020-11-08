@@ -8,7 +8,7 @@
 // Includes
 //-----------------------------------------------------------------------------
 #include <App.h>
-
+#include <LightMgr.h>
 
 //-----------------------------------------------------------------------------
 //      モデルを描画します.
@@ -28,6 +28,8 @@ void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
     auto pSceneCB = m_SceneCB.GetBuffer();
     auto pLightCB = m_LightCB.GetBuffer();
     auto pMeshCB  = m_MeshCB .GetBuffer();
+
+    auto light = LightMgr::Instance().GetLight();
 
     for(auto i=0u; i<count; ++i)
     {
@@ -78,9 +80,12 @@ void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
             shader->SetCBV(m_pDeviceContext, "CbScene", pSceneCB);
             shader->SetCBV(m_pDeviceContext, "CbLight", pLightCB);
 
-            if (lightingPass)
+            if (lightingPass && light != nullptr)
             {
                 // IBL設定.
+                shader->SetSRV(m_pDeviceContext, "EnvBRDF", LightMgr::Instance().GetEnvBRDF());
+                shader->SetSRV(m_pDeviceContext, "DiffuseLD", light->GetDiffuseLD());
+                shader->SetSRV(m_pDeviceContext, "SpecularLD", light->GetSpecularLD());
 
                 // シャドウマップ設定.
             }

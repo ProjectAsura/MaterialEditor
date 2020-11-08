@@ -24,6 +24,9 @@
 //      コンストラクタです.
 //-----------------------------------------------------------------------------
 EditorLight::EditorLight()
+: SunLightDir       (0.0f, 0.0f, 1.0f)
+, SunLightIntensity (1.0f)
+, IBLIntensity      (1.0f)
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -35,7 +38,7 @@ EditorLight::~EditorLight()
 //-----------------------------------------------------------------------------
 //      ファイルをロードします.
 //-----------------------------------------------------------------------------
-bool EditorLight::Load(const char* path)
+bool EditorLight::Load(const char* path, const std::string& dir)
 {
     tinyxml2::XMLDocument doc;
     auto ret = doc.LoadFile(path);
@@ -51,6 +54,8 @@ bool EditorLight::Load(const char* path)
         ELOGA("Error : Root Not Found.");
         return false;
     }
+
+    Tag = root->Attribute("name");
 
     {
         auto e = root->FirstChildElement("SunLight");
@@ -83,7 +88,7 @@ bool EditorLight::Load(const char* path)
         }
     }
 
-    if (!LoadTexture())
+    if (!LoadTexture(dir))
     { return false; }
 
     return true;
@@ -98,7 +103,7 @@ bool EditorLight::Save(const char* path)
     doc.InsertEndChild(doc.NewDeclaration());
 
     auto root = doc.NewElement("EditorLight");
-    root->SetAttribute("tag", Tag.c_str());
+    root->SetAttribute("name", Tag.c_str());
 
     {
         auto e = doc.NewElement("SunLight");
@@ -136,27 +141,43 @@ bool EditorLight::Save(const char* path)
 //-----------------------------------------------------------------------------
 //      テクスチャをロードします.
 //-----------------------------------------------------------------------------
-bool EditorLight::LoadTexture()
+bool EditorLight::LoadTexture(const std::string& dir)
 {
     std::string diffusePath;
-    if (!asdx::SearchFilePathA(DiffuseIBLPath.c_str(), diffusePath))
     {
-        ELOGA("Error : File Not Found. path = %s", DiffuseIBLPath.c_str());
-        return false;
+        auto temp = dir + "/" + DiffuseIBLPath;
+        if (!asdx::SearchFilePathA(temp.c_str(), diffusePath))
+        {
+            ELOGA("Error : File Not Found. path = %s", DiffuseIBLPath.c_str());
+            return false;
+        }
     }
 
     std::string specularPath;
-    if (!asdx::SearchFilePathA(SpecularIBLPath.c_str(), specularPath))
     {
-        ELOGA("Error : File Not Found. path = %s", SpecularIBLPath.c_str());
-        return false;
+        auto temp = dir + "/" + SpecularIBLPath;
+        if (!asdx::SearchFilePathA(temp.c_str(), specularPath))
+        {
+            ELOGA("Error : File Not Found. path = %s", SpecularIBLPath.c_str());
+            return false;
+        }
+    }
+
+    std::string backgroundPath;
+    if (BackgroundPath != "" && !BackgroundPath.empty())
+    {
+        auto temp = dir + "/" + BackgroundPath;
+        if (!asdx::SearchFilePathA(temp.c_str(), backgroundPath))
+        {
+            ELOGA("Error : File Not Found. path = %s", BackgroundPath.c_str());
+            return false;
+        }
     }
 
     auto pDevice = asdx::DeviceContext::Instance().GetDevice();
 
-    std::string backgroundPath;
     // 背景キューブマップ読み込み.
-    if (asdx::SearchFilePathA(BackgroundPath.c_str(), backgroundPath))
+    if (!backgroundPath.empty())
     {
         auto path = asdx::ToStringW(backgroundPath);
 
@@ -175,7 +196,7 @@ bool EditorLight::LoadTexture()
                 D3D11_USAGE_DEFAULT,
                 D3D11_BIND_SHADER_RESOURCE,
                 0,
-                0,
+                DirectX::TEX_MISC_TEXTURECUBE,
                 false,
                 m_Background.GetAddress());
             if (FAILED(hr))
@@ -208,7 +229,7 @@ bool EditorLight::LoadTexture()
             D3D11_USAGE_DEFAULT,
             D3D11_BIND_SHADER_RESOURCE,
             0,
-            0,
+            DirectX::TEX_MISC_TEXTURECUBE,
             false,
             m_DiffuseLD.GetAddress());
         if (FAILED(hr))
@@ -226,7 +247,7 @@ bool EditorLight::LoadTexture()
         auto hr = DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, scrathImage);
         if (FAILED(hr))
         {
-            ELOGA("Error : DirectX::LoadFromDDSFile() Failed. path = %s", diffusePath.c_str());
+            ELOGA("Error : DirectX::LoadFromDDSFile() Failed. path = %s", specularPath.c_str());
             return false;
         }
 
@@ -241,7 +262,7 @@ bool EditorLight::LoadTexture()
             D3D11_USAGE_DEFAULT,
             D3D11_BIND_SHADER_RESOURCE,
             0,
-            0,
+            DirectX::TEX_MISC_TEXTURECUBE,
             false,
             m_SpecularLD.GetAddress());
         if (FAILED(hr))
@@ -263,7 +284,6 @@ void EditorLight::Reset()
     m_DiffuseLD .Reset();
     m_SpecularLD.Reset();
 }
-
 
 //-----------------------------------------------------------------------------
 //      背景用キューブマップを取得します.
@@ -301,7 +321,46 @@ LightMgr& LightMgr::Instance()
 bool LightMgr::Init()
 {
     // EnvBRDFをロード.
+    {
+        auto pDevice = asdx::DeviceContext::Instance().GetDevice();
 
+        std::string path;
+        if (!asdx::SearchFilePathA("../res/lights/env_brdf.dds", path))
+        {
+            ELOGA("Error : File Not Found.");
+            return false;
+        }
+
+        auto pathW = asdx::ToStringW(path);
+
+        DirectX::ScratchImage scrathImage;
+        auto hr = DirectX::LoadFromDDSFile(pathW.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, scrathImage);
+        if (FAILED(hr))
+        {
+            ELOGA("Error : DirectX::LoadFromDDSFile() Failed. path = %s", path.c_str());
+            return false;
+        }
+
+        if (m_EnvBRDF.GetPtr() != nullptr)
+        { m_EnvBRDF.Reset(); }
+
+        hr = DirectX::CreateShaderResourceViewEx(
+            pDevice,
+            scrathImage.GetImages(),
+            scrathImage.GetImageCount(),
+            scrathImage.GetMetadata(),
+            D3D11_USAGE_DEFAULT,
+            D3D11_BIND_SHADER_RESOURCE,
+            0,
+            0,
+            false,
+            m_EnvBRDF.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOGA("Error : DirectX::CreateShaderResourceViewEx() Faile. errcode = 0x%x", hr);
+            return false;
+        }
+    }
 
     // lightsフォルダ下のライト設定ファイル(xml)をロードしていく.
     {
@@ -324,7 +383,7 @@ bool LightMgr::Init()
 
         for(auto& itr : lightPresets)
         {
-            if (!m_Light[idx].Load(itr.c_str()))
+            if (!m_Light[idx].Load(itr.c_str(), dir))
             { 
                 ELOGA("Error : Light Load Failed. path = %s", itr.c_str());
                 return false;

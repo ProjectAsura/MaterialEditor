@@ -170,6 +170,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="..\res\plugins\shader\Editor.hlsli">
+      <Filter>リソース ファイル\plugins</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\res\shaders\EditorVS.hlsl">
@@ -188,9 +191,6 @@
       <Filter>リソース ファイル</Filter>
     </FxCompile>
     <FxCompile Include="..\res\shaders\EditorPS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="..\res\shaders\CopyPS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
     <FxCompile Include="..\res\shaders\TriangleVS.hlsl">

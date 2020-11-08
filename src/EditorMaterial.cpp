@@ -20,6 +20,7 @@
 //      コンストラクタです.
 //-----------------------------------------------------------------------------
 EditorMaterial::EditorMaterial()
+: m_SelectedMaterial(u8"標準")
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -100,7 +101,11 @@ const PluginShader* EditorMaterial::Bind(ID3D11DeviceContext* pContext, bool lig
     if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
     { return nullptr; }
 
+    if (m_Instances.find(m_SelectedMaterial) == m_Instances.end())
+    { return nullptr; }
+
     auto instance = m_Instances[m_SelectedMaterial];
+    assert(instance != nullptr);
 
     material->Bind(pContext, instance, lightingPass);
     return (lightingPass) ? material->GetLightingShader() : material->GetShadowingShader();
@@ -119,6 +124,7 @@ void EditorMaterial::Unbind(ID3D11DeviceContext* pContext, const PluginShader* s
         if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
         { return; }
 
+        assert(material != nullptr);
         material->Unbind(pContext);
     }
 }
@@ -141,12 +147,14 @@ void EditorMaterial::Edit()
             // 存在チェック.
             if (m_Instances.find(m_SelectedMaterial) == m_Instances.end())
             {
-                m_Instances[m_SelectedMaterial] = 
-                    PluginMgr::Instance().CreateInstance(m_SelectedMaterial);
+                auto instance = PluginMgr::Instance().CreateInstance(m_SelectedMaterial);
+                assert(instance != nullptr);
+                m_Instances[m_SelectedMaterial] = instance;
             }
 
             // マテリアル編集.
             auto instance = m_Instances[m_SelectedMaterial];
+            assert(instance != nullptr);
             material->Edit(instance);
         }
         else
@@ -179,6 +187,7 @@ bool EditorMaterial::CastShadow() const
     { return true; }
 
     auto instance = m_Instances.at(m_SelectedMaterial);
+    assert(instance != nullptr);
     return instance->CastShadow();
 }
 
@@ -191,6 +200,7 @@ int EditorMaterial::GetBlendState() const
     { return 0; }
 
     auto instance = m_Instances.at(m_SelectedMaterial);
+    assert(instance != nullptr);
     return instance->GetBlendState();
 }
 

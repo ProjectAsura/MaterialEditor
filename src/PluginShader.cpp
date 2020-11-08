@@ -299,12 +299,15 @@ void PluginShader::Bind(ID3D11DeviceContext* pContext) const
 
     // サンプラー設定.
     ID3D11SamplerState* pSmps[] = {
-        asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::PointWrap),
         asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::PointClamp),
+        asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::PointWrap),
         asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::PointMirror),
-        asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::LinearWrap),
         asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::LinearClamp),
+        asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::LinearWrap),
         asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::LinearMirror),
+        asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::AnisotropicClamp),
+        asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::AnisotropicWrap),
+        asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::AnisotropicMirror)
     };
     pContext->PSSetSamplers(0, _countof(pSmps), pSmps);
 }
@@ -415,6 +418,9 @@ void PluginShader::Update
 void PluginShader::Unbind(ID3D11DeviceContext* pContext) const
 {
     ID3D11SamplerState* pSmps[] = {
+        nullptr,
+        nullptr,
+        nullptr,
         nullptr,
         nullptr,
         nullptr,

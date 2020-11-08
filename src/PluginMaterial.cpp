@@ -551,7 +551,7 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiDefTexture2D>& par
         p.Default       = DEFAULT_TEXTURE_TYPE(e->IntAttribute("default"));
         param.push_back(p);
 
-        e = e->NextSiblingElement("Texture2D");
+        e = e->NextSiblingElement("texture2D");
     }
 }
 
@@ -1016,6 +1016,7 @@ int MaterialInstance::GetDepthState() const
 int MaterialInstance::GetRasterizerState() const
 { return m_RasterizerState.GetValue(); }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // PluginMaterial class
 ///////////////////////////////////////////////////////////////////////////////
@@ -1292,7 +1293,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
     for(size_t i=0; i<instance->m_Texture2D.size(); ++i)
     {
         instance->m_Texture2D[i].Param.DrawControl(
-            m_Texture2D[i].DisplayTag.c_str(), "", 64, 64);
+            m_Texture2D[i].DisplayTag.c_str(), "", 100, 100);
     }
 }
 

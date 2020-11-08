@@ -14,6 +14,8 @@
 #include <asdxRenderState.h>
 #include <asdxMisc.h>
 #include <asdxAppHistoryMgr.h>
+#include <LightMgr.h>
+
 
 namespace {
 
@@ -28,7 +30,8 @@ namespace {
 #include "../res/shaders/Compiled/ShadowVS.inc"
 #include "../res/shaders/Compiled/ShadowSkinningVS.inc"
 #include "../res/shaders/Compiled/TriangleVS.inc"
-#include "../res/shaders/Compiled/CopyPS.inc"
+#include "../../asdx11/res/shaders/Compiled/CopyPS.inc"
+#include "../../asdx11/res/shaders/Compiled/OETFPS.inc"
 
 //-----------------------------------------------------------------------------
 // Global Varaibles.
@@ -81,6 +84,17 @@ struct LightBuffer
     float           IBLRotation         = 0.0f;
     float           PreExposureScale    = 1.0f;
     float           Padding0;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// OETFBuffer structure
+///////////////////////////////////////////////////////////////////////////////
+struct OETFBuffer
+{
+    int   OETFType          = 1;
+    float BaseLuminance     = 100.0f;
+    float TargetLuminance   = 100.0f;
+    float Padding0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -137,10 +151,10 @@ bool CreateAxis
     GuideVertex vertices[] = {
         GuideVertex(asdx::Vector3(0.0f, 0.0f, 0.0f), kR),
         GuideVertex(asdx::Vector3(dist, 0.0f, 0.0f), kR),
-        GuideVertex(asdx::Vector3(0.0f, 0.0f, 0.0f), kB),
-        GuideVertex(asdx::Vector3(0.0f, dist, 0.0f), kB),
         GuideVertex(asdx::Vector3(0.0f, 0.0f, 0.0f), kG),
-        GuideVertex(asdx::Vector3(0.0f, 0.0f, dist), kG)
+        GuideVertex(asdx::Vector3(0.0f, dist, 0.0f), kG),
+        GuideVertex(asdx::Vector3(0.0f, 0.0f, 0.0f), kB),
+        GuideVertex(asdx::Vector3(0.0f, 0.0f, dist), kB)
     };
 
     if (!vb.Init(
@@ -344,6 +358,14 @@ bool App::OnInit()
             ELOG("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
             return false;
         }
+
+        hr = m_pDevice->CreatePixelShader(
+            OETFPS, sizeof(OETFPS), nullptr, m_OETFPS.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
+            return false;
+        }
     }
 
     // 入力レイアウト.
@@ -433,6 +455,12 @@ bool App::OnInit()
         }
 
         if (!m_MeshCB.Init(m_pDevice, sizeof(MeshBuffer)))
+        {
+            ELOG("Error : ConstantBuffer::Init() Failed.");
+            return false;
+        }
+
+        if (!m_OETFCB.Init(m_pDevice, sizeof(OETFBuffer)))
         {
             ELOG("Error : ConstantBuffer::Init() Failed.");
             return false;
@@ -578,6 +606,13 @@ bool App::OnInit()
         }
     }
 
+    // ライトマネージャー初期化.
+    if (!LightMgr::Instance().Init())
+    {
+        ELOG("Error : LightMgr::Init() Failed.");
+        return false;
+    }
+
     return true;
 }
 
@@ -593,6 +628,8 @@ void App::OnTerm()
     m_IL        .Reset();
     m_SkinningIL.Reset();
     m_TriangleIL.Reset();
+    m_CopyPS    .Reset();
+    m_OETFPS    .Reset();
 
     m_ShadowVS          .Reset();
     m_ShadowSkinningVS  .Reset();
@@ -603,6 +640,7 @@ void App::OnTerm()
     m_GuideCB.Term();
     m_LightCB.Term();
     m_MeshCB .Term();
+    m_OETFCB .Term();
 
     m_AxisVB    .Term();
     m_GridVB    .Term();
@@ -620,26 +658,16 @@ void App::OnTerm()
 
     PluginMgr::Instance().Term();
     asdx::GuiMgr::GetInstance().Term();
+    LightMgr::Instance().Term();
 
     asdx::AppHistoryMgr::GetInstance().Term();
 }
 
 //-----------------------------------------------------------------------------
-//      描画時の処理です.
+//      フレーム遷移処理です.
 //-----------------------------------------------------------------------------
-void App::OnFrameRender(asdx::FrameEventArgs& args)
+void App::OnFrameMove(asdx::FrameEventArgs& args)
 {
-    auto pRTV = m_ColorTarget2D.GetTargetView();
-    auto pDSV = m_DepthTarget2D.GetTargetView();
-
-    // レンダーターゲットが初期化されていない場合は処理しない.
-    if (pRTV == nullptr || pDSV == nullptr)
-    { return; }
-
-    // ターゲットをクリア.
-    m_pDeviceContext->ClearRenderTargetView(pRTV, m_ClearColor);
-    m_pDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
     // シーン定数バッファの更新.
     {
         auto fov = asdx::ToRadian(37.5f);
@@ -670,28 +698,26 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
 
     // ライトバッファ更新.
     {
-        asdx::Vector3 lightDir;
-        //auto theta = asdx::ToRadian(setting.DirectLightAngle.y);
-        //auto phi   = asdx::ToRadian(setting.DirectLightAngle.x);
-        //lightDir.x = cos(theta) * cos(phi);
-        //lightDir.y = sin(theta);
-        //lightDir.z = cos(theta) * sin(phi);
+        auto light = LightMgr::Instance().GetLight();
+        if (light != nullptr)
+        {
+            LightBuffer res = {};
+            res.SunLightDir         = light->SunLightDir;
+            res.SunLightIntensity   = light->SunLightIntensity;
+            res.IBLIntensity        = light->IBLIntensity;
 
-        LightBuffer res = {};
-        //res.SunLightDir = lightDir;
+            if (res.SunLightIntensity < 0.0f)
+            { res.SunLightIntensity = 0.0f; }
 
+            if (res.IBLIntensity < 0.0f)
+            { res.IBLIntensity = 0.0f; }
 
-        if (res.SunLightIntensity < 0.0f)
-        { res.SunLightIntensity = 0.0f; }
+            if (res.PreExposureScale < 0.0f)
+            { res.PreExposureScale = 0.0f;}
 
-        if (res.IBLIntensity < 0.0f)
-        { res.IBLIntensity = 0.0f; }
-
-        if (res.PreExposureScale < 0.0f)
-        { res.PreExposureScale = 0.0f;}
-
-        auto pCB = m_LightCB.GetBuffer();
-        m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
+            auto pCB = m_LightCB.GetBuffer();
+            m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
+        }
     }
 
     // メッシュバッファ更新.
@@ -704,6 +730,32 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
         auto pCB = m_MeshCB.GetBuffer();
         m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
     }
+
+    // OETFバッファ更新.
+    {
+        OETFBuffer res = {};
+
+
+        auto pCB = m_OETFCB.GetBuffer();
+        m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
+    }
+}
+
+//-----------------------------------------------------------------------------
+//      描画時の処理です.
+//-----------------------------------------------------------------------------
+void App::OnFrameRender(asdx::FrameEventArgs& args)
+{
+    auto pRTV = m_ColorTarget2D.GetTargetView();
+    auto pDSV = m_DepthTarget2D.GetTargetView();
+
+    // レンダーターゲットが初期化されていない場合は処理しない.
+    if (pRTV == nullptr || pDSV == nullptr)
+    { return; }
+
+    // ターゲットをクリア.
+    m_pDeviceContext->ClearRenderTargetView(pRTV, m_ClearColor);
+    m_pDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
     // 3D描画.
     Draw3D();
@@ -718,8 +770,10 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
         {
             auto pSRV = m_LightingBuffer.GetShaderResource();
             auto pSmp = asdx::RenderState::GetInstance().GetSmp(asdx::LinearClamp);
-            m_pDeviceContext->PSSetShader(m_CopyPS.GetPtr(), nullptr, 0);
+            auto pCB  = m_OETFCB.GetBuffer();
+            m_pDeviceContext->PSSetShader(m_OETFPS.GetPtr(), nullptr, 0);
             m_pDeviceContext->PSSetShaderResources(0, 1, &pSRV);
+            m_pDeviceContext->PSSetConstantBuffers(0, 1, &pCB);
             m_pDeviceContext->PSSetSamplers(0, 1, &pSmp);
             DrawQuad();
         }

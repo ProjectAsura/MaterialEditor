@@ -32,85 +32,6 @@ Texture2D Emissive  : register(t14);
 
 
 //-----------------------------------------------------------------------------
-//      事前計算済みDFV項を取得します.
-//-----------------------------------------------------------------------------
-float4 GetDFG(float roughness, float NoV)
-{
-    float2 uv = float2(NoV, roughness);
-    uv.y = 1.0f - uv.y;    // DirectX系に変換.
-    return EnvBRDF.SampleLevel(LinearClamp, uv, 0.0f);
-}
-
-//-------------------------------------------------------------------------------------------------
-//      ディフューズを評価します.
-//-------------------------------------------------------------------------------------------------
-float3 EvaluateDiffuseIBL(float3 N, float3 Kd)
-{
-    // Lambert Diffuse.
-    return Kd * DiffuseLD.SampleLevel(LinearClamp, N, 0).rgb * IBLIntensity;
-}
-
-//-----------------------------------------------------------------------------
-//      スペキュラーを評価します.
-//-----------------------------------------------------------------------------
-float3 EvaluateSpecularIBL(float3 N, float3 V, float3 R, float roughness)
-{
-    // ミップマップレベル数を取得.
-    float2 size;
-    float mipLevels;
-    SpecularLD.GetDimensions( 0, size.x, size.y, mipLevels );
-
-    // 参照ミップマップレベルをroughnessから算出.
-    float mipIndex = roughness * (mipLevels - 1.0f);
-
-    float a2 = roughness * roughness;
-    float3 dominantR = GetSpecularDomiantDir(N, R, a2);
-
-    return SpecularLD.SampleLevel(LinearClamp, dominantR, mipIndex).rgb * IBLIntensity;
-}
-
-//-----------------------------------------------------------------------------
-//      IBLを評価します.
-//-----------------------------------------------------------------------------
-float3 EvaluateIBL(float3 N, float3 V, float3 Kd, float3 Ks, float roughness, float ao)
-{
-    float  NoV     = abs(dot(V, N));
-    float3 R       = -reflect(V, N);
-    float3 diffuse = EvaluateDiffuseIBL(N, Kd);
-    diffuse *= ao;
-
-    float3 specular   = EvaluateSpecularIBL(N, V, R, roughness);
-    float  specularAO = CalcSpecularAO(NoV, ao, roughness);
-    specular *= specularAO;
-
-    float2 preDFG = GetDFG(roughness, NoV).rg;
-    return (diffuse + specular * (Ks * preDFG.r + preDFG.g));
-}
-
-//-----------------------------------------------------------------------------
-//      直接光を評価します.
-//-----------------------------------------------------------------------------
-float3 EvaluateDirectLight(float3 N, float3 V, float3 L, float3 Kd, float3 Ks, float roughness)
-{
-    float3 H     = normalize(V + L);
-    float  NdotV = saturate(dot(N, V));
-    float  LdotH = saturate(dot(L, H));
-    float  NdotH = saturate(dot(N, H));
-    float  NdotL = saturate(dot(N, L));
-    float  VdotH = saturate(dot(V, H));
-    float  a2    = max(roughness * roughness, 0.01);
-    float  f90   = saturate(50.0f * dot(Ks, 0.33f));
-
-    float3 diffuse = Kd / F_PI;
-    float  D = D_GGX(NdotH, a2);
-    float  G = G_SmithGGX(NdotL, NdotV, a2);
-    float3 F = F_Schlick(Ks, f90, LdotH);
-    float3 specular = (D * G * F) / F_PI;
-
-    return (diffuse + specular) * NdotL * SunLightIntensity;
-}
-
-//-----------------------------------------------------------------------------
 //      ライティング処理です.
 //-----------------------------------------------------------------------------
 PSOutput LightingPS(const VSOutput input)
@@ -147,9 +68,10 @@ PSOutput LightingPS(const VSOutput input)
     float3 ks = ToKs(baseColor.rgb, orm.z);
 
     // ライティング.
-    output.Color.rgb += EvaluateIBL(N, V, kd, ks, orm.y, orm.x);
-    output.Color.rgb += EvaluateDirectLight(N, V, L, kd, ks, orm.y);
+    output.Color.rgb += EvaluateIBLIsotropy(N, V, kd, ks, orm.y, orm.x);
+    output.Color.rgb += EvaluateDirectLightIsotropicGGX(N, V, L, kd, ks, orm.y);
     output.Color.rgb += Emissive.Sample(AnisotropicWrap, uv).rgb;
+    output.Color.a = 1.0f;
 
     output.NRM = EncodeNRM(N, orm.y, orm.z);
 

@@ -58,9 +58,11 @@ void App::Draw3D()
 
         auto pDSV = m_DepthBuffer.GetTargetView();
 
-        float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        m_pDeviceContext->ClearRenderTargetView(pRTV[0], m_ClearColor);
-        m_pDeviceContext->ClearRenderTargetView(pRTV[1], clearColor);
+        auto cc = m_Config.Background.ClearColor.GetValue();
+        float clearColor0[] = { cc.x, cc.y, cc.z, 1.0f };
+        float clearColor1[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        m_pDeviceContext->ClearRenderTargetView(pRTV[0], clearColor0);
+        m_pDeviceContext->ClearRenderTargetView(pRTV[1], clearColor1);
         m_pDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
         m_pDeviceContext->RSSetViewports(1, &m_Viewport);
         m_pDeviceContext->RSSetScissorRects(1, &m_ScissorRect);

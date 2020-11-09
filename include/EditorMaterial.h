@@ -17,6 +17,7 @@
 #include <asdxRef.h>
 #include <asdxEditParam.h>
 #include <PluginMgr.h>
+#include <imgui.h>
 
 
 
@@ -73,7 +74,7 @@ public:
     //-------------------------------------------------------------------------
     //! @brief      編集処理を行います.
     //-------------------------------------------------------------------------
-    void Edit();
+    void Edit(const std::string& filterType);
 
     void SetName(const std::string& name);
 
@@ -115,7 +116,8 @@ public:
     //=========================================================================
     // public variables.
     //=========================================================================
-    /* NOTHING */
+    ImGuiTextFilter     NameFilter;         // 名前フィルタ.
+    std::string         TypeFilter = "";    // マテリアルタイプフィルタ.
 
     //=========================================================================
     // public methods.

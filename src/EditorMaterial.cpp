@@ -132,14 +132,23 @@ void EditorMaterial::Unbind(ID3D11DeviceContext* pContext, const PluginShader* s
 //-----------------------------------------------------------------------------
 //      マテリアルを編集します.
 //-----------------------------------------------------------------------------
-void EditorMaterial::Edit()
+void EditorMaterial::Edit(const std::string& filterType)
 {
     ImGui::PushID(m_Name.c_str());
 
     if (ImGui::CollapsingHeader(m_Name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
     {
         // マテリアル選択コンボボックス.
-        m_SelectedMaterial = PluginMgr::Instance().DrawCombo(m_SelectedMaterial);
+        m_SelectedMaterial = PluginMgr::Instance().DrawTypeCombo(m_SelectedMaterial);
+
+        if (filterType != "")
+        {
+            if (m_SelectedMaterial != filterType)
+            {
+                ImGui::PopID();
+                return;
+            }
+        }
 
         PluginMaterial* material;
         if (PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))

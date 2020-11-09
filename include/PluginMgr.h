@@ -719,7 +719,9 @@ public:
     //-------------------------------------------------------------------------
     //! @brief      コンボボックスを描画します.
     //-------------------------------------------------------------------------
-    const std::string& DrawCombo(const std::string& selected);
+    const std::string& DrawTypeCombo(const std::string& selected);
+
+    const std::string& DrawFilterCombo(const std::string& selected);
 
     //-------------------------------------------------------------------------
     //! @brief      デフォルトテクスチャを取得します.

@@ -263,9 +263,10 @@ void DrawMaterialTab(MenuContext& context)
     }
 
     // 名前フィルタ.
+    context.pMaterials->NameFilter.Draw(u8"名前フィルタ");
 
     // マテリアルタイプフィルタ.
-
+    context.pMaterials->TypeFilter = PluginMgr::Instance().DrawFilterCombo(context.pMaterials->TypeFilter);
 
     auto count = context.pMaterials->GetCount();
     for(auto i=0u; i<count; ++i)
@@ -273,11 +274,11 @@ void DrawMaterialTab(MenuContext& context)
         auto& material = context.pMaterials->GetMaterial(i);
 
         // 名前でフィルタ.
-
-        // タイプでフィルタ.
+        if (!context.pMaterials->NameFilter.PassFilter(material.GetName().c_str()))
+        { continue; }
 
         // マテリアル編集.
-        material.Edit();
+        material.Edit(context.pMaterials->TypeFilter);
     }
 
     ImGui::EndTabItem();
@@ -296,7 +297,6 @@ void DrawLightTab()
 
     ImGui::EndTabItem();
 }
-
 
 
 //-----------------------------------------------------------------------------

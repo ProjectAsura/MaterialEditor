@@ -508,7 +508,7 @@ void PluginMgr::DeleteInstance(MaterialInstance*& instance)
 //-----------------------------------------------------------------------------
 //      コンボボックスを描画します.
 //-----------------------------------------------------------------------------
-const std::string& PluginMgr::DrawCombo(const std::string& selectedItem)
+const std::string& PluginMgr::DrawTypeCombo(const std::string& selectedItem)
 {
     PluginMaterial* selectedMat = nullptr;
     if (ImGui::BeginCombo(u8"マテリアルタイプ", selectedItem.c_str()))
@@ -526,6 +526,38 @@ const std::string& PluginMgr::DrawCombo(const std::string& selectedItem)
 
     if (selectedMat == nullptr)
     { return selectedItem; }
+    
+    return selectedMat->GetName();
+}
+
+//-----------------------------------------------------------------------------
+//      コンボボックスを描画します.
+//-----------------------------------------------------------------------------
+const std::string& PluginMgr::DrawFilterCombo(const std::string& selectedItem)
+{
+    bool nofilter = false;
+    PluginMaterial* selectedMat = nullptr;
+    if (ImGui::BeginCombo(u8"フィルタタイプ", selectedItem.c_str()))
+    {
+        auto selected = (u8"フィルタ無し" == selectedItem);
+        if (ImGui::Selectable(u8"フィルタ無し", selected))
+            nofilter = true;
+        if (selected)
+            ImGui::SetItemDefaultFocus();
+
+        for (auto& itr : m_Materials)
+        {
+            selected = (itr.first == selectedItem);
+            if (ImGui::Selectable(itr.first.c_str(), selected))
+                selectedMat = itr.second;
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+
+    if (selectedMat == nullptr)
+    { return (nofilter) ? kInvalidMaterialName : selectedItem; }
     
     return selectedMat->GetName();
 }

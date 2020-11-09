@@ -699,12 +699,14 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
 
     // シーン定数バッファの更新.
     {
-        auto fov = asdx::ToRadian(37.5f);
+        auto fov      = asdx::ToRadian(m_Config.Camera.FieldOfView.GetValue());
         auto camera   = m_CameraController.GetCamera();
         auto nearClip = m_Config.Camera.NearClip.GetValue();
         auto farClip  = m_Config.Camera.FarClip .GetValue();
+        auto w        = float(m_Width);
+        auto h        = float(m_Height);
 
-        auto aspect = float(m_Width) / float(m_Height);
+        auto aspect = w / h;
         m_Proj = asdx::Matrix::CreatePerspectiveFieldOfView(
             fov, aspect, nearClip, farClip);
 
@@ -719,8 +721,8 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
         res.FarClip         = farClip;
         res.UVToView.x      = float(1.0 / double(m_Proj._11));
         res.UVToView.y      = float(1.0 / double(m_Proj._22));
-        res.ScreenSize      = asdx::Vector2(float(m_Width), float(m_Height));
-        res.InvScreenSize   = asdx::Vector2(1.0f / float(m_Width), 1.0f / float(m_Height));
+        res.ScreenSize      = asdx::Vector2(w, h);
+        res.InvScreenSize   = asdx::Vector2(1.0f / w, 1.0f / h);
 
         auto pCB = m_SceneCB.GetBuffer();
         m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);

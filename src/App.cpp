@@ -762,7 +762,7 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
         {
             auto rotation = m_Config.ModelPreview.Rotation.GetValue();
             model->SetScale(m_Config.ModelPreview.Scale.GetValue());
-            model->SetRotate(rotation);
+            model->SetRotation(rotation);
             model->SetTranslation(m_Config.ModelPreview.Translation.GetValue());
 
             // 自動回転.
@@ -770,9 +770,10 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
             {
                 auto speed = m_Config.ModelPreview.AutoRotationSpeed.GetValue();
                 m_AutoRotationY += speed * float(m_Timer.GetElapsedTime() * 1000.0f);
-                model->SetRotate(asdx::Vector3(0.0f, m_AutoRotationY, 0.0f) + rotation);
+                model->SetRotation(asdx::Vector3(0.0f, m_AutoRotationY, 0.0f) + rotation);
             }
 
+            model->UpdateWorld();
             res.World = model->GetWorld();
         }
 
@@ -867,9 +868,63 @@ void App::OnKey(const asdx::KeyEventArgs& args)
     m_CameraController.OnKey(
         args.KeyCode, args.IsKeyDown, args.IsAltDown);
 
-    // シェーダをリロード.
-    if (args.IsKeyDown && args.KeyCode == VK_F5)
-    { m_ReloadShader = true; }
+    auto isCtrlDown = !!(GetAsyncKeyState(VK_CONTROL) & 0x8000);
+
+    if (args.IsKeyDown)
+    {
+        switch (args.KeyCode)
+        {
+        case VK_F5:
+            // シェーダをリロード.
+            { m_ReloadShader = true; }
+            break;
+
+        case 'Z':
+            // 元に戻す.
+            if (isCtrlDown)
+            { asdx::AppHistoryMgr::GetInstance().Undo(); }
+            break;
+
+        case 'Y':
+            // やり直す.
+            if (isCtrlDown)
+            { asdx::AppHistoryMgr::GetInstance().Redo(); }
+            break;
+
+        case 'Q':
+            // Rotate
+            if (isCtrlDown && !ImGui::IsAnyWindowHovered())
+            {
+                if (m_GuizmoOperation == 1)
+                { m_GuizmoOperation = -1; }
+                else
+                { m_GuizmoOperation = 1; }
+            }
+            break;
+
+        case 'W':
+            // Translate
+            if (isCtrlDown && !ImGui::IsAnyWindowHovered())
+            {
+                if (m_GuizmoOperation == 0)
+                { m_GuizmoOperation = -1; }
+                else
+                { m_GuizmoOperation = 0; }
+            }
+            break;
+
+        case 'E':
+            // Scale
+            if (isCtrlDown && !ImGui::IsAnyWindowHovered())
+            {
+                if (m_GuizmoOperation == 2)
+                { m_GuizmoOperation = -1; }
+                else 
+                { m_GuizmoOperation = 2; }
+            }
+            break;
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------

@@ -327,16 +327,16 @@ const asdx::Matrix& EditorModel::GetWorld() const
 void EditorModel::SetScale(const asdx::Vector3& value)
 {
     m_Scale = value;
-    UpdateWorld();
+    m_DirtyWorld = true;
 }
 
 //-----------------------------------------------------------------------------
 //      回転角を設定します.
 //-----------------------------------------------------------------------------
-void EditorModel::SetRotate(const asdx::Vector3& value)
+void EditorModel::SetRotation(const asdx::Vector3& value)
 {
     m_Rotation = value;
-    UpdateWorld();
+    m_DirtyWorld = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -345,7 +345,7 @@ void EditorModel::SetRotate(const asdx::Vector3& value)
 void EditorModel::SetTranslation(const asdx::Vector3& value)
 {
     m_Translation = value;
-    UpdateWorld();
+    m_DirtyWorld = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -357,7 +357,7 @@ const asdx::Vector3& EditorModel::GetScale() const
 //-----------------------------------------------------------------------------
 //      回転角を取得します.
 //-----------------------------------------------------------------------------
-const asdx::Vector3& EditorModel::GetRotate() const
+const asdx::Vector3& EditorModel::GetRotation() const
 { return m_Rotation; }
 
 //-----------------------------------------------------------------------------
@@ -371,6 +371,9 @@ const asdx::Vector3& EditorModel::GetTranslation() const
 //-----------------------------------------------------------------------------
 void EditorModel::UpdateWorld()
 {
+    if (!m_DirtyWorld)
+    { return; }
+
     m_World  = asdx::Matrix::CreateScale(m_Scale); 
     m_World *= asdx::Matrix::CreateRotationX(asdx::ToRadian(m_Rotation.x));
     m_World *= asdx::Matrix::CreateRotationY(asdx::ToRadian(m_Rotation.y));
@@ -378,6 +381,8 @@ void EditorModel::UpdateWorld()
     m_World._41 = m_Translation.x;
     m_World._42 = m_Translation.y;
     m_World._43 = m_Translation.z;
+
+    m_DirtyWorld = false;
 }
 
 //-----------------------------------------------------------------------------

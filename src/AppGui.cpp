@@ -12,6 +12,7 @@
 #include <asdxLogger.h>
 #include <asdxMisc.h>
 #include <imgui.h>
+#include <ImGuizmo.h>
 #include <AppVersion.h>
 #include <Config.h>
 #include <LightMgr.h>
@@ -388,6 +389,61 @@ void DrawLoading(float x, float y)
     ImGui::End();
 }
 
+//-----------------------------------------------------------------------------
+//      ギズモを表示します.
+//-----------------------------------------------------------------------------
+void DrawGuizmo
+(
+    MenuContext&        context,
+    ImGuizmo::OPERATION operation,
+    const asdx::Matrix& view,
+    const asdx::Matrix& proj,
+    float               w,
+    float               h
+)
+{
+    if (context.pModel == nullptr)
+    { return; }
+
+    asdx::Matrix matrix = context.pModel->GetWorld();
+
+     auto flags = 0;
+    flags |= ImGuiWindowFlags_NoTitleBar;
+    flags |= ImGuiWindowFlags_NoResize;
+    flags |= ImGuiWindowFlags_NoScrollbar;
+    flags |= ImGuiWindowFlags_NoInputs;
+    flags |= ImGuiWindowFlags_NoSavedSettings;
+    flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+    flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(w, h));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
+    ImGui::PushStyleColor(ImGuiCol_Border,   0);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::Begin(u8"Gizmo", nullptr, flags);
+
+    ImGuizmo::SetDrawlist();
+    ImGuizmo::SetRect(0, 0, w, h);
+
+    ImGuizmo::Manipulate(
+        view,
+        proj,
+        operation,
+        ImGuizmo::MODE::LOCAL,
+        matrix);
+
+    asdx::Vector3 S, R, T;
+    ImGuizmo::DecomposeMatrixToComponents(matrix, T, R, S);
+
+    ImGui::End();
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor(2);
+
+    context.pConfig->ModelPreview.Translation.SetValue(T);
+    context.pConfig->ModelPreview.Scale.SetValue(S);
+    context.pConfig->ModelPreview.Rotation.SetValue(R);
+}
+
 } // namespace
 
 //-----------------------------------------------------------------------------
@@ -414,6 +470,9 @@ void App::DrawGui()
         context.pMaterials = m_WorkSpace.GetMaterials();
         context.pConfig    = &m_Config;
 
+        auto w = float(m_Width);
+        auto h = float(m_Height);
+
         // 右クリックメニュー.
         DrawPopupMenu(m_WorkSpace, context);
 
@@ -423,13 +482,25 @@ void App::DrawGui()
         // モーダルダイアログ.
         DrawModalDialog(context);
 
+        // ギズモ表示.
+        if (m_GuizmoOperation >= 0)
+        {
+            DrawGuizmo(
+                context,
+                ImGuizmo::OPERATION(m_GuizmoOperation),
+                m_CameraController.GetView(),
+                m_Proj,
+                w,
+                h);
+        }
+
         // ロード中.
         if (m_WorkSpace.IsLoading())
         {
             const auto speed = 300.0f;
             m_LoadingPos += speed * float(m_Timer.GetElapsedTime());
-            auto x = float(m_Width - int(m_LoadingPos) % m_Width);
-            auto y = float(m_Height - 100);
+            auto x = w - float(int(m_LoadingPos) % m_Width);
+            auto y = h - 100.0f;
             DrawLoading(x, y);
         }
 

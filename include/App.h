@@ -101,6 +101,7 @@ private:
     bool                                m_PrevLoadState = false; // 前フレームのロードフラグ.
     float                               m_LoadingPos    = 0.0f;
     float                               m_AutoRotationY = 0.0f;
+    int                                 m_GuizmoOperation = -1;
 
     //=========================================================================
     // private methods.

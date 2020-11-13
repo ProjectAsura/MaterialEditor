@@ -11,7 +11,7 @@
 #include <asdxGuiMgr.h>
 #include <asdxLogger.h>
 #include <asdxMisc.h>
-#include <imgui.h>
+#include <asdxImGuiExtension.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
 #include <AppVersion.h>
@@ -57,71 +57,6 @@ struct MenuContext
     Config*             pConfig = nullptr;
 };
 
-ImVec2 ToImVec2(const asdx::Vector2& value)
-{ return ImVec2(value.x, value.y); }
-
-ImVec4 ToImVec4(const asdx::Vector4& value)
-{ return ImVec4(value.x, value.y, value.z, value.w); }
-
-asdx::Vector2 FromImVec2(const ImVec2& value)
-{ return asdx::Vector2(value.x, value.y); }
-
-asdx::Vector4 FromImVec4(const ImVec4& value)
-{ return asdx::Vector4(value.x, value.y, value.z, value.w); }
-
-ImVec2 operator + (const ImVec2& lhs, const ImVec2& rhs)
-{ return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
-
-ImVec2 operator - (const ImVec2& lhs, const ImVec2& rhs)
-{ return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
-
-//-----------------------------------------------------------------------------
-//      クリック可能なテキストを描画します.
-//-----------------------------------------------------------------------------
-bool ImGuiClickableText
-(
-    const char*   text,
-    const ImVec2& size_arg      = ImVec2(0, 0),
-    const ImVec4& hoverColor    = ImVec4(1.0f, 0.5f, 0.0f, 1.0f)
-)
-{
-    auto window = ImGui::GetCurrentWindow();
-    if (window->SkipItems)
-        return false;
-
-    auto& g = *GImGui;
-    const auto& style = g.Style;
-    const auto id = window->GetID(text);
-    const auto label_size = ImGui::CalcTextSize(text, nullptr, true);
-
-    auto pos = window->DC.CursorPos;
-    auto size = ImGui::CalcItemSize(
-        size_arg,
-        label_size.x + style.FramePadding.x * 2.0f,
-        label_size.y + style.FramePadding.y * 2.0f);
-
-    const ImRect bb(pos, pos + size);
-    ImGui::ItemSize(size, style.FramePadding.y);
-    if (!ImGui::ItemAdd(bb, id))
-        return false;
-
-    bool hovered, held;
-    auto pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
-
-    if (hovered)
-    { ImGui::PushStyleColor(ImGuiCol_Text, hoverColor); }
-
-    ImGui::RenderTextClipped(
-        bb.Min + style.FramePadding,
-        bb.Max - style.FramePadding,
-        text, nullptr, &label_size, style.ButtonTextAlign, &bb);
-    
-    if (hovered)
-    { ImGui::PopStyleColor(); }
-
-    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
-    return pressed;
-}
 
 //-----------------------------------------------------------------------------
 //      ハイパーリンクを描画します.

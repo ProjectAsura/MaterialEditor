@@ -422,13 +422,30 @@ void LightMgr::Term()
 //-----------------------------------------------------------------------------
 void LightMgr::Edit()
 {
+    static const ImVec2 kCubmapSize = ImVec2(64.0f * 4, 64.0f);
+    static const ImVec4 kRed = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+
     for(size_t i=0; i<m_Light.size(); ++i)
     {
+        const auto& light = m_Light[i];
+
         ImGui::PushID(int(i));
-        if (ImGui::CollapsingHeader(m_Light[i].Tag.c_str()))
+
+        auto pSRV = light.GetBackground();
+
+        if (pSRV != nullptr)
         {
-            // キューブマップ描画.
+            if (ImGui::ImageButton(pSRV, kCubmapSize))
+            { m_CurrentIndex = i; }
         }
+        else
+        {
+            if (ImGui::Button(u8"背景画像無し"))
+            { m_CurrentIndex = i; }
+        }
+        ImGui::SameLine();
+        ImGui::Text(light.Tag.c_str());
+
         ImGui::PopID();
     }
 }

@@ -12,6 +12,7 @@
 struct VSOutput
 {
     float4 Position : SV_POSITION;
+    float3 Normal   : NORMAL;
     float4 Color    : COLOR;
 };
 
@@ -46,39 +47,12 @@ cbuffer CbLight : register(b1)
     float    PreExposureScale   : packoffset(c1.z);
 };
 
-
-//-----------------------------------------------------------------------------
-//      スクリーンUVを取得します.
-//-----------------------------------------------------------------------------
-float2 GetScreenUV(VSOutput value)
-{
-    float2 uv = value.Position.xy * InvScreenSize;
-    return float2(uv.x, 1.0f - uv.y);
-}
-
-//-----------------------------------------------------------------------------
-//      ビュー空間深度を取得します.
-//-----------------------------------------------------------------------------
-float GetViewDepth(VSOutput value)
-{ return ToViewDepth(value.Position.z, NearClip, FarClip); }
-
-//-----------------------------------------------------------------------------
-//      ビュー空間位置座標を取得します.
-//-----------------------------------------------------------------------------
-float3 GetViewPosition(VSOutput value)
-{
-    float viewDepth = GetViewDepth(value);
-    return ToViewPos(GetScreenUV(value), viewDepth, UVToView);
-}
-
 //-----------------------------------------------------------------------------
 //      メインエントリーポイントです.
 //-----------------------------------------------------------------------------
 float4 main(const VSOutput input) : SV_TARGET
 {
-    float3 viewPos = GetViewPosition(input);
-
-    float3 N = normalize(cross(ddx_fine(viewPos), ddy_fine(viewPos)));
+    float3 N = normalize(input.Normal);
     float3 L = normalize(SunLightDir);
 
     return float4(input.Color.rgb * saturate(dot(N, L)), input.Color.a);

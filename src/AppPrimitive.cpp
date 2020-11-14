@@ -36,61 +36,61 @@ bool BoxShape::Init(ID3D11Device* pDevice, float size)
     // 頂点バッファの生成.
     {
         auto s = size * 0.5f;
-        asdx::Vector3 vertices[] = {
-            asdx::Vector3(-s,  s, -s),
-            asdx::Vector3(-s, -s, -s),
-            asdx::Vector3( s, -s, -s),
+        ShapeVertex vertices[] = {
+            { asdx::Vector3(-s,  s, -s), asdx::Vector3(0.0f, 0.0f, -1.0f) },
+            { asdx::Vector3(-s, -s, -s), asdx::Vector3(0.0f, 0.0f, -1.0f) },
+            { asdx::Vector3( s, -s, -s), asdx::Vector3(0.0f, 0.0f, -1.0f) },
 
-            asdx::Vector3(-s,  s, -s),
-            asdx::Vector3( s, -s, -s),
-            asdx::Vector3( s,  s, -s),
+            { asdx::Vector3(-s,  s, -s), asdx::Vector3(0.0f, 0.0f, -1.0f) },
+            { asdx::Vector3( s, -s, -s), asdx::Vector3(0.0f, 0.0f, -1.0f) },
+            { asdx::Vector3( s,  s, -s), asdx::Vector3(0.0f, 0.0f, -1.0f) },
 
-            asdx::Vector3(s,  s, -s),
-            asdx::Vector3(s, -s, -s),
-            asdx::Vector3(s, -s,  s),
+            { asdx::Vector3(s,  s, -s), asdx::Vector3(1.0f, 0.0f, 0.0f) },
+            { asdx::Vector3(s, -s, -s), asdx::Vector3(1.0f, 0.0f, 0.0f) },
+            { asdx::Vector3(s, -s,  s), asdx::Vector3(1.0f, 0.0f, 0.0f) },
 
-            asdx::Vector3(s,  s, -s),
-            asdx::Vector3(s, -s,  s),
-            asdx::Vector3(s,  s,  s),
+            { asdx::Vector3(s,  s, -s), asdx::Vector3(1.0f, 0.0f, 0.0f) },
+            { asdx::Vector3(s, -s,  s), asdx::Vector3(1.0f, 0.0f, 0.0f) },
+            { asdx::Vector3(s,  s,  s), asdx::Vector3(1.0f, 0.0f, 0.0f) },
 
-            asdx::Vector3( s,  s, s),
-            asdx::Vector3( s, -s, s),
-            asdx::Vector3(-s, -s, s),
+            { asdx::Vector3( s,  s, s), asdx::Vector3(0.0f, 0.0f, 1.0f) },
+            { asdx::Vector3( s, -s, s), asdx::Vector3(0.0f, 0.0f, 1.0f) },
+            { asdx::Vector3(-s, -s, s), asdx::Vector3(0.0f, 0.0f, 1.0f) },
 
-            asdx::Vector3( s,  s, s),
-            asdx::Vector3(-s, -s, s),
-            asdx::Vector3(-s,  s, s),
+            { asdx::Vector3( s,  s, s), asdx::Vector3(0.0f, 0.0f, 1.0f) },
+            { asdx::Vector3(-s, -s, s), asdx::Vector3(0.0f, 0.0f, 1.0f) },
+            { asdx::Vector3(-s,  s, s), asdx::Vector3(0.0f, 0.0f, 1.0f) },
 
-            asdx::Vector3(-s,  s,  s),
-            asdx::Vector3(-s, -s,  s),
-            asdx::Vector3(-s, -s, -s),
+            { asdx::Vector3(-s,  s,  s), asdx::Vector3(-1.0f, 0.0f, 0.0f) },
+            { asdx::Vector3(-s, -s,  s), asdx::Vector3(-1.0f, 0.0f, 0.0f) },
+            { asdx::Vector3(-s, -s, -s), asdx::Vector3(-1.0f, 0.0f, 0.0f) },
 
-            asdx::Vector3(-s,  s,  s),
-            asdx::Vector3(-s, -s, -s),
-            asdx::Vector3(-s,  s, -s),
+            { asdx::Vector3(-s,  s,  s), asdx::Vector3(-1.0f, 0.0f, 0.0f) },
+            { asdx::Vector3(-s, -s, -s), asdx::Vector3(-1.0f, 0.0f, 0.0f) },
+            { asdx::Vector3(-s,  s, -s), asdx::Vector3(-1.0f, 0.0f, 0.0f) },
 
-            asdx::Vector3(-s, s,  s),
-            asdx::Vector3(-s, s, -s),
-            asdx::Vector3( s, s, -s),
+            { asdx::Vector3(-s, s,  s), asdx::Vector3(0.0f, 1.0f, 0.0f) },
+            { asdx::Vector3(-s, s, -s), asdx::Vector3(0.0f, 1.0f, 0.0f) },
+            { asdx::Vector3( s, s, -s), asdx::Vector3(0.0f, 1.0f, 0.0f) },
 
-            asdx::Vector3(-s, s,  s),
-            asdx::Vector3( s, s, -s),
-            asdx::Vector3( s, s,  s),
+            { asdx::Vector3(-s, s,  s), asdx::Vector3(0.0f, 1.0f, 0.0f) },
+            { asdx::Vector3( s, s, -s), asdx::Vector3(0.0f, 1.0f, 0.0f) },
+            { asdx::Vector3( s, s,  s), asdx::Vector3(0.0f, 1.0f, 0.0f) },
 
-            asdx::Vector3(-s, -s, -s),
-            asdx::Vector3(-s, -s,  s),
-            asdx::Vector3( s, -s,  s),
+            { asdx::Vector3(-s, -s, -s), asdx::Vector3(0.0f, -1.0f, 0.0f) },
+            { asdx::Vector3(-s, -s,  s), asdx::Vector3(0.0f, -1.0f, 0.0f) },
+            { asdx::Vector3( s, -s,  s), asdx::Vector3(0.0f, -1.0f, 0.0f) },
 
-            asdx::Vector3(-s, -s, -s),
-            asdx::Vector3( s, -s,  s),
-            asdx::Vector3( s, -s, -s),
+            { asdx::Vector3(-s, -s, -s), asdx::Vector3(0.0f, -1.0f, 0.0f) },
+            { asdx::Vector3( s, -s,  s), asdx::Vector3(0.0f, -1.0f, 0.0f) },
+            { asdx::Vector3( s, -s, -s), asdx::Vector3(0.0f, -1.0f, 0.0f) },
         };
 
         auto vertexCount = uint32_t(sizeof(vertices) / sizeof(vertices[0]));
  
         D3D11_BUFFER_DESC desc = {};
         desc.Usage      = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth  = sizeof(asdx::Vector3) * vertexCount;
+        desc.ByteWidth  = sizeof(ShapeVertex) * vertexCount;
         desc.BindFlags  = D3D11_BIND_VERTEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA res = {};
@@ -145,7 +145,7 @@ void BoxShape::Draw
     if (pVB == nullptr || pCB == nullptr)
     { return; }
 
-    UINT stride = sizeof(asdx::Vector3);
+    UINT stride = sizeof(ShapeVertex);
     UINT offset = 0;
 
     CbMesh res;
@@ -182,7 +182,7 @@ bool SphereShape::Init(ID3D11Device* pDevice, float radius, int divide)
 {
     // 頂点バッファとインデックスバッファの生成.
     {
-        std::vector<asdx::Vector3>  vertices;
+        std::vector<ShapeVertex>  vertices;
         std::vector<uint32_t>       indices;
 
         uint32_t verticalSegments   = divide;
@@ -213,7 +213,11 @@ bool SphereShape::Init(ID3D11Device* pDevice, float radius, int divide)
                 auto normal = asdx::Vector3(sp * ct, st, cp * ct);
                 auto pos = normal * radius;
 
-                vertices.push_back(pos);
+                ShapeVertex v;
+                v.Position = pos;
+                v.Normal   = normal;
+
+                vertices.push_back(v);
             }
         }
 
@@ -243,7 +247,7 @@ bool SphereShape::Init(ID3D11Device* pDevice, float radius, int divide)
 
             D3D11_BUFFER_DESC desc = {};
             desc.Usage     = D3D11_USAGE_DEFAULT;
-            desc.ByteWidth = sizeof(asdx::Vector3) * vertexCount;
+            desc.ByteWidth = sizeof(ShapeVertex) * vertexCount;
             desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
             D3D11_SUBRESOURCE_DATA res = {};
@@ -307,7 +311,7 @@ void SphereShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(asdx::Vector3);
+    UINT stride = sizeof(ShapeVertex);
     UINT offset = 0;
 
     CbMesh res;
@@ -345,15 +349,19 @@ PyramidShape::~PyramidShape()
 bool PyramidShape::Init(ID3D11Device* pDevice, float length, float width)
 {
     auto s = width * 0.5f;
-    asdx::Vector3 vertices[5] = {
-        asdx::Vector3(0.0f, length, 0.0f),
+    ShapeVertex vertices[5] = {
+        { asdx::Vector3(0.0f, length, 0.0f), asdx::Vector3(0.0f, 1.0f, 0.0f) },
 
-        asdx::Vector3(-s, 0.0f, -s),
-        asdx::Vector3( s, 0.0f, -s),
-        asdx::Vector3( s, 0.0f,  s),
-        asdx::Vector3(-s, 0.0f,  s)
-    
+        { asdx::Vector3(-s, 0.0f, -s), asdx::Vector3(-1.0f, 0.0f, -1.0f) },
+        { asdx::Vector3( s, 0.0f, -s), asdx::Vector3( 1.0f, 0.0f, -1.0f) },
+        { asdx::Vector3( s, 0.0f,  s), asdx::Vector3( 1.0f, 0.0f,  1.0f) },
+        { asdx::Vector3(-s, 0.0f,  s), asdx::Vector3(-1.0f, 0.0f,  1.0f) },
     };
+
+    for(auto i=0; i<5; ++i)
+    {
+        vertices[i].Normal = asdx::Vector3::Normalize(vertices[i].Normal);
+    }
 
     uint32_t indices[12] = {
         0, 2, 1,
@@ -366,7 +374,7 @@ bool PyramidShape::Init(ID3D11Device* pDevice, float length, float width)
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(asdx::Vector3) * 5;
+        desc.ByteWidth = sizeof(ShapeVertex) * 5;
         desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA res = {};
@@ -442,7 +450,7 @@ void PyramidShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(asdx::Vector3);
+    UINT stride = sizeof(ShapeVertex);
     UINT offset = 0;
 
     CbMesh res;
@@ -480,15 +488,15 @@ BoneShape::~BoneShape()
 bool BoneShape::Init(ID3D11Device* pDevice, float length, float width)
 {
     auto s = width * 0.5f;
-    asdx::Vector3 vertices[6] = {
-        asdx::Vector3(0.0f, length, 0.0f),
+    ShapeVertex vertices[6] = {
+        { asdx::Vector3(0.0f, length, 0.0f), asdx::Vector3(0.0f, 1.0f, 0.0f) },
 
-        asdx::Vector3(-s, length * 0.1f, -s),
-        asdx::Vector3( s, length * 0.1f, -s),
-        asdx::Vector3( s, length * 0.1f,  s),
-        asdx::Vector3(-s, length * 0.1f,  s),
+        { asdx::Vector3(-s, length * 0.1f, -s), asdx::Vector3(-1.0f, 0.0f, -1.0f) },
+        { asdx::Vector3( s, length * 0.1f, -s), asdx::Vector3( 1.0f, 0.0f, -1.0f) },
+        { asdx::Vector3( s, length * 0.1f,  s), asdx::Vector3( 1.0f, 0.0f,  1.0f) },
+        { asdx::Vector3(-s, length * 0.1f,  s), asdx::Vector3(-1.0f, 0.0f,  1.0f) },
 
-        asdx::Vector3(0.0f, 0.0f, 0.0f),
+        { asdx::Vector3(0.0f, 0.0f, 0.0f), asdx::Vector3(0.0f, -1.0f, 0.0f) },
     };
 
     // 基底変換行列
@@ -500,7 +508,10 @@ bool BoneShape::Init(ID3D11Device* pDevice, float length, float width)
     );
 
     for(auto i=0; i<6; ++i)
-    { vertices[i] = asdx::Vector3::Transform(vertices[i], basis); }
+    {
+        vertices[i].Position = asdx::Vector3::Transform(vertices[i].Position, basis);
+        vertices[i].Normal   = asdx::Vector3::Normalize(vertices[i].Normal);
+    }
 
     uint32_t indices[24] = {
         0, 2, 1,
@@ -518,7 +529,7 @@ bool BoneShape::Init(ID3D11Device* pDevice, float length, float width)
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(asdx::Vector3) * 6;
+        desc.ByteWidth = sizeof(ShapeVertex) * 6;
         desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA res = {};
@@ -594,7 +605,7 @@ void BoneShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(asdx::Vector3);
+    UINT stride = sizeof(ShapeVertex);
     UINT offset = 0;
 
     CbMesh res;
@@ -639,18 +650,20 @@ bool DiskShape::Init(ID3D11Device* pDevice, float radius, int divide)
     }
 
     std::vector<uint32_t> indices;
-    std::vector<asdx::Vector3> vertices;
+    std::vector<ShapeVertex> vertices;
 
     // 中心.
-    auto v = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    ShapeVertex v;
+    v.Position = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    v.Normal   = asdx::Vector3(0.0f, 1.0f, 0.0f);
     vertices.push_back(v);
 
     auto stepAngle = asdx::F_2PI / divide;
     auto angle = 0.0f;
 
-    v.x = sin(angle) * radius;
-    v.y = 0.0f;
-    v.z = cos(angle) * radius;
+    v.Position.x = sin(angle) * radius;
+    v.Position.y = 0.0f;
+    v.Position.z = cos(angle) * radius;
     vertices.push_back(v);
 
     auto prevIdx = 1;
@@ -660,9 +673,9 @@ bool DiskShape::Init(ID3D11Device* pDevice, float radius, int divide)
         auto currIdx = prevIdx + 1;
         angle = stepAngle * ((i + 1) % divide);
 
-        v.x = sin(angle) * radius;
-        v.y = 0.0f;
-        v.z = cos(angle) * radius;
+        v.Position.x = sin(angle) * radius;
+        v.Position.y = 0.0f;
+        v.Position.z = cos(angle) * radius;
 
         vertices.push_back(v);
 
@@ -677,7 +690,7 @@ bool DiskShape::Init(ID3D11Device* pDevice, float radius, int divide)
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(asdx::Vector3) * vertices.size();
+        desc.ByteWidth = UINT(sizeof(ShapeVertex) * vertices.size());
         desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA res = {};
@@ -695,7 +708,7 @@ bool DiskShape::Init(ID3D11Device* pDevice, float radius, int divide)
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(uint32_t) * indices.size();
+        desc.ByteWidth = UINT(sizeof(uint32_t) * indices.size());
         desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA res = {};
@@ -756,7 +769,7 @@ void DiskShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(asdx::Vector3);
+    UINT stride = sizeof(ShapeVertex);
     UINT offset = 0;
 
     CbMesh res;
@@ -806,31 +819,36 @@ bool ConeShape::Init
         return false;
     }
 
-    std::vector<uint32_t> indices;
-    std::vector<asdx::Vector3> vertices;
+    std::vector<uint32_t>    indices;
+    std::vector<ShapeVertex> vertices;
 
     // 中心.
-    auto v = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    ShapeVertex v;
+    v.Position = asdx::Vector3(0.0f, 0.0f, 0.0f);
+    v.Normal   = asdx::Vector3(0.0f, -1.0f, 0.0f);
     vertices.push_back(v);
 
     auto stepAngle = asdx::F_2PI / divide;
     auto angle = 0.0f;
 
-    v.x = sin(angle) * radius;
-    v.y = 0.0f;
-    v.z = cos(angle) * radius;
+    v.Normal.x = sin(angle);
+    v.Normal.y = 0.0f;
+    v.Normal.z = cos(angle);
+    v.Position = v.Normal * radius;
     vertices.push_back(v);
 
     auto prevIdx = 1;
 
+    // 底面.
     for(auto i=0; i<divide; i++)
     {
         auto currIdx = prevIdx + 1;
         angle = stepAngle * ((i + 1) % divide);
 
-        v.x = sin(angle) * radius;
-        v.y = 0.0f;
-        v.z = cos(angle) * radius;
+        v.Normal.x = sin(angle);
+        v.Normal.y = 0.0f;
+        v.Normal.z = cos(angle);
+        v.Position = v.Normal * radius;
 
         vertices.push_back(v);
 
@@ -841,8 +859,9 @@ bool ConeShape::Init
         prevIdx = currIdx;
     }
 
-    auto centerIdx = vertices.size();
-    v = asdx::Vector3(0.0f, height, 0.0f);
+    auto centerIdx = UINT(vertices.size());
+    v.Position = asdx::Vector3(0.0f, height, 0.0f);
+    v.Normal   = asdx::Vector3(0.0f, 1.0f, 0.0f);
     vertices.push_back(v);
 
     prevIdx = 1;
@@ -861,7 +880,7 @@ bool ConeShape::Init
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(asdx::Vector3) * vertices.size();
+        desc.ByteWidth = UINT(sizeof(ShapeVertex) * vertices.size());
         desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA res = {};
@@ -879,7 +898,7 @@ bool ConeShape::Init
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(uint32_t) * indices.size();
+        desc.ByteWidth = UINT(sizeof(uint32_t) * indices.size());
         desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA res = {};
@@ -897,7 +916,7 @@ bool ConeShape::Init
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage      = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth  = sizeof(CbMesh);
+        desc.ByteWidth  = UINT(sizeof(CbMesh));
         desc.BindFlags  = D3D11_BIND_CONSTANT_BUFFER;
 
         auto hr = pDevice->CreateBuffer(&desc, nullptr, m_CB.GetAddress());
@@ -940,7 +959,7 @@ void ConeShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(asdx::Vector3);
+    UINT stride = sizeof(ShapeVertex);
     UINT offset = 0;
 
     CbMesh res;
@@ -997,19 +1016,24 @@ bool CylinderShape::Init
     }
 
     std::vector<uint32_t> indices;
-    std::vector<asdx::Vector3> vertices;
+    std::vector<ShapeVertex> vertices;
 
     // 底面中心.
-    auto v = asdx::Vector3(0.0f, -height * 0.5f, 0.0f);
+    ShapeVertex v;
+    v.Position = asdx::Vector3(0.0f, -height * 0.5f, 0.0f);
+    v.Normal   = asdx::Vector3(0.0f, -1.0f, 0.0f);
     vertices.push_back(v);
-    auto prevIdx = vertices.size();
+    auto prevIdx = UINT(vertices.size());
 
     auto stepAngle = asdx::F_2PI / divide;
     auto angle = 0.0f;
+    auto halfHeight = height * 0.5f;
 
-    v.x = sin(angle) * radius;
-    v.y = -height * 0.5f;
-    v.z = cos(angle) * radius;
+    v.Normal.x = sin(angle);
+    v.Normal.y = 0.0f;
+    v.Normal.z = cos(angle);
+    v.Position = v.Normal * radius;
+    v.Position.y = -halfHeight;
     vertices.push_back(v);
 
     // 底面.
@@ -1018,9 +1042,11 @@ bool CylinderShape::Init
         auto currIdx = prevIdx + 1;
         angle = stepAngle * ((i + 1) % divide);
 
-        v.x = sin(angle) * radius;
-        v.y = -height * 0.5f;
-        v.z = cos(angle) * radius;
+        v.Normal.x = sin(angle);
+        v.Normal.y = 0.0f;
+        v.Normal.z = cos(angle);
+        v.Position = v.Normal * radius;
+        v.Position.y = -halfHeight;
 
         vertices.push_back(v);
 
@@ -1032,14 +1058,17 @@ bool CylinderShape::Init
     }
 
     // 天面中心.
-    auto centerIdx = vertices.size();
-    v = asdx::Vector3(0.0f, height * 0.5f, 0.0f);
+    auto centerIdx = UINT(vertices.size());
+    v.Position = asdx::Vector3(0.0f, height * 0.5f, 0.0f);
+    v.Normal   = asdx::Vector3(0.0f, 1.0f, 0.0f);
     vertices.push_back(v);
-    prevIdx = vertices.size();
+    prevIdx = UINT(vertices.size());
 
-    v.x = sin(angle) * radius;
-    v.y = height * 0.5f;
-    v.z = cos(angle) * radius;
+    v.Normal.x = sin(angle);
+    v.Normal.y = 0.0f;
+    v.Normal.z = cos(angle);
+    v.Position = v.Normal * radius;
+    v.Position.y = halfHeight;
     vertices.push_back(v);
 
     // 天面.
@@ -1048,9 +1077,11 @@ bool CylinderShape::Init
         auto currIdx = prevIdx + 1;
         angle = stepAngle * ((i + 1) % divide);
 
-        v.x = sin(angle) * radius;
-        v.y = height * 0.5f;
-        v.z = cos(angle) * radius;
+        v.Normal.x = sin(angle);
+        v.Normal.y = 0.0f;
+        v.Normal.z = cos(angle);
+        v.Position = v.Normal * radius;
+        v.Position.y = halfHeight;
 
         vertices.push_back(v);
 
@@ -1061,8 +1092,8 @@ bool CylinderShape::Init
         prevIdx = currIdx;
     }
 
-    auto prevB = 1;
-    auto prevT = centerIdx + 1;
+    auto prevB = 1u;
+    auto prevT = centerIdx + 1u;
     for(auto i=0; i<divide; ++i)
     {
         auto currB = prevB + 1;
@@ -1084,7 +1115,7 @@ bool CylinderShape::Init
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(asdx::Vector3) * vertices.size();
+        desc.ByteWidth = UINT(sizeof(ShapeVertex) * vertices.size());
         desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA res = {};
@@ -1102,7 +1133,7 @@ bool CylinderShape::Init
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(uint32_t) * indices.size();
+        desc.ByteWidth = UINT(sizeof(uint32_t) * indices.size());
         desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA res = {};
@@ -1120,7 +1151,7 @@ bool CylinderShape::Init
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage      = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth  = sizeof(CbMesh);
+        desc.ByteWidth  = UINT(sizeof(CbMesh));
         desc.BindFlags  = D3D11_BIND_CONSTANT_BUFFER;
 
         auto hr = pDevice->CreateBuffer(&desc, nullptr, m_CB.GetAddress());
@@ -1163,7 +1194,7 @@ void CylinderShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(asdx::Vector3);
+    UINT stride = sizeof(ShapeVertex);
     UINT offset = 0;
 
     CbMesh res;

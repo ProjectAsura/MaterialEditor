@@ -275,7 +275,7 @@ float3 EvaluateIBLIsotropy
     float3 diffuse  = EvaluateDiffuseIBL(N, Kd, occlusion);
     float3 specular = EvaluateSpecularIBL(N, V, R, NoV, roughness, occlusion);
 
-    float2 preDFG = GetDFG(roughness, NoV);
+    float2 preDFG = GetDFG(roughness, NoV).xy;
 
     // 多重散乱モデル.
     // Carmelo J. Fdez-Agüera, ”A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting”
@@ -313,7 +313,7 @@ float3 EvaluateIBLAnisotropy
     float3 diffuse  = EvaluateDiffuseIBL(N, Kd, occlusion);
     float3 specular = EvaluateSpecularIBL(N, V, R, NoV, roughness, occlusion);
 
-    float2 preDFG = GetDFG(roughness, NoV);
+    float2 preDFG = GetDFG(roughness, NoV).xy;
 
     // 多重散乱モデル.
     // Carmelo J. Fdez-Agüera, ”A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting”

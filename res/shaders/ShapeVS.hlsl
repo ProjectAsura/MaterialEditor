@@ -10,6 +10,7 @@
 struct VSInput
 {
     float3 Position : POSITION;
+    float3 Normal   : NORMAL;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,6 +19,7 @@ struct VSInput
 struct VSOutput
 {
     float4 Position : SV_POSITION;
+    float3 Normal   : NORMAL;
     float4 Color    : COLOR;
 };
 
@@ -61,7 +63,10 @@ VSOutput main(const VSInput input )
     float4 viewPos  = mul( View,  worldPos );
     float4 projPos  = mul( Proj,  viewPos );
 
+    float3 worldNormal = mul((float3x3)World, input.Normal);
+
     output.Position = projPos;
+    output.Normal = worldNormal;
     output.Color    = Color;
 
     return output;

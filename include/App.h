@@ -16,6 +16,7 @@
 #include <asdxRenderState.h>
 #include <WorkSpace.h>
 #include <Config.h>
+#include <AppPrimitive.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,19 +63,18 @@ private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    asdx::RefPtr<ID3D11VertexShader>    m_VS;
-    asdx::RefPtr<ID3D11VertexShader>    m_SkinningVS;
-    asdx::RefPtr<ID3D11VertexShader>    m_ShadowVS;
-    asdx::RefPtr<ID3D11VertexShader>    m_ShadowSkinningVS;
-    asdx::RefPtr<ID3D11VertexShader>    m_TriangleVS;
-    asdx::RefPtr<ID3D11PixelShader>     m_DefaultPS;
-    asdx::RefPtr<ID3D11PixelShader>     m_CopyPS;
-    asdx::RefPtr<ID3D11PixelShader>     m_OETFPS;
-    asdx::RefPtr<ID3D11InputLayout>     m_IL;
-    asdx::RefPtr<ID3D11InputLayout>     m_SkinningIL;
-    asdx::RefPtr<ID3D11InputLayout>     m_ShadowIL;
-    asdx::RefPtr<ID3D11InputLayout>     m_ShadowSkinningIL;
-    asdx::RefPtr<ID3D11InputLayout>     m_TriangleIL;
+    asdx::VertexShader                  m_EditorVS;
+    asdx::VertexShader                  m_EditorSkinningVS;
+    asdx::VertexShader                  m_ShadowVS;
+    asdx::VertexShader                  m_ShadowSkinningVS;
+    asdx::VertexShader                  m_TriangleVS;
+    asdx::VertexShader                  m_GuideVS;
+    asdx::VertexShader                  m_ShapeVS;
+    asdx::PixelShader                   m_DefaultPS;
+    asdx::PixelShader                   m_CopyPS;
+    asdx::PixelShader                   m_OETFPS;
+    asdx::PixelShader                   m_GuidePS;
+    asdx::PixelShader                   m_ShapePS;
     asdx::ConstantBuffer                m_SceneCB;
     asdx::ConstantBuffer                m_GuideCB;
     asdx::ConstantBuffer                m_LightCB;
@@ -83,8 +83,6 @@ private:
     asdx::VertexBuffer                  m_AxisVB;
     asdx::VertexBuffer                  m_GridVB;
     asdx::VertexBuffer                  m_TriangleVB;
-    asdx::VertexShader                  m_GuideVS;
-    asdx::PixelShader                   m_GuidePS;
     uint32_t                            m_AxisVertexCount = 6;
     uint32_t                            m_GridVertexCount = 0;
     asdx::CameraUpdater                 m_CameraController;
@@ -102,6 +100,7 @@ private:
     float                               m_LoadingPos    = 0.0f;
     float                               m_AutoRotationY = 0.0f;
     int                                 m_GuizmoOperation = -1;
+    ArrowShape                          m_ArrowShape;
 
     //=========================================================================
     // private methods.

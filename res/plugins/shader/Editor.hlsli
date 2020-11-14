@@ -124,7 +124,10 @@ SamplerState AnisotropicMirror  : register(s8);
 //      スクリーンUVを取得します.
 //-----------------------------------------------------------------------------
 float2 GetScreenUV(VSOutput value)
-{ return value.Position.xy * InvScreenSize; }
+{
+    float2 uv = value.Position.xy * InvScreenSize;
+    return float2(uv.x, 1.0f - uv.y);
+}
 
 //-----------------------------------------------------------------------------
 //      テクスチャ座標0を取得します.

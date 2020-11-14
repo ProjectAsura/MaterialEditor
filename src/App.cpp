@@ -30,20 +30,22 @@ namespace {
 #include "../res/shaders/Compiled/ShadowVS.inc"
 #include "../res/shaders/Compiled/ShadowSkinningVS.inc"
 #include "../res/shaders/Compiled/TriangleVS.inc"
+#include "../res/shaders/Compiled/ShapeVS.inc"
+#include "../res/shaders/Compiled/ShapePS.inc"
 #include "../../asdx11/res/shaders/Compiled/CopyPS.inc"
 #include "../../asdx11/res/shaders/Compiled/OETFPS.inc"
 
 //-----------------------------------------------------------------------------
 // Global Varaibles.
 //-----------------------------------------------------------------------------
-D3D11_INPUT_ELEMENT_DESC kElements[] = {
+static const D3D11_INPUT_ELEMENT_DESC kElements[] = {
     { "POSITION",      0, DXGI_FORMAT_R32G32B32_FLOAT,   0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "COLOR",         0, DXGI_FORMAT_R8G8B8A8_UNORM,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "TANGENT_SPACE", 0, DXGI_FORMAT_R32_UINT,          0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "TEXCOORD",      0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
 
-D3D11_INPUT_ELEMENT_DESC kSkinningElements[] = {
+static const D3D11_INPUT_ELEMENT_DESC kSkinningElements[] = {
     { "POSITION",      0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "COLOR",         0, DXGI_FORMAT_R8G8B8A8_UNORM,     0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "TANGENT_SPACE", 0, DXGI_FORMAT_R32_UINT,           0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -52,11 +54,19 @@ D3D11_INPUT_ELEMENT_DESC kSkinningElements[] = {
     { "BONE_WEIGHT",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
 
-D3D11_INPUT_ELEMENT_DESC kTriangleElements[] = {
+static const D3D11_INPUT_ELEMENT_DESC kTriangleElements[] = {
     { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
 
+static const D3D11_INPUT_ELEMENT_DESC kShapeElements[] = {
+    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+};
+
+static const D3D11_INPUT_ELEMENT_DESC kGuideElements[] = {
+    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // SceneBuffer structure
@@ -303,133 +313,78 @@ bool App::OnInit()
 
     // 頂点シェーダ.
     {
-        auto hr = m_pDevice->CreateVertexShader(
-            EditorVS, sizeof(EditorVS), nullptr, m_VS.GetAddress());
-        if (FAILED(hr))
+        if (!m_EditorVS.Init(m_pDevice, ASDX_SHADER_BIN(EditorVS), _countof(kElements), kElements))
         {
-            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            ELOG("Error : EditorVS Init Failed.");
             return false;
         }
 
-        hr = m_pDevice->CreateVertexShader(
-            EditorSkinningVS, sizeof(EditorSkinningVS), nullptr, m_SkinningVS.GetAddress());
-        if (FAILED(hr))
+        if (!m_EditorSkinningVS.Init(m_pDevice, ASDX_SHADER_BIN(EditorSkinningVS), _countof(kSkinningElements), kSkinningElements))
         {
-            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            ELOG("Error : EditorSkinningVS Init Failed.");
             return false;
         }
 
-        hr = m_pDevice->CreateVertexShader(
-            ShadowVS, sizeof(ShadowVS), nullptr, m_ShadowVS.GetAddress());
-        if (FAILED(hr))
+        if (!m_ShadowVS.Init(m_pDevice, ASDX_SHADER_BIN(ShadowVS), _countof(kElements), kElements))
         {
-            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            ELOG("Error : ShadowVS Init Failed.");
             return false;
         }
 
-        hr = m_pDevice->CreateVertexShader(
-            ShadowSkinningVS, sizeof(ShadowSkinningVS), nullptr, m_ShadowSkinningVS.GetAddress());
-        if (FAILED(hr))
+        if (!m_ShadowSkinningVS.Init(m_pDevice, ASDX_SHADER_BIN(ShadowSkinningVS), _countof(kSkinningElements), kSkinningElements))
         {
-            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            ELOG("Error : ShadowSkinningVS Init Failed.");
             return false;
         }
 
-        hr = m_pDevice->CreateVertexShader(
-            TriangleVS, sizeof(TriangleVS), nullptr, m_TriangleVS.GetAddress());
-        if (FAILED(hr))
+        if (!m_TriangleVS.Init(m_pDevice, ASDX_SHADER_BIN(TriangleVS), _countof(kTriangleElements), kTriangleElements))
         {
-            ELOG("Error : ID3D11Device::CreateVertexShader() Failed. errcode = 0x%x", hr);
+            ELOG("Error : TriangleVS Init Failed.");
+            return false;
+        }
+
+        if (!m_GuideVS.Init(m_pDevice, ASDX_SHADER_BIN(GuideVS), _countof(kGuideElements), kGuideElements))
+        {
+            ELOG("Error : GuideVS Init Failed.");
+            return false;
+        }
+
+        if (!m_ShapeVS.Init(m_pDevice, ASDX_SHADER_BIN(ShapeVS), _countof(kShapeElements), kShapeElements))
+        {
+            ELOG("Error : ShadpeVS Init Failed.");
             return false;
         }
     }
 
     // ピクセルシェーダ.
     {
-        auto hr = m_pDevice->CreatePixelShader(
-            EditorPS, sizeof(EditorPS), nullptr, m_DefaultPS.GetAddress());
-        if (FAILED(hr))
+        if (!m_DefaultPS.Init(m_pDevice, ASDX_SHADER_BIN(EditorPS)))
         {
-            ELOG("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
+            ELOG("Error : DefaultPS Init Failed.");
             return false;
         }
 
-        hr = m_pDevice->CreatePixelShader(
-            CopyPS, sizeof(CopyPS), nullptr, m_CopyPS.GetAddress());
-        if (FAILED(hr))
+        if (!m_CopyPS.Init(m_pDevice, ASDX_SHADER_BIN(CopyPS)))
         {
-            ELOG("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
+            ELOG("Error : CopyPS Init Failed.");
             return false;
         }
 
-        hr = m_pDevice->CreatePixelShader(
-            OETFPS, sizeof(OETFPS), nullptr, m_OETFPS.GetAddress());
-        if (FAILED(hr))
+        if (!m_OETFPS.Init(m_pDevice, ASDX_SHADER_BIN(OETFPS)))
         {
-            ELOG("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);
-            return false;
-        }
-    }
-
-    // 入力レイアウト.
-    {
-        auto hr = m_pDevice->CreateInputLayout(
-            kElements,
-            _countof(kElements),
-            EditorVS,
-            sizeof(EditorVS),
-            m_IL.GetAddress());
-        if (FAILED(hr))
-        {
-            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
+            ELOG("Error : OETFPS Init Failed.");
             return false;
         }
 
-        hr = m_pDevice->CreateInputLayout(
-            kSkinningElements,
-            _countof(kSkinningElements),
-            EditorSkinningVS,
-            sizeof(EditorSkinningVS),
-            m_SkinningIL.GetAddress());
-        if (FAILED(hr))
+        if (!m_GuidePS.Init(m_pDevice, ASDX_SHADER_BIN(GuidePS)))
         {
-            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
+            ELOG("Error : GuidePS Init Failed.");
             return false;
         }
 
-        hr = m_pDevice->CreateInputLayout(
-            kElements,
-            _countof(kElements),
-            ShadowVS,
-            sizeof(ShadowVS),
-            m_ShadowIL.GetAddress());
-        if (FAILED(hr))
+        if (!m_ShapePS.Init(m_pDevice, ASDX_SHADER_BIN(ShapePS)))
         {
-            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
-            return false;
-        }
-
-        hr = m_pDevice->CreateInputLayout(
-            kSkinningElements,
-            _countof(kSkinningElements),
-            ShadowSkinningVS,
-            sizeof(ShadowSkinningVS),
-            m_ShadowSkinningIL.GetAddress());
-        if (FAILED(hr))
-        {
-            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
-            return false;
-        }
-
-        hr = m_pDevice->CreateInputLayout(
-            kTriangleElements,
-            _countof(kTriangleElements),
-            TriangleVS,
-            sizeof(TriangleVS),
-            m_TriangleIL.GetAddress());
-        if (FAILED(hr))
-        {
-            ELOG("Error : ID3D11Device::CreateInputLayout() Failed. errcode = 0x%x", hr);
+            ELOG("Error : ShapePS Init Failed.");
             return false;
         }
     }
@@ -510,23 +465,15 @@ bool App::OnInit()
             ELOG("Error : ConstantBuffer::Init() Failed.");
             return false;
         }
+    }
 
-        D3D11_INPUT_ELEMENT_DESC elements[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-        };
-
-        if (!m_GuideVS.Init(m_pDevice, ASDX_SHADER_BIN(GuideVS), 2, elements))
+    // プリミティブ初期化.
+    {
+        if (!m_ArrowShape.Init(m_pDevice, 0.5f, 6.0f, 1.0f, 2.0f, 20))
         {
-            ELOG("Error : GuideVS Init Failed.");
             return false;
         }
 
-        if (!m_GuidePS.Init(m_pDevice, ASDX_SHADER_BIN(GuidePS)))
-        {
-            ELOG("Error : GuidPS Init Failed.");
-            return false;
-        }
     }
 
     // ライティング用.
@@ -624,20 +571,18 @@ bool App::OnInit()
 //-----------------------------------------------------------------------------
 void App::OnTerm()
 {
-    m_VS        .Reset();
-    m_SkinningVS.Reset();
-    m_TriangleVS.Reset();
-    m_DefaultPS .Reset();
-    m_IL        .Reset();
-    m_SkinningIL.Reset();
-    m_TriangleIL.Reset();
-    m_CopyPS    .Reset();
-    m_OETFPS    .Reset();
-
-    m_ShadowVS          .Reset();
-    m_ShadowSkinningVS  .Reset();
-    m_ShadowIL          .Reset();
-    m_ShadowSkinningIL  .Reset();
+    m_EditorVS.Term();
+    m_EditorSkinningVS.Term();
+    m_ShadowVS.Term();
+    m_ShadowSkinningVS.Term();
+    m_TriangleVS.Term();
+    m_GuideVS.Term();
+    m_ShapeVS.Term();
+    m_DefaultPS.Term();
+    m_CopyPS.Term();
+    m_OETFPS.Term();
+    m_GuidePS.Term();
+    m_ShapePS.Term();
 
     m_SceneCB.Term();
     m_GuideCB.Term();
@@ -652,6 +597,8 @@ void App::OnTerm()
     m_GuidePS   .Term();
     m_AxisVertexCount = 0;
     m_GridVertexCount = 0;
+
+    m_ArrowShape.Term();
 
     m_LightingBuffer.Release();
     m_NRMBuffer     .Release();
@@ -821,11 +768,12 @@ void App::OnFrameRender(asdx::FrameEventArgs& args)
             auto pSRV = m_LightingBuffer.GetShaderResource();
             auto pSmp = asdx::RenderState::GetInstance().GetSmp(asdx::LinearClamp);
             auto pCB  = m_OETFCB.GetBuffer();
-            m_pDeviceContext->PSSetShader(m_OETFPS.GetPtr(), nullptr, 0);
+            m_OETFPS.Bind(m_pDeviceContext);
             m_pDeviceContext->PSSetShaderResources(0, 1, &pSRV);
             m_pDeviceContext->PSSetConstantBuffers(0, 1, &pCB);
             m_pDeviceContext->PSSetSamplers(0, 1, &pSmp);
             DrawQuad();
+            m_OETFPS.UnBind(m_pDeviceContext);
         }
 
         // GUI描画.
@@ -1041,28 +989,16 @@ void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
         if (mesh.HasSkinningData())
         {
             if (lightingPass)
-            {
-                m_pDeviceContext->VSSetShader(m_SkinningVS.GetPtr(), nullptr, 0);
-                m_pDeviceContext->IASetInputLayout(m_SkinningIL.GetPtr());
-            }
+            { m_EditorSkinningVS.Bind(m_pDeviceContext); }
             else
-            {
-                m_pDeviceContext->VSSetShader(m_ShadowSkinningVS.GetPtr(), nullptr, 0);
-                m_pDeviceContext->IASetInputLayout(m_ShadowSkinningIL.GetPtr());
-            }
+            { m_ShadowSkinningVS.Bind(m_pDeviceContext); }
         }
         else
         {
             if (lightingPass)
-            {
-                m_pDeviceContext->VSSetShader(m_VS.GetPtr(), nullptr, 0);
-                m_pDeviceContext->IASetInputLayout(m_IL.GetPtr());
-            }
+            { m_EditorVS.Bind(m_pDeviceContext); }
             else
-            {
-                m_pDeviceContext->VSSetShader(m_ShadowVS.GetPtr(), nullptr, 0);
-                m_pDeviceContext->IASetInputLayout(m_ShadowIL.GetPtr());
-            }
+            { m_ShadowVS.Bind(m_pDeviceContext); }
         }
 
         m_pDeviceContext->VSSetConstantBuffers(0, 1, &pSceneCB);
@@ -1099,7 +1035,7 @@ void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
                 auto pSRV = PluginMgr::Instance().GetDefaultSRV(DEFAULT_TEXTURE_CHECKER_BOARD);
                 auto pSmp = asdx::RenderState::GetInstance().GetSmp(asdx::LinearClamp);
 
-                m_pDeviceContext->PSSetShader(m_DefaultPS.GetPtr(), nullptr, 0);
+                m_DefaultPS.Bind(m_pDeviceContext);
                 m_pDeviceContext->PSSetConstantBuffers(0, 1, &pLightCB);
                 m_pDeviceContext->PSSetShaderResources(0, 1, &pSRV);
                 m_pDeviceContext->PSSetSamplers(0, 1, &pSmp);
@@ -1127,6 +1063,10 @@ void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
             m_pDeviceContext->PSSetSamplers(0, 1, pNullSmp);
             m_pDeviceContext->PSSetShader(nullptr, nullptr, 0);
         }
+
+        ID3D11Buffer* pNullCBV[] = { nullptr, nullptr };
+        m_pDeviceContext->VSGetConstantBuffers(0, 2, pNullCBV);
+        m_pDeviceContext->VSSetShader(nullptr, nullptr, 0);
     }
 }
 
@@ -1135,20 +1075,22 @@ void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
 //-----------------------------------------------------------------------------
 void App::DrawGuide()
 {
-    CbTransform res;
-    res.World = asdx::Matrix::CreateIdentity();
-    res.View  = m_CameraController.GetView();
-    res.Proj  = m_Proj;
+    {
+        CbTransform res;
+        res.World = asdx::Matrix::CreateIdentity();
+        res.View = m_CameraController.GetView();
+        res.Proj = m_Proj;
 
-    auto pCB = m_GuideCB.GetBuffer();
-    m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
+        auto pCB = m_GuideCB.GetBuffer();
+        m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
 
-    auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::Readonly);
-    m_GuideVS.Bind(m_pDeviceContext);
-    m_GuidePS.Bind(m_pDeviceContext);
-    m_pDeviceContext->VSSetConstantBuffers(0, 1, &pCB);
-    m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-    m_pDeviceContext->OMSetDepthStencilState(pDSS, 0);
+        auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::Readonly);
+        m_GuideVS.Bind(m_pDeviceContext);
+        m_GuidePS.Bind(m_pDeviceContext);
+        m_pDeviceContext->VSSetConstantBuffers(0, 1, &pCB);
+        m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+        m_pDeviceContext->OMSetDepthStencilState(pDSS, 0);
+    }
 
     // グリッドの描画.
     if (m_GridVertexCount > 0 && m_Config.Debug.DrawGrid.GetValue())
@@ -1172,6 +1114,30 @@ void App::DrawGuide()
 
     m_GuidePS.UnBind(m_pDeviceContext);
     m_GuideVS.UnBind(m_pDeviceContext);
+
+    // ライト方向の描画.
+    if (m_Config.Debug.DrawLightDir.GetValue())
+    {
+        m_ShapeVS.Bind(m_pDeviceContext);
+        m_ShapePS.Bind(m_pDeviceContext);
+
+        auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::Default);
+        auto pRS = asdx::RenderState::GetInstance().GetRS(asdx::RasterizerType::CullCounterClockWise);
+        m_pDeviceContext->OMSetDepthStencilState(pDSS, 0);
+        m_pDeviceContext->RSSetState(pRS);
+
+        auto pSceneCB = m_SceneCB.GetBuffer();
+        auto pLightCB = m_LightCB.GetBuffer();
+
+        m_pDeviceContext->VSSetConstantBuffers(0, 1, &pSceneCB);
+        m_pDeviceContext->PSSetConstantBuffers(0, 1, &pSceneCB);
+        m_pDeviceContext->PSSetConstantBuffers(1, 1, &pLightCB);
+
+        m_ArrowShape.Draw(m_pDeviceContext, asdx::Matrix::CreateIdentity(), asdx::Vector4(1.0f, 1.0f, 0.0f, 1.0f));
+
+        m_ShapePS.UnBind(m_pDeviceContext);
+        m_ShapeVS.UnBind(m_pDeviceContext);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -1190,14 +1156,14 @@ void App::DrawQuad()
     float blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     uint32_t sampleMask = 0xffff;
 
+    m_TriangleVS.Bind(m_pDeviceContext);
     m_pDeviceContext->OMSetDepthStencilState(pDSS, 0);
     m_pDeviceContext->OMSetBlendState(pBS, blendFactor, sampleMask);
     m_pDeviceContext->RSSetState(pRS);
     m_pDeviceContext->IASetVertexBuffers(0, 1, &pVB, &stride, &offset);
     m_pDeviceContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_R32_UINT, 0);
-    m_pDeviceContext->IASetInputLayout(m_TriangleIL.GetPtr());
     m_pDeviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    m_pDeviceContext->VSSetShader(m_TriangleVS.GetPtr(), nullptr, 0);
     m_pDeviceContext->Draw(3, 0);
+    m_TriangleVS.UnBind(m_pDeviceContext);
 }
 

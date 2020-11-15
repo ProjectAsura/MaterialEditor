@@ -172,17 +172,18 @@ void DrawRuntimeLinkage(bool connect)
 }
 
 //-----------------------------------------------------------------------------
-//      ヘルプメニューを表示します.
+//      情報メニューを表示します.
 //-----------------------------------------------------------------------------
-void DrawHelp(MenuContext& context)
+void DrawAppInfo(MenuContext& context)
 {
-    if (!ImGui::BeginMenu(u8"ヘルプ"))
+    if (!ImGui::BeginMenu(u8"情報"))
         return;
 
-    if (ImGui::MenuItem(u8"ヘルプファイル"))
-    {
-        // ヘルプファイルを開く.
-    }
+    if (ImGui::MenuItem(u8"ヘルプ"))
+    { ImGuiHyperLink(u8"https://github.com/ProjectAsura/MaterialEditor/doc/help.md"); }
+
+    if (ImGui::MenuItem(u8"リリースノート"))
+    { ImGuiHyperLink(u8"https://github.com/ProjectAsura/MaterialEditor/doc/release_note.md"); }
 
     if (ImGui::MenuItem(u8"バージョン情報"))
     {
@@ -220,8 +221,8 @@ void DrawPopupMenu(WorkSpace& workSpace, MenuContext& context)
     // ランタイム連携.
     DrawRuntimeLinkage(false);
 
-    // ヘルプ.
-    DrawHelp(context);
+    // 情報.
+    DrawAppInfo(context);
 
     ImGui::EndPopup();
 }

@@ -24,7 +24,7 @@
 //      コンストラクタです.
 //-----------------------------------------------------------------------------
 EditorLight::EditorLight()
-: SunLightDir       (0.0f, 0.0f, 1.0f)
+: SunLightAngle     (0.0f, 270.0f) // -Z軸方向.
 , SunLightIntensity (1.0f)
 , IBLIntensity      (1.0f)
 { /* DO_NOTHING */ }
@@ -61,12 +61,9 @@ bool EditorLight::Load(const char* path, const std::string& dir)
         auto e = root->FirstChildElement("SunLight");
         if (e != nullptr)
         {
-            SunLightDir.x       = e->FloatAttribute("x");
-            SunLightDir.y       = e->FloatAttribute("y");
-            SunLightDir.z       = e->FloatAttribute("z");
+            SunLightAngle.x     = e->FloatAttribute("x");
+            SunLightAngle.y     = e->FloatAttribute("y");
             SunLightIntensity   = e->FloatAttribute("intensity");
-
-            SunLightDir.Normalize();
         }
     }
 
@@ -107,9 +104,8 @@ bool EditorLight::Save(const char* path)
 
     {
         auto e = doc.NewElement("SunLight");
-        e->SetAttribute("x", SunLightDir.x);
-        e->SetAttribute("y", SunLightDir.y);
-        e->SetAttribute("z", SunLightDir.z);
+        e->SetAttribute("x", SunLightAngle.x);
+        e->SetAttribute("y", SunLightAngle.y);
         e->SetAttribute("intensity", SunLightIntensity);
         root->InsertEndChild(e);
     }

@@ -35,6 +35,7 @@ namespace {
 #include "../../asdx11/res/shaders/Compiled/CopyPS.inc"
 #include "../../asdx11/res/shaders/Compiled/OETFPS.inc"
 
+
 //-----------------------------------------------------------------------------
 // Global Varaibles.
 //-----------------------------------------------------------------------------
@@ -260,6 +261,18 @@ bool CreateGrid
     return true;
 }
 
+//-----------------------------------------------------------------------------
+//      方位角から方向ベクトルを求めます.
+//-----------------------------------------------------------------------------
+asdx::Vector3 ToDirection(const asdx::Vector2& angle)
+{
+    auto theta = asdx::ToRadian(angle.y);
+    auto phi   = asdx::ToRadian(angle.x);
+    return asdx::Vector3(
+        cos(theta) * cos(phi),
+        sin(theta),
+        cos(theta) * sin(phi));
+}
 
 } // namespace
 
@@ -683,7 +696,7 @@ void App::OnFrameMove(asdx::FrameEventArgs& args)
         auto light = LightMgr::Instance().GetLight();
         if (light != nullptr)
         {
-            res.SunLightDir         = light->SunLightDir;
+            res.SunLightDir         = ToDirection(light->SunLightAngle);
             res.SunLightIntensity   = light->SunLightIntensity;
             res.IBLIntensity        = light->IBLIntensity;
 
@@ -1122,8 +1135,25 @@ void App::DrawGuide()
         m_ShapeVS.Bind(m_pDeviceContext);
         m_ShapePS.Bind(m_pDeviceContext);
 
-        auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::Default);
-        auto pRS = asdx::RenderState::GetInstance().GetRS(asdx::RasterizerType::CullCounterClockWise);
+        auto light = LightMgr::Instance().GetLight();
+        asdx::Vector2 angle(0.0f, 0.0f);
+        if (light != nullptr)
+        { angle = light->SunLightAngle; }
+
+        // カメラに追従するようにする.
+        const auto kDistanceToDraw = 50.0f;
+        auto cameraReleative = m_CameraController.GetCamera().GetPosition();
+        cameraReleative += (-m_CameraController.GetCamera().GetAxisZ() * kDistanceToDraw);
+
+        auto world = 
+            asdx::Matrix::CreateRotationZ(asdx::F_PIDIV2) *
+            asdx::Matrix::CreateRotationY(asdx::ToRadian(angle.y)) *
+            asdx::Matrix::CreateRotationX(asdx::ToRadian(angle.x)) *
+            asdx::Matrix::CreateTranslation(cameraReleative);
+
+
+        auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::None);
+        auto pRS  = asdx::RenderState::GetInstance().GetRS(asdx::RasterizerType::CullCounterClockWise);
         m_pDeviceContext->OMSetDepthStencilState(pDSS, 0);
         m_pDeviceContext->RSSetState(pRS);
 
@@ -1134,7 +1164,7 @@ void App::DrawGuide()
         m_pDeviceContext->PSSetConstantBuffers(0, 1, &pSceneCB);
         m_pDeviceContext->PSSetConstantBuffers(1, 1, &pLightCB);
 
-        m_ArrowShape.Draw(m_pDeviceContext, asdx::Matrix::CreateIdentity(), asdx::Vector4(1.0f, 1.0f, 0.0f, 1.0f));
+        m_ArrowShape.Draw(m_pDeviceContext, world, asdx::Vector4(1.0f, 1.0f, 0.0f, 1.0f));
 
         m_ShapePS.UnBind(m_pDeviceContext);
         m_ShapeVS.UnBind(m_pDeviceContext);

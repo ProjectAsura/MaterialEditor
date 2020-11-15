@@ -33,7 +33,7 @@ public:
     // public variables.
     //=========================================================================
     std::string         Tag;
-    asdx::Vector3       SunLightDir;
+    asdx::Vector2       SunLightAngle;
     float               SunLightIntensity;
     std::string         BackgroundPath;
     std::string         DiffuseIBLPath;

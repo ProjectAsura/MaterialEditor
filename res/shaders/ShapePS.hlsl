@@ -52,8 +52,5 @@ cbuffer CbLight : register(b1)
 //-----------------------------------------------------------------------------
 float4 main(const VSOutput input) : SV_TARGET
 {
-    float3 N = normalize(input.Normal);
-    float3 L = normalize(SunLightDir);
-
-    return float4(input.Color.rgb * saturate(dot(N, L)), input.Color.a);
+    return input.Color;
 }

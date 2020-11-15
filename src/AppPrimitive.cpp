@@ -1271,7 +1271,7 @@ void ArrowShape::Draw
     const asdx::Vector4&    color
 )
 {
-    auto coneWorld = world * m_OffsetCone;
+    auto coneWorld = m_OffsetCone * world;
     m_Cone.Draw(pContext, coneWorld, color);
 
     m_Cylinder.Draw(pContext, world, color);

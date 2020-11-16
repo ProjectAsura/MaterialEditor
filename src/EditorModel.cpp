@@ -49,6 +49,7 @@ struct SkinningData
 //      コンストラクタです.
 //-----------------------------------------------------------------------------
 EditorMesh::EditorMesh()
+: m_InstanceCount(1)
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -138,6 +139,48 @@ bool EditorMesh::Init(ID3D11Device* pDevice, const asdx::ResMesh& mesh)
     }
     m_IndexCount = uint32_t(mesh.Indices.size());
 
+    m_InstanceCount = 1;
+    {
+        for(auto i=0u; i<kMaxInstanceCount; ++i)
+        {
+            m_InstanceMatrix[i] = asdx::Matrix::CreateIdentity();
+        }
+
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth              = sizeof(asdx::Matrix) * kMaxInstanceCount;
+        desc.Usage                  = D3D11_USAGE_DYNAMIC;
+        desc.BindFlags              = D3D11_BIND_SHADER_RESOURCE;
+        desc.CPUAccessFlags         = D3D11_CPU_ACCESS_WRITE;
+        desc.MiscFlags              = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+        desc.StructureByteStride    = sizeof(asdx::Matrix);
+
+        D3D11_SUBRESOURCE_DATA res = {};
+        res.pSysMem             = reinterpret_cast<const void*>(m_InstanceMatrix);
+        res.SysMemPitch         = sizeof(asdx::Matrix) * kMaxInstanceCount;
+        res.SysMemSlicePitch    = res.SysMemSlicePitch;
+
+        auto hr = pDevice->CreateBuffer(&desc, &res, m_InstanceMatrixBuffer.GetAddress()); 
+        if (FAILED(hr))
+        {
+            ELOGA("Error : ID3D11Device::CreateBuffer() Failed.");
+            return false;
+        }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format              = DXGI_FORMAT_UNKNOWN;
+        srvDesc.ViewDimension       = D3D11_SRV_DIMENSION_BUFFER;
+        srvDesc.Buffer.FirstElement = 0;
+        srvDesc.Buffer.NumElements  = kMaxInstanceCount;
+
+        hr = pDevice->CreateShaderResourceView(
+            m_InstanceMatrixBuffer.GetPtr(), &srvDesc, m_InstanceMatrixSRV.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOGA("Error : ID3D11Device::CreateShaderResourceView() Failed. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -152,6 +195,9 @@ void EditorMesh::Term()
     m_IB    .Term();
     m_VB    .Term();
     m_SkinVB.Term();
+
+    m_InstanceMatrixBuffer.Reset();
+    m_InstanceMatrixSRV.Reset();
 }
 
 //-----------------------------------------------------------------------------
@@ -174,9 +220,11 @@ void EditorMesh::Draw(ID3D11DeviceContext* pContext) const
     auto pVB0    = m_VB.GetBuffer();
     auto stride0 = m_VB.GetStride();
     auto offset0 = 0u;
+    auto pSRV    = m_InstanceMatrixSRV.GetPtr();
 
     pContext->IASetVertexBuffers(0, 1, &pVB0, &stride0, &offset0);
     pContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pContext->VSSetShaderResources(1, 1, &pSRV);
 
     if (m_HasSkinningData)
     {
@@ -188,7 +236,10 @@ void EditorMesh::Draw(ID3D11DeviceContext* pContext) const
     }
 
     pContext->IASetIndexBuffer(m_IB.GetBuffer(), DXGI_FORMAT_R32_UINT, 0);
-    pContext->DrawIndexed(m_IndexCount, 0, 0);
+    pContext->DrawIndexedInstanced(m_IndexCount, m_InstanceCount, 0, 0, 0);
+
+    ID3D11ShaderResourceView* pNullSRV[] = { nullptr };
+    pContext->VSSetShaderResources(1, 1, pNullSRV);
 }
 
 //-----------------------------------------------------------------------------
@@ -208,6 +259,41 @@ const BoundingBox& EditorMesh::GetBox() const
 //-----------------------------------------------------------------------------
 uint32_t EditorMesh::GetPolygonCount() const
 { return m_IndexCount / 3; }
+
+//-----------------------------------------------------------------------------
+//      インスタンス数を設定します.
+//-----------------------------------------------------------------------------
+void EditorMesh::SetInstanceCount(uint32_t count)
+{
+    if (count == 0 || count > kMaxInstanceCount)
+    { return; }
+
+    m_InstanceCount = count;
+}
+
+//-----------------------------------------------------------------------------
+//      インスタンス数を取得します.
+//-----------------------------------------------------------------------------
+uint32_t EditorMesh::GetInstanceCount() const
+{ return m_InstanceCount; }
+
+//-----------------------------------------------------------------------------
+//      インスタンス行列を取得します.
+//-----------------------------------------------------------------------------
+const asdx::Matrix& EditorMesh::GetInstanceMatrix(uint32_t index) const
+{
+    assert(index < kMaxInstanceCount);
+    return m_InstanceMatrix[index];
+}
+
+//-----------------------------------------------------------------------------
+//      インスタンス行列を設定します.
+//-----------------------------------------------------------------------------
+void EditorMesh::SetInstanceMatrix(uint32_t index, const asdx::Matrix& matrix)
+{
+    assert(index < kMaxInstanceCount);
+    m_InstanceMatrix[index] = matrix;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////

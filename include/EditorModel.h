@@ -15,6 +15,12 @@
 #include <asdxIndexBuffer.h>
 
 
+//-----------------------------------------------------------------------------
+// Constant Values.
+//-----------------------------------------------------------------------------
+static const uint32_t kMaxInstanceCount = 32;   // 最大32.
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // BoundingBox structure
 ///////////////////////////////////////////////////////////////////////////////
@@ -95,18 +101,31 @@ public:
     //-------------------------------------------------------------------------
     uint32_t GetPolygonCount() const;
 
+    void SetInstanceCount(uint32_t count);
+
+    uint32_t GetInstanceCount() const;
+
+    const asdx::Matrix& GetInstanceMatrix(uint32_t index) const;
+
+    void SetInstanceMatrix(uint32_t index, const asdx::Matrix& matrix);
+
 private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    std::string         m_MeshName;
-    std::string         m_MaterialName;
-    BoundingBox         m_Box;
-    bool                m_HasSkinningData;
-    uint32_t            m_IndexCount;
-    asdx::VertexBuffer  m_VB;
-    asdx::VertexBuffer  m_SkinVB;
-    asdx::IndexBuffer   m_IB;
+    std::string                 m_MeshName;
+    std::string                 m_MaterialName;
+    BoundingBox                 m_Box;
+    bool                        m_HasSkinningData;
+    uint32_t                    m_IndexCount;
+    asdx::VertexBuffer          m_VB;
+    asdx::VertexBuffer          m_SkinVB;
+    asdx::IndexBuffer           m_IB;
+    uint32_t                    m_InstanceCount;
+    asdx::Matrix                m_InstanceMatrix[kMaxInstanceCount];
+
+    asdx::RefPtr<ID3D11Buffer>              m_InstanceMatrixBuffer;
+    asdx::RefPtr<ID3D11ShaderResourceView>  m_InstanceMatrixSRV;
 
     //=========================================================================
     // private methods.

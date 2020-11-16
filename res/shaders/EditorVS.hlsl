@@ -58,14 +58,22 @@ cbuffer CbMesh : register(b1)
 };
 
 //-----------------------------------------------------------------------------
+// Resources.
+//-----------------------------------------------------------------------------
+StructuredBuffer<float4x4>  InstanceMatrix : register(t1);
+
+
+//-----------------------------------------------------------------------------
 //      メインエントリーポイントです.
 //-----------------------------------------------------------------------------
-VSOutput main(const VSInput input)
+VSOutput main(const VSInput input, uint instanceId : SV_InstanceID)
 {
     VSOutput output = (VSOutput)0;
 
     float4 localPos = float4(input.Position, 1.0f);
     float4 worldPos = mul(World, localPos);
+    worldPos = mul(InstanceMatrix[instanceId], worldPos);
+
     float4 viewPos  = mul(View, worldPos);
     float4 projPos  = mul(Proj, viewPos);
 

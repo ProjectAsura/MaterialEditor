@@ -560,6 +560,7 @@ MaterialEditor::ExportContext* EditorMaterials::CreateExportContext()
     catch(std::exception e)
     {
         ELOGA("Error : exception occurred. msg = %s", e.what());
+        DisposeExportContext(context);
         return nullptr;
     }
 

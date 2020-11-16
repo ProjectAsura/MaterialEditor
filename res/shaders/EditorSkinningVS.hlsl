@@ -60,9 +60,11 @@ cbuffer CbMesh : register(b1)
 };
 
 //-----------------------------------------------------------------------------
-// Textures and Samplers.
+// Resources.
 //-----------------------------------------------------------------------------
 StructuredBuffer<float4x4>  BoneTransforms : register(t0);
+StructuredBuffer<float4x4>  InstanceMatrix : register(t1);
+
 
 //-----------------------------------------------------------------------------
 //      スキニング処理を行います.
@@ -77,17 +79,18 @@ float4 Skinning(float4 value, uint4 boneIndex, float4 boneWeight)
     return ret;
 }
 
-
 //-----------------------------------------------------------------------------
 //      メインエントリーポイントです.
 //-----------------------------------------------------------------------------
-VSOutput main(const VSInput input)
+VSOutput main(const VSInput input, uint instanceId : SV_InstanceID)
 {
     VSOutput output = (VSOutput)0;
 
     float4 localPos = float4(input.Position, 1.0f);
     float4 skinningPos = Skinning(localPos, input.BoneIndex, input.BoneWeight);
     float4 worldPos = mul(World, localPos);
+    worldPos = mul(InstanceMatrix[instanceId], worldPos);
+
     float4 viewPos  = mul(View, worldPos);
     float4 projPos  = mul(Proj, viewPos);
 

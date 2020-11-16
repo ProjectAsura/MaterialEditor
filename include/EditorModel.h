@@ -101,13 +101,25 @@ public:
     //-------------------------------------------------------------------------
     uint32_t GetPolygonCount() const;
 
+    //-------------------------------------------------------------------------
+    //! @brief      インスタンス数を設定します.
+    //-------------------------------------------------------------------------
     void SetInstanceCount(uint32_t count);
 
+    //-------------------------------------------------------------------------
+    //! @brief      インスタンス数を取得します.
+    //-------------------------------------------------------------------------
     uint32_t GetInstanceCount() const;
 
-    const asdx::Matrix& GetInstanceMatrix(uint32_t index) const;
-
+    //-------------------------------------------------------------------------
+    //! @brief      インスタンス行列を設定します.
+    //-------------------------------------------------------------------------
     void SetInstanceMatrix(uint32_t index, const asdx::Matrix& matrix);
+
+    //-------------------------------------------------------------------------
+    //! @brief      インスタンス行列を取得します.
+    //-------------------------------------------------------------------------
+    const asdx::Matrix& GetInstanceMatrix(uint32_t index) const;
 
 private:
     //=========================================================================
@@ -124,7 +136,7 @@ private:
     uint32_t                    m_InstanceCount;
     asdx::Matrix                m_InstanceMatrix[kMaxInstanceCount];
 
-    asdx::RefPtr<ID3D11Buffer>              m_InstanceMatrixBuffer;
+    asdx::RefPtr<ID3D11Buffer>              m_InstanceMatrixResource;
     asdx::RefPtr<ID3D11ShaderResourceView>  m_InstanceMatrixSRV;
 
     //=========================================================================

@@ -141,10 +141,9 @@ bool EditorMesh::Init(ID3D11Device* pDevice, const asdx::ResMesh& mesh)
 
     m_InstanceCount = 1;
     {
+        // 単位行列で初期化.
         for(auto i=0u; i<kMaxInstanceCount; ++i)
-        {
-            m_InstanceMatrix[i] = asdx::Matrix::CreateIdentity();
-        }
+        { m_InstanceMatrix[i] = asdx::Matrix::CreateIdentity(); }
 
         D3D11_BUFFER_DESC desc = {};
         desc.ByteWidth              = sizeof(asdx::Matrix) * kMaxInstanceCount;
@@ -159,7 +158,7 @@ bool EditorMesh::Init(ID3D11Device* pDevice, const asdx::ResMesh& mesh)
         res.SysMemPitch         = sizeof(asdx::Matrix) * kMaxInstanceCount;
         res.SysMemSlicePitch    = res.SysMemSlicePitch;
 
-        auto hr = pDevice->CreateBuffer(&desc, &res, m_InstanceMatrixBuffer.GetAddress()); 
+        auto hr = pDevice->CreateBuffer(&desc, &res, m_InstanceMatrixResource.GetAddress()); 
         if (FAILED(hr))
         {
             ELOGA("Error : ID3D11Device::CreateBuffer() Failed.");
@@ -173,7 +172,7 @@ bool EditorMesh::Init(ID3D11Device* pDevice, const asdx::ResMesh& mesh)
         srvDesc.Buffer.NumElements  = kMaxInstanceCount;
 
         hr = pDevice->CreateShaderResourceView(
-            m_InstanceMatrixBuffer.GetPtr(), &srvDesc, m_InstanceMatrixSRV.GetAddress());
+            m_InstanceMatrixResource.GetPtr(), &srvDesc, m_InstanceMatrixSRV.GetAddress());
         if (FAILED(hr))
         {
             ELOGA("Error : ID3D11Device::CreateShaderResourceView() Failed. errcode = 0x%x", hr);
@@ -196,7 +195,8 @@ void EditorMesh::Term()
     m_VB    .Term();
     m_SkinVB.Term();
 
-    m_InstanceMatrixBuffer.Reset();
+    m_InstanceCount = 0;
+    m_InstanceMatrixResource.Reset();
     m_InstanceMatrixSRV.Reset();
 }
 

@@ -16,7 +16,7 @@
 //-----------------------------------------------------------------------------
 //      エクスポートコンテキストを破棄します.
 //-----------------------------------------------------------------------------
-void DisposeExportContext(MaterialEditor::ExportContext*& context)
+void DisposeExportContext(ExportContext*& context)
 {
     if (context == nullptr)
     { return; }
@@ -316,7 +316,7 @@ int EditorMaterial::GetBlendState() const
 //-----------------------------------------------------------------------------
 //      エクスポートデータを生成します.
 //-----------------------------------------------------------------------------
-void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
+void EditorMaterial::CreateExportData(ExportMaterial* dst)
 {
     PluginMaterial* material;
     if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
@@ -337,7 +337,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     dst->DepthState      = src->m_DepthState.GetValue();
 
     dst->BoolCount  = uint32_t(src->m_Bool.size());
-    dst->BoolParams = new MaterialEditor::BoolParam[dst->BoolCount];
+    dst->BoolParams = new BoolParam[dst->BoolCount];
     for(auto i=0u; i<dst->BoolCount; ++i)
     {
         dst->BoolParams[i].Target    = material->m_Bool[i].Target.c_str();
@@ -346,7 +346,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     }
 
     dst->IntCount  = uint32_t(src->m_Int.size());
-    dst->IntParams = new MaterialEditor::IntParam[dst->IntCount];
+    dst->IntParams = new IntParam[dst->IntCount];
     for(auto i=0u; i<dst->IntCount; ++i)
     {
         dst->IntParams[i].Target     = material->m_Int[i].Target.c_str();
@@ -355,7 +355,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     }
 
     dst->FloatCount  = uint32_t(src->m_Float.size());
-    dst->FloatParams = new MaterialEditor::FloatParam[dst->FloatCount];
+    dst->FloatParams = new FloatParam[dst->FloatCount];
     for(auto i=0u; i<dst->FloatCount; ++i)
     {
         dst->FloatParams[i].Target   = material->m_Float[i].Target.c_str();
@@ -364,7 +364,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     }
 
     dst->Float2Count  = uint32_t(src->m_Float2.size());
-    dst->Float2Params = new MaterialEditor::Float2Param[dst->Float2Count];
+    dst->Float2Params = new Float2Param[dst->Float2Count];
     for(auto i=0u; i<dst->Float2Count; ++i)
     {
         auto& val = src->m_Float2[i].Param.GetValue();
@@ -376,7 +376,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     }
 
     dst->Float3Count  = uint32_t(src->m_Float3.size());
-    dst->Float3Params = new MaterialEditor::Float3Param[dst->Float3Count];
+    dst->Float3Params = new Float3Param[dst->Float3Count];
     for(auto i=0u; i<dst->Float3Count; ++i)
     {
         auto& val = src->m_Float3[i].Param.GetValue();
@@ -389,7 +389,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     }
 
     dst->Float4Count  = uint32_t(src->m_Float4.size());
-    dst->Float4Params = new MaterialEditor::Float4Param[dst->Float4Count];
+    dst->Float4Params = new Float4Param[dst->Float4Count];
     for(auto i=0u; i<dst->Float4Count; ++i)
     {
         auto& val = src->m_Float4[i].Param.GetValue();
@@ -403,7 +403,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     }
 
     dst->Color3Count  = uint32_t(src->m_Color3.size());
-    dst->Color3Params = new MaterialEditor::Color3Param[dst->Color3Count];
+    dst->Color3Params = new Color3Param[dst->Color3Count];
     for(auto i=0u; i<dst->Color3Count; ++i)
     {
         auto& val = src->m_Color3[i].Param.GetValue();
@@ -416,7 +416,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     }
 
     dst->Color4Count  = uint32_t(src->m_Color4.size());
-    dst->Color4Params = new MaterialEditor::Color4Param[dst->Color4Count];
+    dst->Color4Params = new Color4Param[dst->Color4Count];
     for(auto i=0u; i<dst->Color4Count; ++i)
     {
         auto& val = src->m_Color4[i].Param.GetValue();
@@ -430,7 +430,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     }
 
     dst->Bit32Count  = uint32_t(src->m_Bit32.size());
-    dst->Bit32Params = new MaterialEditor::Bit32Param[dst->Bit32Count];
+    dst->Bit32Params = new Bit32Param[dst->Bit32Count];
     for(auto i=0u; i<dst->Bit32Count; ++i)
     {
         dst->Bit32Params[i].Target   = material->m_Bit32[i].Target.c_str();
@@ -439,7 +439,7 @@ void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
     }
 
     dst->Texture2DCount  = uint32_t(src->m_Texture2D.size());
-    dst->Texture2DParams = new MaterialEditor::TextureParam[dst->Texture2DCount];
+    dst->Texture2DParams = new TextureParam[dst->Texture2DCount];
     for(auto i=0u; i<dst->Texture2DCount; ++i)
     {
         dst->Texture2DParams[i].Target   = material->m_Texture2D[i].Target.c_str();
@@ -537,12 +537,12 @@ bool EditorMaterials::FindMaterial(const std::string& name, EditorMaterial& mate
 //-----------------------------------------------------------------------------
 //      エクスポートコンテキストを生成します.
 //-----------------------------------------------------------------------------
-MaterialEditor::ExportContext* EditorMaterials::CreateExportContext()
+ExportContext* EditorMaterials::CreateExportContext()
 {
-    MaterialEditor::ExportContext* context = nullptr;
+    ExportContext* context = nullptr;
 
     try {
-        context = new MaterialEditor::ExportContext();
+        context = new ExportContext();
 
         context->OutputPath    = nullptr; // 作った側で入れる想定.
         context->MaterialCount = uint32_t(m_Materials.size());
@@ -551,7 +551,7 @@ MaterialEditor::ExportContext* EditorMaterials::CreateExportContext()
         { context->Materials = nullptr; }
         else
         {
-            context->Materials = new MaterialEditor::MaterialData[m_Materials.size()];
+            context->Materials = new ExportMaterial[m_Materials.size()];
                 
             for(size_t i=0; i<m_Materials.size(); ++i)
             { m_Materials[i].CreateExportData(&context->Materials[i]); }

@@ -314,9 +314,15 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiBit32>& value);
 void Deserialize(tinyxml2::XMLElement* element, std::vector<UiTexture2D>& value);
 
 
-
-using MaterialExportFunc = bool (__stdcall*)(const MaterialEditor::ExportContext* context);
-bool CallExporter(const char* dllname, const MaterialEditor::ExportContext* context);
+//-----------------------------------------------------------------------------
+//! @brief      エクスポーターを呼び出し，エクスポート処理を実行します.
+//!
+//! @param[in]      dllname     DLLファイルパス.
+//! @param[in]      context     エクスポートコンテキスト.
+//! @retval true    エクスポート成功.
+//! @retval false   エクスポート失敗.
+//-----------------------------------------------------------------------------
+bool CallExporter(const char* dllname, const ExportContext* context);
 
 
 ///////////////////////////////////////////////////////////////////////////////

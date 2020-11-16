@@ -10,139 +10,162 @@
 //-----------------------------------------------------------------------------
 #include <cstdint>
 
+struct ExportContext;
+typedef bool (__stdcall *ExportFunc)(const ExportContext* context);
 
-namespace MaterialEditor {
 
-enum PARAM_TYPE
-{
-    PARAM_TYPE_BOOL,
-    PARAM_TYPE_INT,
-    PARAM_TYPE_FLOAT,
-    PARAM_TYPE_FLOAT2,
-    PARAM_TYPE_FLOAT3,
-    PARAM_TYPE_FLOAT4,
-    PARAM_TYPE_COLOR3,
-    PARAM_TYPE_COLOR4,
-    PARAM_TYPE_BIT32,
-};
-
+///////////////////////////////////////////////////////////////////////////////
+// BoolParam structure
+///////////////////////////////////////////////////////////////////////////////
 struct BoolParam
 {
-    const char* Name;
-    const char* Target;
-    bool        Value;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    bool        Value;      //!< 値.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// IntParam structure
+///////////////////////////////////////////////////////////////////////////////
 struct IntParam
 {
-    const char* Name;
-    const char* Target;
-    int         Value;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    int         Value;      //!< 値.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// FloatParam structure
+///////////////////////////////////////////////////////////////////////////////
 struct FloatParam
 {
-    const char* Name;
-    const char* Target;
-    float       Value;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    float       Value;      //!< 値.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Float2Param structure
+///////////////////////////////////////////////////////////////////////////////
 struct Float2Param
 {
-    const char* Name;
-    const char* Target;
-    float       X;
-    float       Y;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    float       X;          //!< X成分.
+    float       Y;          //!< Y成分.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Float3Param structure
+///////////////////////////////////////////////////////////////////////////////
 struct Float3Param
 {
-    const char* Name;
-    const char* Target;
-    float       X;
-    float       Y;
-    float       Z;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    float       X;          //!< X成分.
+    float       Y;          //!< Y成分.
+    float       Z;          //!< Z成分.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Float4Param structure
+///////////////////////////////////////////////////////////////////////////////
 struct Float4Param
 {
-    const char* Name;
-    const char* Target;
-    float       X;
-    float       Y;
-    float       Z;
-    float       W;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    float       X;          //!< X成分.
+    float       Y;          //!< Y成分.
+    float       Z;          //!< Z成分.
+    float       W;          //!< W成分.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Color3Param structure
+///////////////////////////////////////////////////////////////////////////////
 struct Color3Param
 {
-    const char* Name;
-    const char* Target;
-    float       R;
-    float       G;
-    float       B;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    float       R;          //!< R成分.
+    float       G;          //!< G成分.
+    float       B;          //!< B成分.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Color4Param structure
+///////////////////////////////////////////////////////////////////////////////
 struct Color4Param
 {
-    const char* Name;
-    const char* Target;
-    float       R;
-    float       G;
-    float       B;
-    float       A;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    float       R;          //!< R成分.
+    float       G;          //!< G成分.
+    float       B;          //!< B成分.
+    float       A;          //!< A成分.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Bit32Param structure
+///////////////////////////////////////////////////////////////////////////////
 struct Bit32Param
 {
-    const char* Name;
-    const char* Target;
-    uint32_t    Value;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    uint32_t    Value;      //!< 値.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// TextureParam structure
+///////////////////////////////////////////////////////////////////////////////
 struct TextureParam
 {
-    const char* Name;
-    const char* Target;
-    const char* Path;
+    const char* Name;       //!< パラメータ名.
+    const char* Target;     //!< バインド先名.
+    const char* Path;       //!< テクスチャファイルパス.
 };
 
-struct MaterialData
+///////////////////////////////////////////////////////////////////////////////
+// ExportMaterial structure
+///////////////////////////////////////////////////////////////////////////////
+struct ExportMaterial
 {
-    const char*     Name;
-    const char*     ShaderPath;
-    bool            CastShadow;
-    bool            ReceiveShadow;
-    int             BlendState;
-    int             RasterizerState;
-    int             DepthState;
-    uint32_t        BoolCount;
-    BoolParam*      BoolParams;
-    uint32_t        IntCount;
-    IntParam*       IntParams;
-    uint32_t        FloatCount;
-    FloatParam*     FloatParams;
-    uint32_t        Float2Count;
-    Float2Param*    Float2Params;
-    uint32_t        Float3Count;
-    Float3Param*    Float3Params;
-    uint32_t        Float4Count;
-    Float4Param*    Float4Params;
-    uint32_t        Color3Count;
-    Color3Param*    Color3Params;
-    uint32_t        Color4Count;
-    Color4Param*    Color4Params;
-    uint32_t        Bit32Count;
-    Bit32Param*     Bit32Params;
-    uint32_t        Texture2DCount;
-    TextureParam*   Texture2DParams;
+    const char*     Name;               //!< マテリアル名.
+    const char*     ShaderPath;         //!< シェーダファイルパス.
+    bool            CastShadow;         //!< シャドウキャスト.
+    bool            ReceiveShadow;      //!< シャドウレシーブ.
+    int             BlendState;         //!< ブレンドステート.
+    int             RasterizerState;    //!< ラスタライザーステート.
+    int             DepthState;         //!< 深度ステート.
+    uint32_t        BoolCount;          //!< boolパラメータ数.
+    BoolParam*      BoolParams;         //!< boolパラメータ.
+    uint32_t        IntCount;           //!< intパラメータ数.
+    IntParam*       IntParams;          //!< intパラメータ.
+    uint32_t        FloatCount;         //!< floatパラメータ数.
+    FloatParam*     FloatParams;        //!< floatパラメータ.
+    uint32_t        Float2Count;        //!< float2パラメータ数.
+    Float2Param*    Float2Params;       //!< float2パラメータ.
+    uint32_t        Float3Count;        //!< float3パラメータ数.
+    Float3Param*    Float3Params;       //!< float3パラメータ.
+    uint32_t        Float4Count;        //!< float4パラメータ数.
+    Float4Param*    Float4Params;       //!< float4パラメータ.
+    uint32_t        Color3Count;        //!< color3パラメータ数.
+    Color3Param*    Color3Params;       //!< color3パラメータ.
+    uint32_t        Color4Count;        //!< color4パラメータ数.
+    Color4Param*    Color4Params;       //!< color4パラメータ.
+    uint32_t        Bit32Count;         //!< bit32パラメータ数.
+    Bit32Param*     Bit32Params;        //!< bit32パラメータ.
+    uint32_t        Texture2DCount;     //!< texture2Dパラメータ数.
+    TextureParam*   Texture2DParams;    //!< texture2Dパラメータ.
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// ExportContext structure
+///////////////////////////////////////////////////////////////////////////////
 struct ExportContext
 {
-    char*           OutputPath;
-    uint32_t        MaterialCount;
-    MaterialData*   Materials;
+    char*               OutputPath;     //!< 出力ファイルパス.
+    uint32_t            MaterialCount;  //!< マテリアル数.
+    ExportMaterial*     Materials;      //!< マテリアル.
 };
 
-} // namespace MaterialEditor

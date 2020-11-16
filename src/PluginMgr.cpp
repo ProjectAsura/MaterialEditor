@@ -26,8 +26,8 @@ static const std::string kInvalidMaterialName = "";
 //-----------------------------------------------------------------------------
 bool CallExporter
 (
-    const char*                             dllName,
-    const MaterialEditor::ExportContext*    context
+    const char*             dllName,
+    const ExportContext*    context
 )
 {
     auto handle = LoadLibraryExA(dllName, nullptr, 0);
@@ -37,7 +37,7 @@ bool CallExporter
         return false;
     }
 
-    auto func = reinterpret_cast<MaterialExportFunc>(GetProcAddress(handle, "ExportMaterial"));
+    auto func = reinterpret_cast<ExportFunc>(GetProcAddress(handle, "ExportMaterial"));
     if (func == nullptr)
     {
         ELOGA("Error : Not Found Function in DLL. dllname = %s", dllName);

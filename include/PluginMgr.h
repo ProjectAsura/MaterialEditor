@@ -17,6 +17,7 @@
 #include <asdxRef.h>
 #include <asdxEditParam.h>
 #include <asdxDisposer.h>
+#include <ExportContext.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -314,6 +315,10 @@ void Deserialize(tinyxml2::XMLElement* element, std::vector<UiTexture2D>& value)
 
 
 
+using MaterialExportFunc = bool (__stdcall*)(const MaterialEditor::ExportContext* context);
+bool CallExporter(const char* dllname, const MaterialEditor::ExportContext* context);
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // MaterialInstance class
 ///////////////////////////////////////////////////////////////////////////////
@@ -325,6 +330,7 @@ class MaterialInstance
     friend class PluginMaterial;
     friend class PluginShader;
     friend class PluginMgr;
+    friend class EditorMaterial;
 
 public:
     //=========================================================================
@@ -374,7 +380,7 @@ public:
 private:
     //=========================================================================
     // private variables.
-    //========================================================================
+    //=========================================================================
     std::string                 m_MaterialName;
     asdx::EditBool              m_ShadowCast;
     asdx::EditBool              m_ShadowReceive;
@@ -546,6 +552,7 @@ class PluginMaterial
     // friend of classes and methods.
     //=========================================================================
     friend class PluginMgr;
+    friend class EditorMaterial;
 
 public:
     //=========================================================================
@@ -702,6 +709,11 @@ public:
     void ReloadShader();
 
     //-------------------------------------------------------------------------
+    //! @brief      エクスポーターをリロードします.
+    //-------------------------------------------------------------------------
+    void ReloadExporter();
+
+    //-------------------------------------------------------------------------
     //! @brief      マテリアルを検索します.
     //-------------------------------------------------------------------------
     bool FindMaterial(const std::string& name, PluginMaterial** result);
@@ -721,7 +733,15 @@ public:
     //-------------------------------------------------------------------------
     const std::string& DrawTypeCombo(const std::string& selected);
 
+    //-------------------------------------------------------------------------
+    //! @brief      タイプフィルタコンボボックスを描画します.
+    //-------------------------------------------------------------------------
     const std::string& DrawFilterCombo(const std::string& selected);
+
+    //-------------------------------------------------------------------------
+    //! @brief      エクスポーターコンボボックスを描画します.
+    //-------------------------------------------------------------------------
+    const std::string& DrawExporterCombo(const std::string& selected);
 
     //-------------------------------------------------------------------------
     //! @brief      デフォルトテクスチャを取得します.
@@ -752,6 +772,7 @@ private:
     asdx::RefPtr<ID3D11ShaderResourceView>  m_DefaultSRV[DEFAULT_TEXTURE_COUNT];
     asdx::Disposer<ID3D11PixelShader>       m_ShaderDisposer;
     asdx::Disposer<ID3D11Buffer>            m_BufferDisposer;
+    std::vector<std::string>                m_Exporters;
 
     //=========================================================================
     // private methods.

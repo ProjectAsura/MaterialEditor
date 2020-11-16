@@ -7,10 +7,110 @@
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
+#include <exception>
 #include <EditorMaterial.h>
 #include <imgui.h>
 #include <asdxLogger.h>
 
+
+//-----------------------------------------------------------------------------
+//      エクスポートコンテキストを破棄します.
+//-----------------------------------------------------------------------------
+void DisposeExportContext(MaterialEditor::ExportContext*& context)
+{
+    if (context == nullptr)
+    { return; }
+
+    if (context->Materials == nullptr)
+    { return; }
+
+    for(auto i=0u; i<context->MaterialCount; ++i)
+    {
+        if (context->Materials[i].BoolParams != nullptr)
+        {
+            delete[] context->Materials[i].BoolParams;
+            context->Materials[i].BoolParams = nullptr;
+        }
+
+        if (context->Materials[i].IntParams != nullptr)
+        {
+            delete[] context->Materials[i].IntParams;
+            context->Materials[i].IntParams = nullptr;
+        }
+
+        if (context->Materials[i].FloatParams != nullptr)
+        {
+            delete[] context->Materials[i].FloatParams;
+            context->Materials[i].FloatParams = nullptr;
+        }
+
+        if (context->Materials[i].Float2Params != nullptr)
+        {
+            delete[] context->Materials[i].Float2Params;
+            context->Materials[i].Float2Params = nullptr;
+        }
+
+        if (context->Materials[i].Float3Params != nullptr)
+        {
+            delete[] context->Materials[i].Float3Params;
+            context->Materials[i].Float3Params = nullptr;
+        }
+
+        if (context->Materials[i].FloatParams != nullptr)
+        {
+            delete[] context->Materials[i].FloatParams;
+            context->Materials[i].FloatParams = nullptr;
+        }
+
+        if (context->Materials[i].Float2Params != nullptr)
+        {
+            delete[] context->Materials[i].Float2Params;
+            context->Materials[i].Float2Params = nullptr;
+        }
+
+        if (context->Materials[i].Float3Params != nullptr)
+        {
+            delete[] context->Materials[i].FloatParams;
+            context->Materials[i].FloatParams = nullptr;
+        }
+
+        if (context->Materials[i].Float4Params != nullptr)
+        {
+            delete[] context->Materials[i].Float4Params;
+            context->Materials[i].Float4Params = nullptr;
+        }
+
+        if (context->Materials[i].Color3Params != nullptr)
+        {
+            delete[] context->Materials[i].Color3Params;
+            context->Materials[i].Color3Params = nullptr;
+        }
+
+        if (context->Materials[i].Color4Params != nullptr)
+        {
+            delete[] context->Materials[i].Color4Params;
+            context->Materials[i].Color4Params = nullptr;
+        }
+
+        if (context->Materials[i].Bit32Params != nullptr)
+        {
+            delete[] context->Materials[i].Bit32Params;
+            context->Materials[i].Bit32Params = nullptr;
+        }
+
+        if (context->Materials[i].Texture2DParams != nullptr)
+        {
+            delete[] context->Materials[i].Texture2DParams;
+            context->Materials[i].Texture2DParams = nullptr;
+        }
+    }
+
+    delete[] context->Materials;
+    context->Materials = nullptr;
+
+    delete context;
+    context = nullptr;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // EditorMaterial class
@@ -213,6 +313,141 @@ int EditorMaterial::GetBlendState() const
     return instance->GetBlendState();
 }
 
+//-----------------------------------------------------------------------------
+//      エクスポートデータを生成します.
+//-----------------------------------------------------------------------------
+void EditorMaterial::CreateExportData(MaterialEditor::MaterialData* dst)
+{
+    PluginMaterial* material;
+    if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
+    { return; }
+
+    if (m_Instances.find(m_SelectedMaterial) == m_Instances.end())
+    { return; }
+
+    auto src = m_Instances.at(m_SelectedMaterial);
+    assert(src != nullptr);
+
+    dst->Name            = material->m_Name.c_str();
+    dst->ShaderPath      = material->m_ShaderPath.c_str();
+    dst->CastShadow      = src->m_ShadowCast.GetValue();
+    dst->ReceiveShadow   = src->m_ShadowReceive.GetValue();
+    dst->BlendState      = src->m_BlendState.GetValue();
+    dst->RasterizerState = src->m_RasterizerState.GetValue();
+    dst->DepthState      = src->m_DepthState.GetValue();
+
+    dst->BoolCount  = uint32_t(src->m_Bool.size());
+    dst->BoolParams = new MaterialEditor::BoolParam[dst->BoolCount];
+    for(auto i=0u; i<dst->BoolCount; ++i)
+    {
+        dst->BoolParams[i].Target    = material->m_Bool[i].Target.c_str();
+        dst->BoolParams[i].Name      = src->m_Bool[i].Tag.c_str();
+        dst->BoolParams[i].Value     = src->m_Bool[i].Param.GetValue();
+    }
+
+    dst->IntCount  = uint32_t(src->m_Int.size());
+    dst->IntParams = new MaterialEditor::IntParam[dst->IntCount];
+    for(auto i=0u; i<dst->IntCount; ++i)
+    {
+        dst->IntParams[i].Target     = material->m_Int[i].Target.c_str();
+        dst->IntParams[i].Name       = src->m_Int[i].Tag.c_str();
+        dst->IntParams[i].Value      = src->m_Int[i].Param.GetValue();
+    }
+
+    dst->FloatCount  = uint32_t(src->m_Float.size());
+    dst->FloatParams = new MaterialEditor::FloatParam[dst->FloatCount];
+    for(auto i=0u; i<dst->FloatCount; ++i)
+    {
+        dst->FloatParams[i].Target   = material->m_Float[i].Target.c_str();
+        dst->FloatParams[i].Name     = src->m_Float[i].Tag.c_str();
+        dst->FloatParams[i].Value    = src->m_Float[i].Param.GetValue();
+    }
+
+    dst->Float2Count  = uint32_t(src->m_Float2.size());
+    dst->Float2Params = new MaterialEditor::Float2Param[dst->Float2Count];
+    for(auto i=0u; i<dst->Float2Count; ++i)
+    {
+        auto& val = src->m_Float2[i].Param.GetValue();
+
+        dst->Float2Params[i].Target  = material->m_Float2[i].Target.c_str();
+        dst->Float2Params[i].Name    = src->m_Float2[i].Tag.c_str();
+        dst->Float2Params[i].X       = val.x;
+        dst->Float2Params[i].Y       = val.y;
+    }
+
+    dst->Float3Count  = uint32_t(src->m_Float3.size());
+    dst->Float3Params = new MaterialEditor::Float3Param[dst->Float3Count];
+    for(auto i=0u; i<dst->Float3Count; ++i)
+    {
+        auto& val = src->m_Float3[i].Param.GetValue();
+
+        dst->Float3Params[i].Target  = material->m_Float3[i].Target.c_str();
+        dst->Float3Params[i].Name    = src->m_Float3[i].Tag.c_str();
+        dst->Float3Params[i].X       = val.x;
+        dst->Float3Params[i].Y       = val.y;
+        dst->Float3Params[i].Z       = val.z;
+    }
+
+    dst->Float4Count  = uint32_t(src->m_Float4.size());
+    dst->Float4Params = new MaterialEditor::Float4Param[dst->Float4Count];
+    for(auto i=0u; i<dst->Float4Count; ++i)
+    {
+        auto& val = src->m_Float4[i].Param.GetValue();
+
+        dst->Float4Params[i].Target  = material->m_Float4[i].Target.c_str();
+        dst->Float4Params[i].Name    = src->m_Float4[i].Tag.c_str();
+        dst->Float4Params[i].X       = val.x;
+        dst->Float4Params[i].Y       = val.y;
+        dst->Float4Params[i].Z       = val.z;
+        dst->Float4Params[i].W       = val.w;
+    }
+
+    dst->Color3Count  = uint32_t(src->m_Color3.size());
+    dst->Color3Params = new MaterialEditor::Color3Param[dst->Color3Count];
+    for(auto i=0u; i<dst->Color3Count; ++i)
+    {
+        auto& val = src->m_Color3[i].Param.GetValue();
+
+        dst->Color3Params[i].Target  = material->m_Color3[i].Target.c_str();
+        dst->Color3Params[i].Name    = src->m_Color3[i].Tag.c_str();
+        dst->Color3Params[i].R       = val.x;
+        dst->Color3Params[i].G       = val.y;
+        dst->Color3Params[i].B       = val.z;
+    }
+
+    dst->Color4Count  = uint32_t(src->m_Color4.size());
+    dst->Color4Params = new MaterialEditor::Color4Param[dst->Color4Count];
+    for(auto i=0u; i<dst->Color4Count; ++i)
+    {
+        auto& val = src->m_Color4[i].Param.GetValue();
+
+        dst->Color4Params[i].Target  = material->m_Color4[i].Target.c_str();
+        dst->Color4Params[i].Name    = src->m_Color4[i].Tag.c_str();
+        dst->Color4Params[i].R       = val.x;
+        dst->Color4Params[i].G       = val.y;
+        dst->Color4Params[i].B       = val.z;
+        dst->Color4Params[i].A       = val.w;
+    }
+
+    dst->Bit32Count  = uint32_t(src->m_Bit32.size());
+    dst->Bit32Params = new MaterialEditor::Bit32Param[dst->Bit32Count];
+    for(auto i=0u; i<dst->Bit32Count; ++i)
+    {
+        dst->Bit32Params[i].Target   = material->m_Bit32[i].Target.c_str();
+        dst->Bit32Params[i].Name     = src->m_Bit32[i].Tag.c_str();
+        dst->Bit32Params[i].Value    = src->m_Bit32[i].Param.GetValue();
+    }
+
+    dst->Texture2DCount  = uint32_t(src->m_Texture2D.size());
+    dst->Texture2DParams = new MaterialEditor::TextureParam[dst->Texture2DCount];
+    for(auto i=0u; i<dst->Texture2DCount; ++i)
+    {
+        dst->Texture2DParams[i].Target   = material->m_Texture2D[i].Target.c_str();
+        dst->Texture2DParams[i].Name     = src->m_Texture2D[i].Tag.c_str();
+        dst->Texture2DParams[i].Path     = src->m_Texture2D[i].Param.GetPath().c_str();
+    }
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // EditorMaterials class
@@ -298,3 +533,35 @@ bool EditorMaterials::FindMaterial(const std::string& name, EditorMaterial& mate
 
     return false;
 }
+
+//-----------------------------------------------------------------------------
+//      エクスポートコンテキストを生成します.
+//-----------------------------------------------------------------------------
+MaterialEditor::ExportContext* EditorMaterials::CreateExportContext()
+{
+    MaterialEditor::ExportContext* context = nullptr;
+
+    try {
+        context = new MaterialEditor::ExportContext();
+
+        context->OutputPath    = nullptr; // 作った側で入れる想定.
+        context->MaterialCount = uint32_t(m_Materials.size());
+
+        if (m_Materials.empty())
+        { context->Materials = nullptr; }
+        else
+        {
+            context->Materials = new MaterialEditor::MaterialData[m_Materials.size()];
+                
+            for(size_t i=0; i<m_Materials.size(); ++i)
+            { m_Materials[i].CreateExportData(&context->Materials[i]); }
+        }
+    }
+    catch(std::exception e)
+    {
+        ELOGA("Error : exception occurred. msg = %s", e.what());
+        return nullptr;
+    }
+
+    return context;
+};

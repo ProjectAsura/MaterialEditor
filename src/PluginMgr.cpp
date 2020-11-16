@@ -21,6 +21,38 @@
 static const std::string kInvalidMaterialName = "";
 
 
+//-----------------------------------------------------------------------------
+//      エクスポーターを呼び出し，エクスポート処理を実行します.
+//-----------------------------------------------------------------------------
+bool CallExporter
+(
+    const char*                             dllName,
+    const MaterialEditor::ExportContext*    context
+)
+{
+    auto handle = LoadLibraryExA(dllName, nullptr, 0);
+    if (handle == nullptr)
+    {
+        ELOGA("Error : LoadLibraryExA() Failed. dllname = %s", dllName);
+        return false;
+    }
+
+    auto func = reinterpret_cast<MaterialExportFunc>(GetProcAddress(handle, "ExportMaterial"));
+    if (func == nullptr)
+    {
+        ELOGA("Error : Not Found Function in DLL. dllname = %s", dllName);
+        FreeLibrary(handle);
+        return false;
+    }
+
+    auto ret = func(context);
+    FreeLibrary(handle);
+
+    return ret;
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // PluginMgr class
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,33 +69,37 @@ PluginMgr& PluginMgr::Instance()
 //-----------------------------------------------------------------------------
 bool PluginMgr::Load()
 {
-    // pluginフォルダ下にあるファイルを全部開く.
-    std::string path;
-    if (!asdx::SearchFilePathA("res/plugins/material", path))
+    // plugins/materialフォルダ下にあるファイルを全部開く.
     {
-        ELOG("Error : Folder Not Found.");
-        return false;
-    }
-
-    std::list<std::string> files;
-    if (!asdx::SearchFilesA(path.c_str(), ".mat", files))
-    {
-        ELOG("Error : File Not Found");
-        return false;
-    }
-
-    for(auto& itr : files)
-    {
-        auto mat = new PluginMaterial();
-        if (!mat->Load(itr.c_str()))
+        std::string path;
+        if (!asdx::SearchFilePathA("res/plugins/material", path))
         {
-            delete mat;
-            mat = nullptr;
-            continue;
+            ELOG("Error : Folder Not Found.");
+            return false;
         }
 
-        m_Materials[mat->GetName()] = mat;
+        std::list<std::string> files;
+        if (!asdx::SearchFilesA(path.c_str(), ".mat", files))
+        {
+            ELOG("Error : File Not Found");
+            return false;
+        }
+
+        for(auto& itr : files)
+        {
+            auto mat = new PluginMaterial();
+            if (!mat->Load(itr.c_str()))
+            {
+                delete mat;
+                mat = nullptr;
+                continue;
+            }
+
+            m_Materials[mat->GetName()] = mat;
+        }
     }
+
+    ReloadExporter();
 
     auto pDevice  = asdx::DeviceContext::Instance().GetDevice();
     auto pContext = asdx::DeviceContext::Instance().GetContext();
@@ -355,6 +391,31 @@ void PluginMgr::ReloadShader()
 }
 
 //-----------------------------------------------------------------------------
+//      エクスポーターをリロードします.
+//-----------------------------------------------------------------------------
+void PluginMgr::ReloadExporter()
+{
+    // plugins/exporterフォルダ下にあるDLLファイル名を取得.
+    std::string path;
+    if (asdx::SearchFilePathA("res/plugins/exporter", path))
+    {
+        std::list<std::string> files;
+        if (asdx::SearchFilesA(path.c_str(), ".dll", files))
+        {
+            m_Exporters.clear();
+            m_Exporters.resize(files.size());
+
+            auto idx = 0;
+            for(auto& itr : files)
+            {
+                m_Exporters[idx] = itr;
+                idx++;
+            }
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
 //      マテリアルを検索します.
 //-----------------------------------------------------------------------------
 bool PluginMgr::FindMaterial(const std::string& name, PluginMaterial** result)
@@ -558,8 +619,39 @@ const std::string& PluginMgr::DrawFilterCombo(const std::string& selectedItem)
 
     if (selectedMat == nullptr)
     { return (nofilter) ? kInvalidMaterialName : selectedItem; }
-    
+
     return selectedMat->GetName();
+}
+
+//-----------------------------------------------------------------------------
+//      エクスポーターコンボボックスを描画します.
+//-----------------------------------------------------------------------------
+const std::string& PluginMgr::DrawExporterCombo(const std::string& selectedItem)
+{
+    if (m_Exporters.empty())
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), u8"エクスポーターがありません");
+        return selectedItem;
+    }
+
+    auto idx = -1;
+    if (ImGui::BeginCombo(u8"エクスポーター", selectedItem.c_str()))
+    {
+        for(size_t i=0; i<m_Exporters.size(); ++i)
+        {
+            auto selected = (m_Exporters[i] == selectedItem);
+            if (ImGui::Selectable(m_Exporters[i].c_str(), selected))
+                idx = int(i);
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+
+    if (idx == -1)
+    { return selectedItem; }
+
+    return m_Exporters[idx];
 }
 
 //-----------------------------------------------------------------------------

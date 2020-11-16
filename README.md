@@ -1,5 +1,5 @@
 # MaterialEditor
 Material Editor
 
-asdx12を外部ライブラリとして使用します。
-MaterialEditorのフォルダと同階層にasdx12を配置してください。
+asdx11を外部ライブラリとして使用します。  
+MaterialEditorのフォルダと同階層にasdx11を配置してください。

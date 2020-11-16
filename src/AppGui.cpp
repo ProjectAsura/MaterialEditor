@@ -25,6 +25,8 @@ namespace {
 // Constant Values.
 //-----------------------------------------------------------------------------
 static const char* kWorkFilter = "Work File(*.work)\0*.work\0\0";
+static const char* kHelpLink = "https://github.com/ProjectAsura/MaterialEditor/blob/master/doc/help.md";
+static const char* kReleaseNoteLink = "https://github.com/ProjectAsura/MaterialEditor/blob/master/doc/release_note.md";
 static const ImVec4 kRed   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 static const ImVec4 kCyan  = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
 
@@ -46,14 +48,14 @@ static OSS kLicenses[] = {
     {"assimp", "https://github.com/assimp/assimp/blob/master/LICENSE"},
 };
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // MenuContext structure
 ///////////////////////////////////////////////////////////////////////////////
 struct MenuContext
 {
     bool                ShowLicense = false;
-    EditorModel*        pModel = nullptr;
-    EditorMaterials*    pMaterials = nullptr;
+    WorkSpace*          pWorkSpace = nullptr;
     Config*             pConfig = nullptr;
 };
 
@@ -98,7 +100,7 @@ void DrawFPS(float fps, uint64_t polygonCount, bool connect)
 //-----------------------------------------------------------------------------
 //      ファイルメニューを表示します.
 //-----------------------------------------------------------------------------
-void DrawFileMenu(WorkSpace& workSpace)
+void DrawFileMenu(WorkSpace* workSpace)
 {
     if (!ImGui::BeginMenu(u8"ファイル"))
     { return; }
@@ -111,7 +113,7 @@ void DrawFileMenu(WorkSpace& workSpace)
             if (asdx::OpenFileDlg(kWorkFilter, path, ""))
             {
                 // ワークスペースをロード.
-                workSpace.LoadAsync(path.c_str());
+                workSpace->LoadAsync(path.c_str());
             }
         }
 
@@ -121,7 +123,7 @@ void DrawFileMenu(WorkSpace& workSpace)
             if (asdx::SaveFileDlg(kWorkFilter, base, ext))
             {
                 auto path = base + ext;
-                if (workSpace.SaveAs(path.c_str()))
+                if (workSpace->SaveAs(path.c_str()))
                 { ILOGA("Info : WorkSpace Save Success. path = %s", path.c_str()); }
                 else
                 { ELOGA("Error : WorkSpace Save Failed. path = %s", path.c_str()); }
@@ -130,7 +132,7 @@ void DrawFileMenu(WorkSpace& workSpace)
 
         if (ImGui::MenuItem(u8"上書き保存"))
         {
-            if (workSpace.Save())
+            if (workSpace->Save())
             { ILOGA("Info : WorkSpace Save Success."); }
             else
             { ELOGA("Error : WorkSpace Save Failed."); }
@@ -144,11 +146,11 @@ void DrawFileMenu(WorkSpace& workSpace)
 }
 
 //-----------------------------------------------------------------------------
-//      ランタイム連携メニューを表示します.
+//      外部連携メニューを表示します.
 //-----------------------------------------------------------------------------
-void DrawRuntimeLinkage(bool connect)
+void DrawExternalLinkage(bool connect)
 {
-    if (!ImGui::BeginMenu(u8"ランタイム連携"))
+    if (!ImGui::BeginMenu(u8"外部連携"))
         return;
 
     if (connect)
@@ -180,10 +182,10 @@ void DrawAppInfo(MenuContext& context)
         return;
 
     if (ImGui::MenuItem(u8"ヘルプ"))
-    { ImGuiHyperLink(u8"https://github.com/ProjectAsura/MaterialEditor/doc/help.md"); }
+    { ::ShellExecuteA(nullptr, "open", kHelpLink, "", "", SW_SHOWNORMAL); }
 
     if (ImGui::MenuItem(u8"リリースノート"))
-    { ImGuiHyperLink(u8"https://github.com/ProjectAsura/MaterialEditor/doc/release_note.md"); }
+    { ::ShellExecuteA(nullptr, "open", kReleaseNoteLink, "", "", SW_SHOWNORMAL); }
 
     if (ImGui::MenuItem(u8"バージョン情報"))
     {
@@ -208,18 +210,75 @@ void DrawAppInfo(MenuContext& context)
 }
 
 //-----------------------------------------------------------------------------
+//      エクスポートメニューを描画します.
+//-----------------------------------------------------------------------------
+void DrawExportMenu(MenuContext& context)
+{
+    if (!ImGui::MenuItem(u8"エクスポート"))
+    { return; }
+
+    if (context.pWorkSpace->GetMaterials() == nullptr)
+    {
+        asdx::ErrorDlg("エクスポート失敗", "出力するマテリアルがありません");
+        return;
+    }
+
+    auto exporter = context.pWorkSpace->GetExporter();
+    if (exporter.empty() || exporter == "")
+    {
+        asdx::ErrorDlg("エクスポート失敗", "エクスポーターが設定されていません");
+        return;
+    }
+
+    auto output = context.pWorkSpace->GetOutputPath();
+    if (output.empty() || output == "")
+    {
+        std::string base, ext;
+        if (asdx::SaveFileDlg(kWorkFilter, base, ext))
+        {
+            auto path = base + ext;
+            context.pWorkSpace->SetOutputPath(path.c_str());
+        }
+        else
+        {
+            // キャンセルされた場合は何も表示せずに抜ける.
+            return;
+        }
+    }
+
+    auto exportContext = context.pWorkSpace->GetMaterials()->CreateExportContext();
+    if (exportContext == nullptr)
+    {
+        DisposeExportContext(exportContext);
+        asdx::ErrorDlg("エクスポート失敗", "出力データの生成に失敗しました.");
+        return;
+    }
+
+    auto ret = CallExporter(exporter.c_str(), exportContext);
+    if (ret)
+    { ILOGA("Info : Export Success."); }
+    else
+    { ELOGA("Error : Export Failed."); }
+
+    DisposeExportContext(exportContext);
+}
+
+//-----------------------------------------------------------------------------
 //      ポップアップメニューを描画します.
 //-----------------------------------------------------------------------------
-void DrawPopupMenu(WorkSpace& workSpace, MenuContext& context)
+void DrawPopupMenu(MenuContext& context)
 {
     if(!ImGui::BeginPopup(u8"PopupMenu"))
     { return; }
 
     // ファイルメニュー.
-    DrawFileMenu(workSpace);
+    DrawFileMenu(context.pWorkSpace);
 
-    // ランタイム連携.
-    DrawRuntimeLinkage(false);
+    // エクスポートメニュー.
+    DrawExportMenu(context);
+
+    // 外部連携.
+    DrawExternalLinkage(false);
 
     // 情報.
     DrawAppInfo(context);
@@ -269,7 +328,10 @@ void DrawMaterialTab(MenuContext& context)
     if (!ImGui::BeginTabItem(u8"マテリアル"))
     { return; }
 
-    if (context.pModel == nullptr || context.pMaterials == nullptr)
+    auto pModel = context.pWorkSpace->GetModel();
+    auto pMaterials = context.pWorkSpace->GetMaterials();
+
+    if (pModel == nullptr || pMaterials == nullptr)
     {
         ImGui::TextColored(kRed, u8"マテリアルがありません");
         ImGui::EndTabItem();
@@ -277,22 +339,22 @@ void DrawMaterialTab(MenuContext& context)
     }
 
     // 名前フィルタ.
-    context.pMaterials->NameFilter.Draw(u8"名前フィルタ");
+    pMaterials->NameFilter.Draw(u8"名前フィルタ");
 
     // マテリアルタイプフィルタ.
-    context.pMaterials->TypeFilter = PluginMgr::Instance().DrawFilterCombo(context.pMaterials->TypeFilter);
+    pMaterials->TypeFilter = PluginMgr::Instance().DrawFilterCombo(pMaterials->TypeFilter);
 
-    auto count = context.pMaterials->GetCount();
+    auto count = pMaterials->GetCount();
     for(auto i=0u; i<count; ++i)
     {
-        auto& material = context.pMaterials->GetMaterial(i);
+        auto& material = pMaterials->GetMaterial(i);
 
         // 名前でフィルタ.
-        if (!context.pMaterials->NameFilter.PassFilter(material.GetName().c_str()))
+        if (!pMaterials->NameFilter.PassFilter(material.GetName().c_str()))
         { continue; }
 
         // マテリアル編集.
-        material.Edit(context.pMaterials->TypeFilter);
+        material.Edit(pMaterials->TypeFilter);
     }
 
     ImGui::EndTabItem();
@@ -324,11 +386,22 @@ void DrawConfigTab(MenuContext& context)
     // 背景.
     context.pConfig->Background.Edit();
 
+    // エクスポーター
+    if (ImGui::CollapsingHeader(u8"エクスポート設定"))
+    { 
+        auto prev = context.pWorkSpace->GetExporter();
+        auto curr = PluginMgr::Instance().DrawExporterCombo(prev);
+
+        if (prev != curr)
+        { context.pWorkSpace->SetExporter(curr.c_str()); }
+    }
+
     // カメラ.
     context.pConfig->Camera.Edit();
 
     // モデルプレビュー.
     context.pConfig->ModelPreview.Edit();
+
 
     // デバッグ.
     context.pConfig->Debug.Edit();
@@ -415,10 +488,10 @@ void DrawGuizmo
     float               h
 )
 {
-    if (context.pModel == nullptr)
+    if (context.pWorkSpace->GetModel() == nullptr)
     { return; }
 
-    asdx::Matrix matrix = context.pModel->GetWorld();
+    asdx::Matrix matrix = context.pWorkSpace->GetModel()->GetWorld();
 
      auto flags = 0;
     flags |= ImGuiWindowFlags_NoTitleBar;
@@ -479,15 +552,14 @@ void App::DrawGui()
         }
 
         MenuContext context = {};
-        context.pModel     = m_WorkSpace.GetModel();
-        context.pMaterials = m_WorkSpace.GetMaterials();
+        context.pWorkSpace = &m_WorkSpace;
         context.pConfig    = &m_Config;
 
         auto w = float(m_Width);
         auto h = float(m_Height);
 
         // 右クリックメニュー.
-        DrawPopupMenu(m_WorkSpace, context);
+        DrawPopupMenu(context);
 
         // 編集パネル.
         DrawEditorPanel(context);

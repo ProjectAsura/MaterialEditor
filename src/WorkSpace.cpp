@@ -177,6 +177,16 @@ bool WorkSpace::Load(const char* path)
         }
     }
 
+    // エクスポーターを取得.
+    {
+        auto exporterNode = root->FirstChildElement("Exporter");
+        if (exporterNode != nullptr)
+        {
+            // 相対パス取得
+            m_Exporter = exporterNode->Attribute("value");
+        }
+    }
+
     // モデル
     {
         auto modelNode = root->FirstChildElement("EditorModel");
@@ -300,6 +310,13 @@ bool WorkSpace::SaveAs(const char* path)
     outputNode->SetAttribute("value", m_OutputPath.c_str());
     root->InsertEndChild(outputNode);
 
+    if (!m_Exporter.empty())
+    {
+        auto exporterNode = doc.NewElement("Exporter");
+        exporterNode->SetAttribute("value", m_Exporter.c_str());
+        root->InsertEndChild(exporterNode);
+    }
+
     auto modelNode = doc.NewElement("EditorModel");
     modelNode->SetAttribute("value", m_ModelPath.c_str());
     root->InsertEndChild(modelNode);
@@ -376,3 +393,21 @@ void WorkSpace::SetOutputPath(const char* path)
 //-----------------------------------------------------------------------------
 std::string WorkSpace::GetOutputPath() const
 { return asdx::ToFullPath((m_WorkDir + m_OutputPath).c_str()); }
+
+//-----------------------------------------------------------------------------
+//      エクスポーターを設定します.
+//-----------------------------------------------------------------------------
+void WorkSpace::SetExporter(const char* path)
+{
+    // フルパスに変換.
+    auto fullPath = asdx::ToFullPath(path);
+
+    // ワークディレクトリからの相対パスに変換する.
+    m_Exporter = asdx::ToRelativePath(m_WorkDir.c_str(), fullPath.c_str());
+}
+
+//-----------------------------------------------------------------------------
+//      エクスポーターを取得します.
+//-----------------------------------------------------------------------------
+std::string WorkSpace::GetExporter() const
+{ return asdx::ToFullPath((m_WorkDir + m_Exporter).c_str()); }

@@ -126,7 +126,7 @@
     <ClCompile Include="..\src\LightMgr.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\AppPrimitive.cpp">
+    <ClCompile Include="..\src\DebugPrimitive.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -170,10 +170,10 @@
     <ClInclude Include="..\include\LightMgr.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\AppPrimitive.h">
+    <ClInclude Include="..\include\ExportContext.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ExportContext.h">
+    <ClInclude Include="..\include\DebugPrimitive.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

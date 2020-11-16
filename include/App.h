@@ -16,7 +16,7 @@
 #include <asdxRenderState.h>
 #include <WorkSpace.h>
 #include <Config.h>
-#include <AppPrimitive.h>
+#include <DebugPrimitive.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////

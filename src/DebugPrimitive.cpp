@@ -1,13 +1,14 @@
 ﻿//-----------------------------------------------------------------------------
-// File : AppPrimitive.cpp
+// File : DebugPrimitive.cpp
 // Desc : Debug Primitive.
+// Copyright(c) Project Asura. All right reserved.
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
-#include <AppPrimitive.h>
 #include <vector>
+#include <DebugPrimitive.h>
 #include <asdxLogger.h>
 
 
@@ -145,12 +146,13 @@ void BoxShape::Draw
     if (pVB == nullptr || pCB == nullptr)
     { return; }
 
-    UINT stride = sizeof(ShapeVertex);
-    UINT offset = 0;
+    auto stride = UINT(sizeof(ShapeVertex));
+    auto offset = 0u;
 
-    CbMesh res;
+    CbMesh res = {};
     res.World = world;
-    res.Color;
+    res.Color = color;
+
     pContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
     pContext->IASetVertexBuffers(0, 1, &pVB, &stride, &offset);
     pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -188,7 +190,7 @@ bool SphereShape::Init(ID3D11Device* pDevice, float radius, int divide)
         uint32_t verticalSegments   = divide;
         uint32_t horizontalSegments = divide * 2;
 
-        float radius = 1.0f;
+        auto radius = 1.0f;
 
         // Create rings of vertices at progressively higher latitudes.
         for (size_t i = 0; i <= verticalSegments; i++)
@@ -311,10 +313,10 @@ void SphereShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(ShapeVertex);
-    UINT offset = 0;
+    auto stride = UINT(sizeof(ShapeVertex));
+    auto offset = 0u;
 
-    CbMesh res;
+    CbMesh res = {};
     res.World = world;
     res.Color = color;
 
@@ -324,300 +326,6 @@ void SphereShape::Draw
     pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
     pContext->VSSetConstantBuffers(1, 1, &pCB);
     pContext->DrawIndexed(m_Count, 0, 0);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// PyradmidShape class
-///////////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------------
-//      コンストラクタです.
-//-----------------------------------------------------------------------------
-PyramidShape::PyramidShape()
-{ /* DO_NOTHING */ }
-
-//-----------------------------------------------------------------------------
-//      デストラクタです.
-//-----------------------------------------------------------------------------
-PyramidShape::~PyramidShape()
-{ Term(); }
-
-//-----------------------------------------------------------------------------
-//      初期化処理を行います.
-//-----------------------------------------------------------------------------
-bool PyramidShape::Init(ID3D11Device* pDevice, float length, float width)
-{
-    auto s = width * 0.5f;
-    ShapeVertex vertices[5] = {
-        { asdx::Vector3(0.0f, length, 0.0f), asdx::Vector3(0.0f, 1.0f, 0.0f) },
-
-        { asdx::Vector3(-s, 0.0f, -s), asdx::Vector3(-1.0f, 0.0f, -1.0f) },
-        { asdx::Vector3( s, 0.0f, -s), asdx::Vector3( 1.0f, 0.0f, -1.0f) },
-        { asdx::Vector3( s, 0.0f,  s), asdx::Vector3( 1.0f, 0.0f,  1.0f) },
-        { asdx::Vector3(-s, 0.0f,  s), asdx::Vector3(-1.0f, 0.0f,  1.0f) },
-    };
-
-    for(auto i=0; i<5; ++i)
-    {
-        vertices[i].Normal = asdx::Vector3::Normalize(vertices[i].Normal);
-    }
-
-    uint32_t indices[12] = {
-        0, 2, 1,
-        0, 3, 2,
-        0, 4, 3,
-        0, 1, 4,
-    };
-
-    // 頂点バッファの生成.
-    {
-        D3D11_BUFFER_DESC desc = {};
-        desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(ShapeVertex) * 5;
-        desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-        D3D11_SUBRESOURCE_DATA res = {};
-        res.pSysMem = &vertices[0];
-
-        auto hr = pDevice->CreateBuffer(&desc, &res, m_VB.GetAddress());
-        if (FAILED(hr))
-        {
-            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
-            return false;
-        }
-    }
-
-    // インデックスバッファの生成.
-    {
-        D3D11_BUFFER_DESC desc = {};
-        desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(uint32_t) * 12;
-        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-        D3D11_SUBRESOURCE_DATA res = {};
-        res.pSysMem = &indices[0];
-
-        auto hr = pDevice->CreateBuffer(&desc, &res, m_IB.GetAddress());
-        if (FAILED(hr))
-        {
-            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
-            return false;
-        }
-    }
-
-    // 定数バッファの生成.
-    {
-        D3D11_BUFFER_DESC desc = {};
-        desc.Usage      = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth  = sizeof(CbMesh);
-        desc.BindFlags  = D3D11_BIND_CONSTANT_BUFFER;
-
-        auto hr = pDevice->CreateBuffer(&desc, nullptr, m_CB.GetAddress());
-        if (FAILED(hr))
-        {
-            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-//-----------------------------------------------------------------------------
-//      終了処理を行います.
-//-----------------------------------------------------------------------------
-void PyramidShape::Term()
-{
-    m_CB.Reset();
-    m_VB.Reset();
-    m_IB.Reset();
-}
-
-//-----------------------------------------------------------------------------
-//      描画処理を行います.
-//-----------------------------------------------------------------------------
-void PyramidShape::Draw
-(
-    ID3D11DeviceContext*    pContext,
-    const asdx::Matrix&     world,
-    const asdx::Vector4&    color
-)
-{
-    auto pVB = m_VB.GetPtr();
-    auto pCB = m_CB.GetPtr();
-    auto pIB = m_IB.GetPtr();
-    if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
-    { return; }
-
-    UINT stride = sizeof(ShapeVertex);
-    UINT offset = 0;
-
-    CbMesh res;
-    res.World = world;
-    res.Color = color;
-
-    pContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
-    pContext->IASetIndexBuffer(pIB, DXGI_FORMAT_R32_UINT, 0);
-    pContext->IASetVertexBuffers(0, 1, &pVB, &stride, &offset);
-    pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    pContext->VSSetConstantBuffers(1, 1, &pCB);
-    pContext->DrawIndexed(12, 0, 0);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// BoneShape class
-///////////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------------
-//      コンストラクタです.
-//-----------------------------------------------------------------------------
-BoneShape::BoneShape()
-{ /* DO_NOTHING */ }
-
-//-----------------------------------------------------------------------------
-//      デストラクタです.
-//-----------------------------------------------------------------------------
-BoneShape::~BoneShape()
-{ Term(); }
-
-//-----------------------------------------------------------------------------
-//      初期化処理を行います.
-//-----------------------------------------------------------------------------
-bool BoneShape::Init(ID3D11Device* pDevice, float length, float width)
-{
-    auto s = width * 0.5f;
-    ShapeVertex vertices[6] = {
-        { asdx::Vector3(0.0f, length, 0.0f), asdx::Vector3(0.0f, 1.0f, 0.0f) },
-
-        { asdx::Vector3(-s, length * 0.1f, -s), asdx::Vector3(-1.0f, 0.0f, -1.0f) },
-        { asdx::Vector3( s, length * 0.1f, -s), asdx::Vector3( 1.0f, 0.0f, -1.0f) },
-        { asdx::Vector3( s, length * 0.1f,  s), asdx::Vector3( 1.0f, 0.0f,  1.0f) },
-        { asdx::Vector3(-s, length * 0.1f,  s), asdx::Vector3(-1.0f, 0.0f,  1.0f) },
-
-        { asdx::Vector3(0.0f, 0.0f, 0.0f), asdx::Vector3(0.0f, -1.0f, 0.0f) },
-    };
-
-    // 基底変換行列
-    auto basis = asdx::Matrix(
-        0.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    );
-
-    for(auto i=0; i<6; ++i)
-    {
-        vertices[i].Position = asdx::Vector3::Transform(vertices[i].Position, basis);
-        vertices[i].Normal   = asdx::Vector3::Normalize(vertices[i].Normal);
-    }
-
-    uint32_t indices[24] = {
-        0, 2, 1,
-        0, 3, 2,
-        0, 4, 3,
-        0, 1, 4,
-
-        1, 2, 5,
-        2, 3, 5,
-        4, 3, 5,
-        4, 1, 5,
-    };
-
-    // 頂点バッファの生成.
-    {
-        D3D11_BUFFER_DESC desc = {};
-        desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(ShapeVertex) * 6;
-        desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-        D3D11_SUBRESOURCE_DATA res = {};
-        res.pSysMem = &vertices[0];
-
-        auto hr = pDevice->CreateBuffer(&desc, &res, m_VB.GetAddress());
-        if (FAILED(hr))
-        {
-            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
-            return false;
-        }
-    }
-
-    // インデックスバッファの生成.
-    {
-        D3D11_BUFFER_DESC desc = {};
-        desc.Usage     = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth = sizeof(uint32_t) * 24;
-        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-        D3D11_SUBRESOURCE_DATA res = {};
-        res.pSysMem = &indices[0];
-
-        auto hr = pDevice->CreateBuffer(&desc, &res, m_IB.GetAddress());
-        if (FAILED(hr))
-        {
-            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
-            return false;
-        }
-    }
-
-    // 定数バッファの生成.
-    {
-        D3D11_BUFFER_DESC desc = {};
-        desc.Usage      = D3D11_USAGE_DEFAULT;
-        desc.ByteWidth  = sizeof(CbMesh);
-        desc.BindFlags  = D3D11_BIND_CONSTANT_BUFFER;
-
-        auto hr = pDevice->CreateBuffer(&desc, nullptr, m_CB.GetAddress());
-        if (FAILED(hr))
-        {
-            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-//-----------------------------------------------------------------------------
-//      終了処理を行います.
-//-----------------------------------------------------------------------------
-void BoneShape::Term()
-{
-    m_CB.Reset();
-    m_IB.Reset();
-    m_VB.Reset();
-}
-
-//-----------------------------------------------------------------------------
-//      描画処理を行います.
-//-----------------------------------------------------------------------------
-void BoneShape::Draw
-(
-    ID3D11DeviceContext*    pContext,
-    const asdx::Matrix&     world,
-    const asdx::Vector4&    color
-)
-{
-    auto pVB = m_VB.GetPtr();
-    auto pCB = m_CB.GetPtr();
-    auto pIB = m_IB.GetPtr();
-    if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
-    { return; }
-
-    UINT stride = sizeof(ShapeVertex);
-    UINT offset = 0;
-
-    CbMesh res;
-    res.World = world;
-    res.Color = color;
-
-    pContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
-    pContext->IASetIndexBuffer(pIB, DXGI_FORMAT_R32_UINT, 0);
-    pContext->IASetVertexBuffers(0, 1, &pVB, &stride, &offset);
-    pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    pContext->VSSetConstantBuffers(1, 1, &pCB);
-    pContext->DrawIndexed(24, 0, 0);
 }
 
 
@@ -658,7 +366,7 @@ bool DiskShape::Init(ID3D11Device* pDevice, float radius, int divide)
     v.Normal   = asdx::Vector3(0.0f, 1.0f, 0.0f);
     vertices.push_back(v);
 
-    auto stepAngle = asdx::F_2PI / divide;
+    auto step  = asdx::F_2PI / divide;
     auto angle = 0.0f;
 
     v.Position.x = sin(angle) * radius;
@@ -671,7 +379,7 @@ bool DiskShape::Init(ID3D11Device* pDevice, float radius, int divide)
     for(auto i=0; i<divide; i++)
     {
         auto currIdx = prevIdx + 1;
-        angle = stepAngle * ((i + 1) % divide);
+        angle = step * ((i + 1) % divide);
 
         v.Position.x = sin(angle) * radius;
         v.Position.y = 0.0f;
@@ -769,10 +477,10 @@ void DiskShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(ShapeVertex);
-    UINT offset = 0;
+    auto stride = UINT(sizeof(ShapeVertex));
+    auto offset = 0u;
 
-    CbMesh res;
+    CbMesh res = {};
     res.World = world;
     res.Color = color;
 
@@ -828,7 +536,7 @@ bool ConeShape::Init
     v.Normal   = asdx::Vector3(0.0f, -1.0f, 0.0f);
     vertices.push_back(v);
 
-    auto stepAngle = asdx::F_2PI / divide;
+    auto step  = asdx::F_2PI / divide;
     auto angle = 0.0f;
 
     v.Normal.x = sin(angle);
@@ -843,7 +551,7 @@ bool ConeShape::Init
     for(auto i=0; i<divide; i++)
     {
         auto currIdx = prevIdx + 1;
-        angle = stepAngle * ((i + 1) % divide);
+        angle = step * ((i + 1) % divide);
 
         v.Normal.x = sin(angle);
         v.Normal.y = 0.0f;
@@ -959,10 +667,10 @@ void ConeShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(ShapeVertex);
-    UINT offset = 0;
+    auto stride = UINT(sizeof(ShapeVertex));
+    auto offset = 0u;
 
-    CbMesh res;
+    CbMesh res = {};
     res.World = world;
     res.Color = color;
 
@@ -1025,7 +733,7 @@ bool CylinderShape::Init
     vertices.push_back(v);
     auto prevIdx = UINT(vertices.size());
 
-    auto stepAngle = asdx::F_2PI / divide;
+    auto step  = asdx::F_2PI / divide;
     auto angle = 0.0f;
     auto halfHeight = height * 0.5f;
 
@@ -1040,7 +748,7 @@ bool CylinderShape::Init
     for(auto i=0; i<divide; i++)
     {
         auto currIdx = prevIdx + 1;
-        angle = stepAngle * ((i + 1) % divide);
+        angle = step * ((i + 1) % divide);
 
         v.Normal.x = sin(angle);
         v.Normal.y = 0.0f;
@@ -1075,7 +783,7 @@ bool CylinderShape::Init
     for (auto i=0; i<divide; ++i)
     {
         auto currIdx = prevIdx + 1;
-        angle = stepAngle * ((i + 1) % divide);
+        angle = step * ((i + 1) % divide);
 
         v.Normal.x = sin(angle);
         v.Normal.y = 0.0f;
@@ -1194,10 +902,10 @@ void CylinderShape::Draw
     if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
     { return; }
 
-    UINT stride = sizeof(ShapeVertex);
-    UINT offset = 0;
+    auto stride = UINT(sizeof(ShapeVertex));
+    auto offset = 0u;
 
-    CbMesh res;
+    CbMesh res = {};
     res.World = world;
     res.Color = color;
 
@@ -1207,6 +915,299 @@ void CylinderShape::Draw
     pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     pContext->VSSetConstantBuffers(1, 1, &pCB);
     pContext->DrawIndexed(m_Count, 0, 0);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// PyradmidShape class
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+PyramidShape::PyramidShape()
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      デストラクタです.
+//-----------------------------------------------------------------------------
+PyramidShape::~PyramidShape()
+{ Term(); }
+
+//-----------------------------------------------------------------------------
+//      初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool PyramidShape::Init(ID3D11Device* pDevice, float length, float width)
+{
+    auto s = width * 0.5f;
+
+    // 四角錐.
+    ShapeVertex vertices[5] = {
+        { asdx::Vector3(0.0f, length, 0.0f), asdx::Vector3(0.0f, 1.0f, 0.0f) },
+        { asdx::Vector3(-s, 0.0f, -s), asdx::Vector3(-1.0f, 0.0f, -1.0f) },
+        { asdx::Vector3( s, 0.0f, -s), asdx::Vector3( 1.0f, 0.0f, -1.0f) },
+        { asdx::Vector3( s, 0.0f,  s), asdx::Vector3( 1.0f, 0.0f,  1.0f) },
+        { asdx::Vector3(-s, 0.0f,  s), asdx::Vector3(-1.0f, 0.0f,  1.0f) },
+    };
+
+    for(auto i=0; i<5; ++i)
+    { vertices[i].Normal = asdx::Vector3::Normalize(vertices[i].Normal); }
+
+    uint32_t indices[12] = {
+        0, 2, 1,
+        0, 3, 2,
+        0, 4, 3,
+        0, 1, 4,
+    };
+
+    // 頂点バッファの生成.
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.Usage     = D3D11_USAGE_DEFAULT;
+        desc.ByteWidth = sizeof(ShapeVertex) * 5;
+        desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+        D3D11_SUBRESOURCE_DATA res = {};
+        res.pSysMem = &vertices[0];
+
+        auto hr = pDevice->CreateBuffer(&desc, &res, m_VB.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
+            return false;
+        }
+    }
+
+    // インデックスバッファの生成.
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.Usage     = D3D11_USAGE_DEFAULT;
+        desc.ByteWidth = sizeof(uint32_t) * 12;
+        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+        D3D11_SUBRESOURCE_DATA res = {};
+        res.pSysMem = &indices[0];
+
+        auto hr = pDevice->CreateBuffer(&desc, &res, m_IB.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
+            return false;
+        }
+    }
+
+    // 定数バッファの生成.
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.Usage      = D3D11_USAGE_DEFAULT;
+        desc.ByteWidth  = sizeof(CbMesh);
+        desc.BindFlags  = D3D11_BIND_CONSTANT_BUFFER;
+
+        auto hr = pDevice->CreateBuffer(&desc, nullptr, m_CB.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      終了処理を行います.
+//-----------------------------------------------------------------------------
+void PyramidShape::Term()
+{
+    m_CB.Reset();
+    m_VB.Reset();
+    m_IB.Reset();
+}
+
+//-----------------------------------------------------------------------------
+//      描画処理を行います.
+//-----------------------------------------------------------------------------
+void PyramidShape::Draw
+(
+    ID3D11DeviceContext*    pContext,
+    const asdx::Matrix&     world,
+    const asdx::Vector4&    color
+)
+{
+    auto pVB = m_VB.GetPtr();
+    auto pCB = m_CB.GetPtr();
+    auto pIB = m_IB.GetPtr();
+    if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
+    { return; }
+
+    auto stride = UINT(sizeof(ShapeVertex));
+    auto offset = 0u;
+
+    CbMesh res = {};
+    res.World = world;
+    res.Color = color;
+
+    pContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
+    pContext->IASetIndexBuffer(pIB, DXGI_FORMAT_R32_UINT, 0);
+    pContext->IASetVertexBuffers(0, 1, &pVB, &stride, &offset);
+    pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pContext->VSSetConstantBuffers(1, 1, &pCB);
+    pContext->DrawIndexed(12, 0, 0);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// BoneShape class
+///////////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------------
+//      コンストラクタです.
+//-----------------------------------------------------------------------------
+BoneShape::BoneShape()
+{ /* DO_NOTHING */ }
+
+//-----------------------------------------------------------------------------
+//      デストラクタです.
+//-----------------------------------------------------------------------------
+BoneShape::~BoneShape()
+{ Term(); }
+
+//-----------------------------------------------------------------------------
+//      初期化処理を行います.
+//-----------------------------------------------------------------------------
+bool BoneShape::Init(ID3D11Device* pDevice, float length, float width)
+{
+    auto s = width * 0.5f;
+
+    // 8面体.
+    ShapeVertex vertices[6] = {
+        { asdx::Vector3(0.0f, length, 0.0f), asdx::Vector3(0.0f, 1.0f, 0.0f) },
+        { asdx::Vector3(-s, length * 0.1f, -s), asdx::Vector3(-1.0f, 0.0f, -1.0f) },
+        { asdx::Vector3( s, length * 0.1f, -s), asdx::Vector3( 1.0f, 0.0f, -1.0f) },
+        { asdx::Vector3( s, length * 0.1f,  s), asdx::Vector3( 1.0f, 0.0f,  1.0f) },
+        { asdx::Vector3(-s, length * 0.1f,  s), asdx::Vector3(-1.0f, 0.0f,  1.0f) },
+        { asdx::Vector3(0.0f, 0.0f, 0.0f), asdx::Vector3(0.0f, -1.0f, 0.0f) },
+    };
+
+    // 基底変換行列
+    auto basis = asdx::Matrix(
+        0.0f, 1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    );
+
+    for(auto i=0; i<6; ++i)
+    {
+        vertices[i].Position = asdx::Vector3::Transform(vertices[i].Position, basis);
+        vertices[i].Normal   = asdx::Vector3::Normalize(vertices[i].Normal);
+    }
+
+    uint32_t indices[24] = {
+        0, 2, 1,
+        0, 3, 2,
+        0, 4, 3,
+        0, 1, 4,
+
+        1, 2, 5,
+        2, 3, 5,
+        4, 3, 5,
+        4, 1, 5,
+    };
+
+    // 頂点バッファの生成.
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.Usage     = D3D11_USAGE_DEFAULT;
+        desc.ByteWidth = sizeof(ShapeVertex) * 6;
+        desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+        D3D11_SUBRESOURCE_DATA res = {};
+        res.pSysMem = &vertices[0];
+
+        auto hr = pDevice->CreateBuffer(&desc, &res, m_VB.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
+            return false;
+        }
+    }
+
+    // インデックスバッファの生成.
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.Usage     = D3D11_USAGE_DEFAULT;
+        desc.ByteWidth = sizeof(uint32_t) * 24;
+        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+        D3D11_SUBRESOURCE_DATA res = {};
+        res.pSysMem = &indices[0];
+
+        auto hr = pDevice->CreateBuffer(&desc, &res, m_IB.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
+            return false;
+        }
+    }
+
+    // 定数バッファの生成.
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.Usage      = D3D11_USAGE_DEFAULT;
+        desc.ByteWidth  = sizeof(CbMesh);
+        desc.BindFlags  = D3D11_BIND_CONSTANT_BUFFER;
+
+        auto hr = pDevice->CreateBuffer(&desc, nullptr, m_CB.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : ID3D11Device::CreateBuffer() Failed.");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+//-----------------------------------------------------------------------------
+//      終了処理を行います.
+//-----------------------------------------------------------------------------
+void BoneShape::Term()
+{
+    m_CB.Reset();
+    m_IB.Reset();
+    m_VB.Reset();
+}
+
+//-----------------------------------------------------------------------------
+//      描画処理を行います.
+//-----------------------------------------------------------------------------
+void BoneShape::Draw
+(
+    ID3D11DeviceContext*    pContext,
+    const asdx::Matrix&     world,
+    const asdx::Vector4&    color
+)
+{
+    auto pVB = m_VB.GetPtr();
+    auto pCB = m_CB.GetPtr();
+    auto pIB = m_IB.GetPtr();
+    if (pVB == nullptr || pCB == nullptr || pIB == nullptr)
+    { return; }
+
+    auto stride = UINT(sizeof(ShapeVertex));
+    auto offset = 0u;
+
+    CbMesh res = {};
+    res.World = world;
+    res.Color = color;
+
+    pContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
+    pContext->IASetIndexBuffer(pIB, DXGI_FORMAT_R32_UINT, 0);
+    pContext->IASetVertexBuffers(0, 1, &pVB, &stride, &offset);
+    pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pContext->VSSetConstantBuffers(1, 1, &pCB);
+    pContext->DrawIndexed(24, 0, 0);
 }
 
 

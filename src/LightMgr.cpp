@@ -440,7 +440,14 @@ void LightMgr::Edit()
             { m_CurrentIndex = i; }
         }
         ImGui::SameLine();
-        ImGui::Text(light.Tag.c_str());
+        if (ImGui::BeginChild(u8"ライトパラメータ"))
+        {
+            ImGui::Text(light.Tag.c_str());
+            ImGui::BulletText(u8"強度 : %.1f", light.IBLIntensity);
+            ImGui::BulletText(u8"X回転 : %.1f", light.SunLightAngle.x);
+            ImGui::BulletText(u8"Y回転 : %.1f", light.SunLightAngle.y); 
+            ImGui::EndChild();
+        }
 
         ImGui::PopID();
     }

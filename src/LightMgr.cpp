@@ -418,7 +418,7 @@ void LightMgr::Term()
 //-----------------------------------------------------------------------------
 void LightMgr::Edit()
 {
-    static const ImVec2 kCubmapSize = ImVec2(64.0f * 4, 64.0f);
+    static const ImVec2 kCubmapSize = ImVec2(64.0f * 4, 64. * 2.0f);
     static const ImVec4 kRed = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 
     for(size_t i=0; i<m_Light.size(); ++i)

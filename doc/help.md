@@ -37,9 +37,9 @@
 
 
 ## 画面表示について  
-Material Editorの画面について説明します。
+Material Editorの画面について説明します。  
 
-
+/* TODO */
 
 
 ## マテリアル定義について  
@@ -426,7 +426,12 @@ void ShadowingPS(const VSOutput input)
 ```
 
 通常描画時は，ライティング結果をPSOutput.Colorに，法線／ラフネス／メタルネスの値をPSOutput.NRMに格納してください。
-シャドウ描画時は，discard命令が必要なもののみ，ShadowingPS()メソッドを実装してください。
+シャドウ描画時は，discard命令が必要なもののみ，ShadowingPS()メソッドを実装してください。  
+
+## エクスポートプラグインについて
+Material Editorではエクスポート処理をカスタマイズできるように，DLL内にあるExportMaterialという関数を呼び出す仕組みになっています。  
+plugins/exporterフォルダ下にDLLを置くことで，エディタ上から呼び出し可能になります。どのDLLを選択するかについてはエクスポート設定からコンボボックスで選択できるようになっています。  
+
 
 ---
 以上。

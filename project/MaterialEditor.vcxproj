@@ -131,7 +131,6 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     <ClCompile Include="..\external\meshoptimizer\src\vfetchoptimizer.cpp" />
     <ClCompile Include="..\src\App.cpp" />
     <ClCompile Include="..\src\AppDraw.cpp" />
-    <ClCompile Include="..\src\AppExport.cpp" />
     <ClCompile Include="..\src\AppGui.cpp" />
     <ClCompile Include="..\src\Config.cpp" />
     <ClCompile Include="..\src\DebugPrimitive.cpp" />

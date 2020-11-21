@@ -308,6 +308,7 @@ EditorModel::EditorModel()
 , m_Rotation    (0.0f, 0.0f, 0.0f)
 , m_Translation (0.0f, 0.0f, 0.0f)
 , m_World       (asdx::Matrix::CreateIdentity())
+, m_DirtyWorld  (false)
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------

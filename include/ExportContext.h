@@ -169,3 +169,101 @@ struct ExportContext
     ExportMaterial*     Materials;      //!< マテリアル.
 };
 
+//-----------------------------------------------------------------------------
+//      エクスポートコンテキストを破棄します.
+//-----------------------------------------------------------------------------
+inline void DisposeExportContext(ExportContext*& context)
+{
+    if (context == nullptr)
+    { return; }
+
+    if (context->Materials == nullptr)
+    { return; }
+
+    for(auto i=0u; i<context->MaterialCount; ++i)
+    {
+        if (context->Materials[i].BoolParams != nullptr)
+        {
+            delete[] context->Materials[i].BoolParams;
+            context->Materials[i].BoolParams = nullptr;
+        }
+
+        if (context->Materials[i].IntParams != nullptr)
+        {
+            delete[] context->Materials[i].IntParams;
+            context->Materials[i].IntParams = nullptr;
+        }
+
+        if (context->Materials[i].FloatParams != nullptr)
+        {
+            delete[] context->Materials[i].FloatParams;
+            context->Materials[i].FloatParams = nullptr;
+        }
+
+        if (context->Materials[i].Float2Params != nullptr)
+        {
+            delete[] context->Materials[i].Float2Params;
+            context->Materials[i].Float2Params = nullptr;
+        }
+
+        if (context->Materials[i].Float3Params != nullptr)
+        {
+            delete[] context->Materials[i].Float3Params;
+            context->Materials[i].Float3Params = nullptr;
+        }
+
+        if (context->Materials[i].FloatParams != nullptr)
+        {
+            delete[] context->Materials[i].FloatParams;
+            context->Materials[i].FloatParams = nullptr;
+        }
+
+        if (context->Materials[i].Float2Params != nullptr)
+        {
+            delete[] context->Materials[i].Float2Params;
+            context->Materials[i].Float2Params = nullptr;
+        }
+
+        if (context->Materials[i].Float3Params != nullptr)
+        {
+            delete[] context->Materials[i].FloatParams;
+            context->Materials[i].FloatParams = nullptr;
+        }
+
+        if (context->Materials[i].Float4Params != nullptr)
+        {
+            delete[] context->Materials[i].Float4Params;
+            context->Materials[i].Float4Params = nullptr;
+        }
+
+        if (context->Materials[i].Color3Params != nullptr)
+        {
+            delete[] context->Materials[i].Color3Params;
+            context->Materials[i].Color3Params = nullptr;
+        }
+
+        if (context->Materials[i].Color4Params != nullptr)
+        {
+            delete[] context->Materials[i].Color4Params;
+            context->Materials[i].Color4Params = nullptr;
+        }
+
+        if (context->Materials[i].Bit32Params != nullptr)
+        {
+            delete[] context->Materials[i].Bit32Params;
+            context->Materials[i].Bit32Params = nullptr;
+        }
+
+        if (context->Materials[i].Texture2DParams != nullptr)
+        {
+            delete[] context->Materials[i].Texture2DParams;
+            context->Materials[i].Texture2DParams = nullptr;
+        }
+    }
+
+    delete[] context->Materials;
+    context->Materials = nullptr;
+
+    delete context;
+    context = nullptr;
+}

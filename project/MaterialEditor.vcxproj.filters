@@ -45,9 +45,6 @@
     <ClCompile Include="..\external\imguizmo\ImSequencer.cpp">
       <Filter>external\imiguizmo</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\AppExport.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\AppGui.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>

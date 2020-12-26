@@ -292,6 +292,7 @@ App::App()
     m_ClearColor[1] = 0.18f;
     m_ClearColor[2] = 0.18f;
     m_ClearColor[3] = 1.0f;
+    m_EnableMultiSample = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -585,18 +586,18 @@ bool App::OnInit()
 //-----------------------------------------------------------------------------
 void App::OnTerm()
 {
-    m_EditorVS.Term();
-    m_EditorSkinningVS.Term();
-    m_ShadowVS.Term();
-    m_ShadowSkinningVS.Term();
-    m_TriangleVS.Term();
-    m_GuideVS.Term();
-    m_ShapeVS.Term();
-    m_DefaultPS.Term();
-    m_CopyPS.Term();
-    m_OETFPS.Term();
-    m_GuidePS.Term();
-    m_ShapePS.Term();
+    m_EditorVS          .Term();
+    m_EditorSkinningVS  .Term();
+    m_ShadowVS          .Term();
+    m_ShadowSkinningVS  .Term();
+    m_TriangleVS        .Term();
+    m_GuideVS           .Term();
+    m_ShapeVS           .Term();
+    m_DefaultPS         .Term();
+    m_CopyPS            .Term();
+    m_OETFPS            .Term();
+    m_GuidePS           .Term();
+    m_ShapePS           .Term();
 
     m_SceneCB.Term();
     m_GuideCB.Term();
@@ -614,16 +615,16 @@ void App::OnTerm()
 
     m_ArrowShape.Term();
 
-    m_LightingBuffer.Release();
-    m_NRMBuffer     .Release();
-    m_ShadowBuffer  .Release();
-    m_DepthBuffer   .Release();
-    m_DummyColorBuffer.Release();
+    m_LightingBuffer    .Release();
+    m_NRMBuffer         .Release();
+    m_ShadowBuffer      .Release();
+    m_DepthBuffer       .Release();
+    m_DummyColorBuffer  .Release();
 
     PluginMgr::Instance().Term();
-    asdx::GuiMgr::GetInstance().Term();
-    LightMgr::Instance().Term();
+    LightMgr ::Instance().Term();
 
+    asdx::GuiMgr       ::GetInstance().Term();
     asdx::AppHistoryMgr::GetInstance().Term();
 }
 

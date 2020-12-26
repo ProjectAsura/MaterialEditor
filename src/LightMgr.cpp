@@ -423,7 +423,7 @@ void LightMgr::Edit()
 
     for(size_t i=0; i<m_Light.size(); ++i)
     {
-        const auto& light = m_Light[i];
+        auto& light = m_Light[i];
 
         ImGui::PushID(int(i));
 
@@ -443,9 +443,12 @@ void LightMgr::Edit()
         if (ImGui::BeginChild(u8"ライトパラメータ"))
         {
             ImGui::Text(light.Tag.c_str());
-            ImGui::BulletText(u8"強度 : %.1f", light.IBLIntensity);
-            ImGui::BulletText(u8"X回転 : %.1f", light.SunLightAngle.x);
-            ImGui::BulletText(u8"Y回転 : %.1f", light.SunLightAngle.y); 
+            //ImGui::BulletText(u8"強度 : %.1f", light.IBLIntensity);
+            //ImGui::BulletText(u8"X回転 : %.1f", light.SunLightAngle.x);
+            //ImGui::BulletText(u8"Y回転 : %.1f", light.SunLightAngle.y); 
+            ImGui::DragFloat(u8"強度", &light.IBLIntensity, 0.1f);
+            ImGui::DragFloat(u8"垂直角", &light.SunLightAngle.x, 0.1f, -360.0f, 360.0f);
+            ImGui::DragFloat(u8"水平角", &light.SunLightAngle.y, 0.1f, -360.0f, 360.0f);
             ImGui::EndChild();
         }
 

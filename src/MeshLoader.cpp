@@ -140,7 +140,7 @@ void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh, uint32
             auto N = asdx::Vector3(pNormal->x, pNormal->y, pNormal->z);
             auto T = asdx::Vector3(pTangent->x, pTangent->y, pTangent->z);
 
-            dstMesh.TangentSpaces[i] = EncodeTBN(N, T, 0);
+            dstMesh.TangentSpaces[i] = asdx::EncodeTBN(N, T, 0);
         }
 
         if (pSrcMesh->HasNormals() && !pSrcMesh->HasTangentsAndBitangents())
@@ -150,7 +150,7 @@ void MeshLoader::ParseMesh(asdx::ResModel& model, const aiMesh* pSrcMesh, uint32
             asdx::Vector3 T, B;
             asdx::CalcONB(N, T, B);
 
-            dstMesh.TangentSpaces[i] = EncodeTBN(N, T, 0);
+            dstMesh.TangentSpaces[i] = asdx::EncodeTBN(N, T, 0);
         }
 
         for(auto j=0; j<4; ++j)

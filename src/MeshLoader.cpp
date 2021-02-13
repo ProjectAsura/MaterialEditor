@@ -46,8 +46,14 @@ bool MeshLoader::Load(const char* filename, asdx::ResModel& model)
     flag |= aiProcess_CalcTangentSpace;
     flag |= aiProcess_GenSmoothNormals;
     flag |= aiProcess_GenUVCoords;
-    flag |= aiProcess_RemoveRedundantMaterials;
+    //flag |= aiProcess_RemoveRedundantMaterials;
     flag |= aiProcess_OptimizeMeshes;
+    flag |= aiProcess_JoinIdenticalVertices;
+    flag |= aiProcess_ImproveCacheLocality;
+    flag |= aiProcess_SortByPType;
+    flag |= aiProcess_LimitBoneWeights;
+    flag |= aiProcess_FindDegenerates;
+    flag |= aiProcess_FindInvalidData;
 
     // ファイルを読み込み.
     m_pScene = importer.ReadFile(filename, flag);

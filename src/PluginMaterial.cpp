@@ -1059,13 +1059,14 @@ bool PluginMaterial::Load(const char* path)
     shaderPath = asdx::GetDirectoryPathA(shaderPath.c_str());
     shaderPath = asdx::ToFullPath((shaderPath + m_ShaderPath).c_str());
 
-    // シェーダをロード.
+    // ライティング用シェーダをロード.
     if (!m_LightingShader.Load(shaderPath.c_str(), "LightingPS"))
     {
         ELOGA("Error : PluginShader::Load() Failed. path = %s", shaderPath.c_str());
         return false;
     }
 
+    // シャドウイング用シェーダをロード.
     if (!m_ShadowingShader.Load(shaderPath.c_str(), "ShadowingPS"))
     {
         ELOGA("Error : PluginShader::Load() Failed. path = %s", shaderPath.c_str());
@@ -1196,13 +1197,9 @@ void PluginMaterial::Unbind(ID3D11DeviceContext* pContext, bool lightingPass)
     { return; }
 
     if (lightingPass)
-    {
-        m_LightingShader.Unbind(pContext);
-    }
+    { m_LightingShader.Unbind(pContext); }
     else
-    {
-        m_ShadowingShader.Unbind(pContext);
-    }
+    { m_ShadowingShader.Unbind(pContext); }
 }
 
 //-----------------------------------------------------------------------------
@@ -1243,9 +1240,11 @@ void PluginMaterial::Edit(MaterialInstance* instance)
             kDepthState);
     }
 
+    // 表示フラグ.
     for(size_t i=0; i<instance->m_Bool.size(); ++i)
     { instance->m_Bool[i].Param.DrawCheckbox(m_Bool[i].DisplayTag.c_str()); }
 
+    // int.
     for(size_t i=0; i<instance->m_Int.size(); ++i)
     {
         instance->m_Int[i].Param.DrawSlider(
@@ -1255,6 +1254,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
             m_Int[i].Maxi);
     }
 
+    // float.
     for(size_t i=0; i<instance->m_Float.size(); ++i)
     {
         instance->m_Float[i].Param.DrawSlider(
@@ -1264,6 +1264,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
             m_Float[i].Maxi);
     }
 
+    // float2
     for(size_t i=0; i<instance->m_Float2.size(); ++i)
     {
         instance->m_Float2[i].Param.DrawSlider(
@@ -1273,6 +1274,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
             m_Float2[i].Maxi);
     }
 
+    // float3
     for(size_t i=0; i<instance->m_Float3.size(); ++i)
     {
         instance->m_Float3[i].Param.DrawSlider(
@@ -1282,6 +1284,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
             m_Float3[i].Maxi);
     }
 
+    // float4
     for(size_t i=0; i<instance->m_Float4.size(); ++i)
     {
         instance->m_Float4[i].Param.DrawSlider(
@@ -1291,6 +1294,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
             m_Float4[i].Maxi);
     }
 
+    // color3
     for(size_t i=0; i<instance->m_Color3.size(); ++i)
     {
         if (m_Color3[i].Wheel)
@@ -1299,6 +1303,7 @@ void PluginMaterial::Edit(MaterialInstance* instance)
         { instance->m_Color3[i].Param.DrawPicker(m_Color3[i].DisplayTag.c_str()); }
     }
 
+    // color4
     for(size_t i=0; i<instance->m_Color4.size(); ++i)
     {
         if (m_Color4[i].Wheel)
@@ -1307,9 +1312,11 @@ void PluginMaterial::Edit(MaterialInstance* instance)
         { instance->m_Color4[i].Param.DrawPicker(m_Color4[i].DisplayTag.c_str()); }
     }
 
+    // bit32
     for(size_t i=0; i<instance->m_Bit32.size(); ++i)
     { instance->m_Bit32[i].Param.DrawCheckBox(m_Bit32[i].DisplayTag.c_str()); }
 
+    // texture2D.
     for(size_t i=0; i<instance->m_Texture2D.size(); ++i)
     {
         instance->m_Texture2D[i].Param.DrawControl(
@@ -1413,7 +1420,7 @@ void PluginMaterial::Deserialize(tinyxml2::XMLDocument* doc)
 PluginMaterial PluginMaterial::CreateTemplate()
 {
     PluginMaterial temp;
-    temp.m_Name                     = u8"マテリアルテンプレート";
+    temp.m_Name                     = u8"MyMaterial";
     temp.m_ShaderPath               = "../shader/StandardPS.hlsl";
     temp.m_ShadowCast.Default       = true;
     temp.m_ShadowCast.Editable      = true;
@@ -1427,19 +1434,19 @@ PluginMaterial PluginMaterial::CreateTemplate()
     temp.m_DepthState.Editable      = true;
 
     UiDefBool boolParam = {};
-    boolParam.DisplayTag    = u8"ブール値";
+    boolParam.DisplayTag    = u8"MyBool";
     boolParam.Target        = "BoolParam";
     boolParam.Default       = false;
     temp.m_Bool.push_back(boolParam);
 
     UiDefInt intParam = {};
-    intParam.DisplayTag = u8"整数値";
+    intParam.DisplayTag = u8"MyInt";
     intParam.Target     = "IntParam";
     intParam.Default    = 0;
     temp.m_Int.push_back(intParam);
 
     UiDefFloat floatParam = {};
-    floatParam.DisplayTag   = u8"浮動小数値";
+    floatParam.DisplayTag   = u8"MyFloat";
     floatParam.Target       = "FloatParam";
     floatParam.Step         = 0.1f;
     floatParam.Default      = 0.0f;
@@ -1449,7 +1456,7 @@ PluginMaterial PluginMaterial::CreateTemplate()
     temp.m_Float.push_back(floatParam);
 
     UiDefFloat2 float2Param = {};
-    float2Param.DisplayTag = u8"2次元ベクトル";
+    float2Param.DisplayTag = u8"MyFloat2";
     float2Param.Target     = "Vec2Param";
     float2Param.Step       = 0.1f;
     float2Param.Default    = asdx::Vector2(0.0f, 0.0f);
@@ -1459,7 +1466,7 @@ PluginMaterial PluginMaterial::CreateTemplate()
     temp.m_Float2.push_back(float2Param);
 
     UiDefFloat3 float3Param = {};
-    float3Param.DisplayTag = u8"3次元ベクトル";
+    float3Param.DisplayTag = u8"MyFloat3";
     float3Param.Target     = "Vec3Param";
     float3Param.Step       = 0.1f;
     float3Param.Default    = asdx::Vector3(0.0f, 0.0f, 0.0f);
@@ -1469,7 +1476,7 @@ PluginMaterial PluginMaterial::CreateTemplate()
     temp.m_Float3.push_back(float3Param);
 
     UiDefFloat4 float4Param = {};
-    float4Param.DisplayTag = u8"4次元ベクトル";
+    float4Param.DisplayTag = u8"MyFloat4";
     float4Param.Target     = "Vec3Param";
     float4Param.Step       = 0.1f;
     float4Param.Default    = asdx::Vector4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -1479,24 +1486,25 @@ PluginMaterial PluginMaterial::CreateTemplate()
     temp.m_Float4.push_back(float4Param);
 
     UiDefColor3 color3Param = {};
-    color3Param.DisplayTag  = u8"RGBカラー";
+    color3Param.DisplayTag  = u8"MyColor3";
     color3Param.Target      = "Color3Param";
     color3Param.Default     = asdx::Vector3(1.0f, 1.0f, 1.0f);
     color3Param.Wheel       = false;
     temp.m_Color3.push_back(color3Param);
 
     UiDefColor4 color4Param = {};
-    color4Param.DisplayTag  = u8"RGBAカラー";
+    color4Param.DisplayTag  = u8"MyColor4";
     color4Param.Target      = "Color4Param";
     color4Param.Default     = asdx::Vector4(1.0f, 1.0f, 1.0f, 1.0f);
     color4Param.Wheel       = false;
     temp.m_Color4.push_back(color4Param);
 
     UiDefTexture2D texture2dParam = {};
-    texture2dParam.DisplayTag   = u8"テクスチャ0";
+    texture2dParam.DisplayTag   = u8"MyTexture2D";
     texture2dParam.Target       = "ColorMap";
     texture2dParam.Default      = DEFAULT_TEXTURE_BLACK;
     temp.m_Texture2D.push_back(texture2dParam);
 
     return temp;
 }
+

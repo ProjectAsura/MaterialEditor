@@ -44,12 +44,12 @@ enum UI_TYPE
 ///////////////////////////////////////////////////////////////////////////////
 enum DEFAULT_TEXTURE_TYPE
 {
-    DEFAULT_TEXTURE_CHECKER_BOARD   = 0,
-    DEFAULT_TEXTURE_WHITE           = 1,
-    DEFAULT_TEXTURE_BLACK           = 2,
-    DEFAULT_TEXTURE_NORMAL          = 3,
-    DEFAULT_TEXTURE_ORM             = 4,
-    DEFAULT_TEXTURE_VELCOITY        = 5,
+    DEFAULT_TEXTURE_CHECKER_BOARD   = 0,    // 市松模様.
+    DEFAULT_TEXTURE_WHITE           = 1,    // 白.
+    DEFAULT_TEXTURE_BLACK           = 2,    // 黒.
+    DEFAULT_TEXTURE_NORMAL          = 3,    // 法線.
+    DEFAULT_TEXTURE_MRO             = 4,    // MRO
+    DEFAULT_TEXTURE_VELCOITY        = 5,    // 速度.
 
     DEFAULT_TEXTURE_COUNT
 };
@@ -720,14 +720,14 @@ public:
     void ReloadExporter();
 
     //-------------------------------------------------------------------------
-    //! @brief      マテリアルを検索します.
+    //! @brief      マスターマテリアルを検索します.
     //-------------------------------------------------------------------------
-    bool FindMaterial(const std::string& name, PluginMaterial** result);
+    bool FindMasterMaterial(const std::string& name, PluginMaterial** result);
 
     //-------------------------------------------------------------------------
     //! @brief      マテリアルインスタンスを生成します.
     //-------------------------------------------------------------------------
-    MaterialInstance* CreateInstance(const std::string& name);
+    MaterialInstance* CreateInstance(const std::string& masterName);
 
     //-------------------------------------------------------------------------
     //! @brief      マテリアルインスタンスを破棄します.
@@ -773,12 +773,12 @@ private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    static PluginMgr                        s_Instance;
-    std::map<std::string, PluginMaterial*>  m_Materials;
-    asdx::RefPtr<ID3D11ShaderResourceView>  m_DefaultSRV[DEFAULT_TEXTURE_COUNT];
-    asdx::Disposer<ID3D11PixelShader>       m_ShaderDisposer;
-    asdx::Disposer<ID3D11Buffer>            m_BufferDisposer;
-    std::vector<std::string>                m_Exporters;
+    static PluginMgr                            s_Instance;
+    std::map<std::string, PluginMaterial*>      m_MasterMaterials;                          //!< 定義のみ実データは持たない.
+    asdx::RefPtr<ID3D11ShaderResourceView>      m_DefaultSRV[DEFAULT_TEXTURE_COUNT];        //!< デフォルトテクスチャ.
+    asdx::Disposer<ID3D11PixelShader>           m_ShaderDisposer;                           //!< シェーダ遅延解放用.
+    asdx::Disposer<ID3D11Buffer>                m_BufferDisposer;                           //!< バッファ遅延解放用.
+    std::vector<std::string>                    m_Exporters;                                //!< プラグインエクスポーターパス.
 
     //=========================================================================
     // private methods.

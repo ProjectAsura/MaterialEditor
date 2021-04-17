@@ -155,6 +155,11 @@ public:
     //-------------------------------------------------------------------------
     const EditorLight* GetLight() const;
 
+    //-------------------------------------------------------------------------
+    //! @brief      マウス操作を行います.
+    //-------------------------------------------------------------------------
+    void OnMouse(float x, float y, float gain, bool down);
+
 private:
     //=========================================================================
     // private variables.
@@ -164,6 +169,9 @@ private:
     size_t                                  m_CurrentIndex;
     asdx::SkyBox                            m_SkyBox;
     asdx::RefPtr<ID3D11ShaderResourceView>  m_EnvBRDF;
+    bool                                    m_Drag;
+    asdx::Vector2                           m_PrevCursor;
+    asdx::Vector2                           m_CurrCursor;
 
     //=========================================================================
     // private methods.

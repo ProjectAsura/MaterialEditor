@@ -899,7 +899,8 @@ void App::OnMouse(const asdx::MouseEventArgs& args)
     auto isCtrlDown = !!(GetKeyState(VK_CONTROL) & 0x800);
     m_CameraControl = false;
 
-    if (isAltDown)
+    // カメラ操作.
+    if (isAltDown && !isCtrlDown)
     {
         m_CameraControl = true;
         m_CameraController.OnMouse(
@@ -911,6 +912,16 @@ void App::OnMouse(const asdx::MouseEventArgs& args)
             args.IsMiddleButtonDown,
             args.IsSideButton1Down,
             args.IsSideButton2Down);
+    }
+
+    // ライト操作.
+    if (isCtrlDown && !isAltDown)
+    {
+        LightMgr::Instance().OnMouse(
+            float(args.X),
+            float(args.Y),
+            0.1f,
+            args.IsLeftButtonDown);
     }
 
     asdx::GuiMgr::GetInstance().OnMouse(
@@ -1147,7 +1158,6 @@ void App::DrawGuide()
         cameraReleative += (-m_CameraController.GetCamera().GetAxisZ() * kDistanceToDraw);
 
         auto world = 
-            asdx::Matrix::CreateRotationZ(asdx::F_PIDIV2) *
             asdx::Matrix::CreateRotationY(asdx::ToRadian(angle.y)) *
             asdx::Matrix::CreateRotationX(asdx::ToRadian(angle.x)) *
             asdx::Matrix::CreateTranslation(cameraReleative);

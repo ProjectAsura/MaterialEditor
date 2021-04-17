@@ -52,7 +52,6 @@ bool CallExporter
 }
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // PluginMgr class
 ///////////////////////////////////////////////////////////////////////////////
@@ -95,7 +94,7 @@ bool PluginMgr::Load()
                 continue;
             }
 
-            m_Materials[mat->GetName()] = mat;
+            m_MasterMaterials[mat->GetName()] = mat;
         }
     }
 
@@ -192,7 +191,7 @@ bool PluginMgr::Load()
         }
     }
 
-    // オクルージョン/ラフネス/メタルネス生成.
+    // メタルネス/ラフネス/オクルージョン生成.
     {
         DirectX::ScratchImage image;
         auto hr = image.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, 32, 32, 1, 1);
@@ -209,9 +208,9 @@ bool PluginMgr::Load()
             for(auto j=0; j<32; ++j)
             {
                 {
-                    ptr[idx + 0] = 255;     // Occlusion
+                    ptr[idx + 0] = 0;       // Metallness
                     ptr[idx + 1] = 255;     // Roughness
-                    ptr[idx + 2] = 0;       // Metallness
+                    ptr[idx + 2] = 255;     // Occlusion
                     ptr[idx + 3] = 0;
                 }
                 idx += 4;
@@ -223,7 +222,7 @@ bool PluginMgr::Load()
             image.GetImages(),
             image.GetImageCount(),
             image.GetMetadata(),
-            m_DefaultSRV[DEFAULT_TEXTURE_ORM].GetAddress());
+            m_DefaultSRV[DEFAULT_TEXTURE_MRO].GetAddress());
         if (FAILED(hr))
         {
             ELOG("Error : DirectX::CreatShaderResourceView() Failed.");
@@ -356,7 +355,7 @@ bool PluginMgr::Load()
 //-----------------------------------------------------------------------------
 void PluginMgr::Term()
 {
-    for(auto& itr : m_Materials)
+    for(auto& itr : m_MasterMaterials)
     {
         auto mat = itr.second;
         itr.second = nullptr;
@@ -365,7 +364,7 @@ void PluginMgr::Term()
         delete mat;
         mat = nullptr;
     }
-    m_Materials.clear();
+    m_MasterMaterials.clear();
 
     for(auto i=0; i<DEFAULT_TEXTURE_COUNT; ++i)
     { m_DefaultSRV[i].Reset(); }
@@ -378,7 +377,7 @@ void PluginMgr::ReloadShader()
 {
     auto failed  = 0;
     auto success = 0;
-    for (auto& itr : m_Materials)
+    for (auto& itr : m_MasterMaterials)
     { 
         auto ret = itr.second->ReloadShader();
         if (ret)
@@ -416,28 +415,28 @@ void PluginMgr::ReloadExporter()
 }
 
 //-----------------------------------------------------------------------------
-//      マテリアルを検索します.
+//      マスターマテリアルを検索します.
 //-----------------------------------------------------------------------------
-bool PluginMgr::FindMaterial(const std::string& name, PluginMaterial** result)
+bool PluginMgr::FindMasterMaterial(const std::string& name, PluginMaterial** result)
 {
-    if (m_Materials.find(name) == m_Materials.end())
+    if (m_MasterMaterials.find(name) == m_MasterMaterials.end())
     { return false; }
 
-    *result = m_Materials[name];
+    *result = m_MasterMaterials[name];
     return true;
 }
 
 //-----------------------------------------------------------------------------
 //      マテリアルインスタンスを生成します.
 //-----------------------------------------------------------------------------
-MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
+MaterialInstance* PluginMgr::CreateInstance(const std::string& masterName)
 {
     PluginMaterial* mat;
-    if (!FindMaterial(name, &mat))
+    if (!FindMasterMaterial(masterName, &mat))
     { return nullptr; }
 
     auto instance = new MaterialInstance();
-    instance->m_MaterialName = name;
+    instance->m_MaterialName = masterName;
 
     auto shader = mat->GetLightingShader();
 
@@ -446,109 +445,129 @@ MaterialInstance* PluginMgr::CreateInstance(const std::string& name)
     for (size_t i = 0; i < instance->m_Bool.size(); ++i)
     {
         PluginShader::MemberInfo info = {};
-        shader->FindMemberInfo("CbUser", mat->m_Bool[i].Target, info);
-        instance->m_Bool[i].Tag = mat->m_Bool[i].DisplayTag;
-        instance->m_Bool[i].Param.SetValue(mat->m_Bool[i].Default);
-        instance->m_Bool[i].Offset = info.Offset;
-        instance->m_Bool[i].Converter = CONVERTER_NONE;
+        if (shader->FindMemberInfo("CbUser", mat->m_Bool[i].Target, info))
+        {
+            instance->m_Bool[i].Tag         = mat->m_Bool[i].DisplayTag;
+            instance->m_Bool[i].Param.SetValue(mat->m_Bool[i].Default);
+            instance->m_Bool[i].Offset      = info.Offset;
+            instance->m_Bool[i].Converter   = CONVERTER_NONE;
+        }
     }
 
     instance->m_Int.resize(mat->m_Int.size());
     for (size_t i = 0; i < instance->m_Int.size(); ++i)
     {
         PluginShader::MemberInfo info = {};
-        shader->FindMemberInfo("CbUser", mat->m_Int[i].Target, info);
-        instance->m_Int[i].Tag = mat->m_Int[i].DisplayTag;
-        instance->m_Int[i].Param.SetValue(mat->m_Int[i].Default);
-        instance->m_Int[i].Offset = info.Offset;
-        instance->m_Int[i].Converter = CONVERTER_NONE;
+        if (shader->FindMemberInfo("CbUser", mat->m_Int[i].Target, info))
+        {
+            instance->m_Int[i].Tag          = mat->m_Int[i].DisplayTag;
+            instance->m_Int[i].Param.SetValue(mat->m_Int[i].Default);
+            instance->m_Int[i].Offset       = info.Offset;
+            instance->m_Int[i].Converter    = CONVERTER_NONE;
+        }
     }
 
     instance->m_Float.resize(mat->m_Float.size());
     for (size_t i = 0; i < instance->m_Float.size(); ++i)
     {
         PluginShader::MemberInfo info = {};
-        shader->FindMemberInfo("CbUser", mat->m_Float[i].Target, info);
-        instance->m_Float[i].Tag = mat->m_Float[i].DisplayTag;
-        instance->m_Float[i].Param.SetValue(mat->m_Float[i].Default);
-        instance->m_Float[i].Offset = info.Offset;
-        instance->m_Float[i].Converter = mat->m_Float[i].Converter;
+        if (shader->FindMemberInfo("CbUser", mat->m_Float[i].Target, info))
+        {
+            instance->m_Float[i].Tag        = mat->m_Float[i].DisplayTag;
+            instance->m_Float[i].Param.SetValue(mat->m_Float[i].Default);
+            instance->m_Float[i].Offset     = info.Offset;
+            instance->m_Float[i].Converter  = mat->m_Float[i].Converter;
+        }
     }
 
     instance->m_Float2.resize(mat->m_Float2.size());
     for (size_t i = 0; i < instance->m_Float2.size(); ++i)
     {
         PluginShader::MemberInfo info = {};
-        shader->FindMemberInfo("CbUser", mat->m_Float2[i].Target, info);
-        instance->m_Float2[i].Tag = mat->m_Float2[i].DisplayTag;
-        instance->m_Float2[i].Param.SetValue(mat->m_Float2[i].Default);
-        instance->m_Float2[i].Offset = info.Offset;
-        instance->m_Float2[i].Converter = mat->m_Float2[i].Converter;
+        if (shader->FindMemberInfo("CbUser", mat->m_Float2[i].Target, info))
+        {
+            instance->m_Float2[i].Tag       = mat->m_Float2[i].DisplayTag;
+            instance->m_Float2[i].Param.SetValue(mat->m_Float2[i].Default);
+            instance->m_Float2[i].Offset    = info.Offset;
+            instance->m_Float2[i].Converter = mat->m_Float2[i].Converter;
+        }
     }
 
     instance->m_Float3.resize(mat->m_Float3.size());
     for (size_t i = 0; i < instance->m_Float3.size(); ++i)
     {
         PluginShader::MemberInfo info = {};
-        shader->FindMemberInfo("CbUser", mat->m_Float3[i].Target, info);
-        instance->m_Float3[i].Tag = mat->m_Float3[i].DisplayTag;
-        instance->m_Float3[i].Param.SetValue(mat->m_Float3[i].Default);
-        instance->m_Float3[i].Offset = info.Offset;
-        instance->m_Float3[i].Converter = mat->m_Float3[i].Converter;
+        if (shader->FindMemberInfo("CbUser", mat->m_Float3[i].Target, info))
+        {
+            instance->m_Float3[i].Tag       = mat->m_Float3[i].DisplayTag;
+            instance->m_Float3[i].Param.SetValue(mat->m_Float3[i].Default);
+            instance->m_Float3[i].Offset    = info.Offset;
+            instance->m_Float3[i].Converter = mat->m_Float3[i].Converter;
+        }
     }
 
     instance->m_Float4.resize(mat->m_Float4.size());
     for (size_t i = 0; i < instance->m_Float4.size(); ++i)
     {
         PluginShader::MemberInfo info = {};
-        shader->FindMemberInfo("CbUser", mat->m_Float4[i].Target, info);
-        instance->m_Float4[i].Tag = mat->m_Float4[i].DisplayTag;
-        instance->m_Float4[i].Param.SetValue(mat->m_Float4[i].Default);
-        instance->m_Float4[i].Offset = info.Offset;
-        instance->m_Float4[i].Converter = mat->m_Float4[i].Converter;
+        if (shader->FindMemberInfo("CbUser", mat->m_Float4[i].Target, info))
+        {
+            instance->m_Float4[i].Tag       = mat->m_Float4[i].DisplayTag;
+            instance->m_Float4[i].Param.SetValue(mat->m_Float4[i].Default);
+            instance->m_Float4[i].Offset    = info.Offset;
+            instance->m_Float4[i].Converter = mat->m_Float4[i].Converter;
+        }
     }
 
     instance->m_Color3.resize(mat->m_Color3.size());
     for (size_t i = 0; i < instance->m_Color3.size(); ++i)
     {
         PluginShader::MemberInfo info = {};
-        shader->FindMemberInfo("CbUser", mat->m_Color3[i].Target, info);
-        instance->m_Color3[i].Tag = mat->m_Color3[i].DisplayTag;
-        instance->m_Color3[i].Param.SetValue(mat->m_Color3[i].Default);
-        instance->m_Color3[i].Offset = info.Offset;
-        instance->m_Color3[i].Converter = CONVERTER_NONE;
+        if (shader->FindMemberInfo("CbUser", mat->m_Color3[i].Target, info))
+        {
+            instance->m_Color3[i].Tag       = mat->m_Color3[i].DisplayTag;
+            instance->m_Color3[i].Param.SetValue(mat->m_Color3[i].Default);
+            instance->m_Color3[i].Offset    = info.Offset;
+            instance->m_Color3[i].Converter = CONVERTER_NONE;
+        }
     }
 
     instance->m_Color4.resize(mat->m_Color4.size());
     for (size_t i = 0; i < instance->m_Color4.size(); ++i)
     {
         PluginShader::MemberInfo info = {};
-        shader->FindMemberInfo("CbUser", mat->m_Color4[i].Target, info);
-        instance->m_Color4[i].Tag = mat->m_Color4[i].DisplayTag;
-        instance->m_Color4[i].Param.SetValue(mat->m_Color4[i].Default);
-        instance->m_Color4[i].Offset = info.Offset;
-        instance->m_Color4[i].Converter = CONVERTER_NONE;
+        if (shader->FindMemberInfo("CbUser", mat->m_Color4[i].Target, info))
+        {
+            instance->m_Color4[i].Tag       = mat->m_Color4[i].DisplayTag;
+            instance->m_Color4[i].Param.SetValue(mat->m_Color4[i].Default);
+            instance->m_Color4[i].Offset    = info.Offset;
+            instance->m_Color4[i].Converter = CONVERTER_NONE;
+        }
     }
 
     instance->m_Bit32.resize(mat->m_Bit32.size());
     for (size_t i = 0; i < instance->m_Bit32.size(); ++i)
     {
         PluginShader::MemberInfo info = {};
-        shader->FindMemberInfo("CbUser", mat->m_Bit32[i].Target, info);
-        instance->m_Bit32[i].Tag = mat->m_Bit32[i].DisplayTag;
-        instance->m_Bit32[i].Param.SetValue(mat->m_Bit32[i].Default);
-        instance->m_Bit32[i].Offset = info.Offset;
-        instance->m_Bit32[i].Converter = CONVERTER_NONE;
+        if (shader->FindMemberInfo("CbUser", mat->m_Bit32[i].Target, info))
+        {
+            instance->m_Bit32[i].Tag        = mat->m_Bit32[i].DisplayTag;
+            instance->m_Bit32[i].Param.SetValue(mat->m_Bit32[i].Default);
+            instance->m_Bit32[i].Offset     = info.Offset;
+            instance->m_Bit32[i].Converter  = CONVERTER_NONE;
+        }
     }
 
     instance->m_Texture2D.resize(mat->m_Texture2D.size());
     for (size_t i = 0; i < instance->m_Texture2D.size(); ++i)
     {
         uint8_t slot = 0;
-        shader->FindTextureSlot(mat->m_Texture2D[i].Target, slot);
-        instance->m_Texture2D[i].Tag      = mat->m_Texture2D[i].DisplayTag;
-        instance->m_Texture2D[i].Default  = mat->m_Texture2D[i].Default;
-        instance->m_Texture2D[i].Register = slot;
+        if (shader->FindTextureSlot(mat->m_Texture2D[i].Target, slot))
+        {
+            instance->m_Texture2D[i].Tag      = mat->m_Texture2D[i].DisplayTag;
+            instance->m_Texture2D[i].Default  = mat->m_Texture2D[i].Default;
+            instance->m_Texture2D[i].Register = slot;
+        }
     }
 
     return instance;
@@ -574,7 +593,7 @@ const std::string& PluginMgr::DrawTypeCombo(const std::string& selectedItem)
     PluginMaterial* selectedMat = nullptr;
     if (ImGui::BeginCombo(u8"マテリアルタイプ", selectedItem.c_str()))
     {
-        for (auto& itr : m_Materials)
+        for (auto& itr : m_MasterMaterials)
         {
             auto selected = (itr.first == selectedItem);
             if (ImGui::Selectable(itr.first.c_str(), selected))
@@ -606,7 +625,7 @@ const std::string& PluginMgr::DrawFilterCombo(const std::string& selectedItem)
         if (selected)
             ImGui::SetItemDefaultFocus();
 
-        for (auto& itr : m_Materials)
+        for (auto& itr : m_MasterMaterials)
         {
             selected = (itr.first == selectedItem);
             if (ImGui::Selectable(itr.first.c_str(), selected))

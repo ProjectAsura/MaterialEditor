@@ -80,7 +80,7 @@ void EditorMaterial::Deserialize(tinyxml2::XMLElement* element)
     
         auto tag = child->GetText();
         PluginMaterial* mat;
-        if (!PluginMgr::Instance().FindMaterial(tag, &mat))
+        if (!PluginMgr::Instance().FindMasterMaterial(tag, &mat))
         {
             child = child->NextSiblingElement();
             continue;
@@ -100,7 +100,7 @@ void EditorMaterial::Deserialize(tinyxml2::XMLElement* element)
 const PluginShader* EditorMaterial::Bind(ID3D11DeviceContext* pContext, bool lightingPass)
 {
     PluginMaterial* material;
-    if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
+    if (!PluginMgr::Instance().FindMasterMaterial(m_SelectedMaterial, &material))
     { return nullptr; }
 
     if (m_Instances.find(m_SelectedMaterial) == m_Instances.end())
@@ -123,7 +123,7 @@ void EditorMaterial::Unbind(ID3D11DeviceContext* pContext, const PluginShader* s
     else
     {
         PluginMaterial* material;
-        if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
+        if (!PluginMgr::Instance().FindMasterMaterial(m_SelectedMaterial, &material))
         { return; }
 
         assert(material != nullptr);
@@ -153,7 +153,7 @@ void EditorMaterial::Edit(const std::string& filterType)
         }
 
         PluginMaterial* material;
-        if (PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
+        if (PluginMgr::Instance().FindMasterMaterial(m_SelectedMaterial, &material))
         {
             // 存在チェック.
             if (m_Instances.find(m_SelectedMaterial) == m_Instances.end())
@@ -221,7 +221,7 @@ int EditorMaterial::GetBlendState() const
 void EditorMaterial::CreateExportData(ExportMaterial* dst)
 {
     PluginMaterial* material;
-    if (!PluginMgr::Instance().FindMaterial(m_SelectedMaterial, &material))
+    if (!PluginMgr::Instance().FindMasterMaterial(m_SelectedMaterial, &material))
     { return; }
 
     if (m_Instances.find(m_SelectedMaterial) == m_Instances.end())

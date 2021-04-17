@@ -26,7 +26,7 @@ cbuffer CbUser : register(b11)
 // Textures
 //-----------------------------------------------------------------------------
 Texture2D BaseColor : register(t11);
-Texture2D ORM       : register(t12);
+Texture2D MRO       : register(t12);
 Texture2D Normal    : register(t13);
 Texture2D Emissive  : register(t14);
 
@@ -48,7 +48,7 @@ PSOutput LightingPS(const VSOutput input)
 
     // 法線／オクルージョン／ラフネス／メタルネスを取得.
     float3 normal = Normal.Sample(AnisotropicWrap, uv).xyz * 2.0f - 1.0f;
-    float3 orm    = ORM.Sample(AnisotropicWrap, uv).rgb;
+    float3 mro    = MRO.Sample(AnisotropicWrap, uv).rgb;
 
     // 従接線ベクトルを計算.
     float3 bitangent = GetBitangent(input);
@@ -64,12 +64,12 @@ PSOutput LightingPS(const VSOutput input)
     float3 V = normalize(CameraPos - worldPos);
     float3 L = normalize(SunLightDir);
 
-    float3 kd = ToKd(baseColor.rgb, orm.z);
-    float3 ks = ToKs(baseColor.rgb, orm.z);
+    float3 kd = ToKd(baseColor.rgb, mro.x);
+    float3 ks = ToKs(baseColor.rgb, mro.x);
 
     // ライティング.
-    output.Color.rgb += EvaluateIBLIsotropy(N, V, kd, ks, orm.x, orm.y, orm.z);
-    output.Color.rgb += EvaluateDirectLightIsotropicGGX(N, V, L, kd, ks, orm.y);
+    output.Color.rgb += EvaluateIBLIsotropy(N, V, kd, ks, mro.z, mro.y, mro.x);
+    output.Color.rgb += EvaluateDirectLightIsotropicGGX(N, V, L, kd, ks, mro.y);
     output.Color.rgb += Emissive.Sample(AnisotropicWrap, uv).rgb;
     output.Color.a = 1.0f;
 

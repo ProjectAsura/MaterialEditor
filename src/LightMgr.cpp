@@ -24,7 +24,7 @@
 //      コンストラクタです.
 //-----------------------------------------------------------------------------
 EditorLight::EditorLight()
-: SunLightAngle     (0.0f, 270.0f) // -Z軸方向.
+: SunLightAngle     (90.0f, 0.0f) // -Z軸方向.
 , SunLightIntensity (1.0f)
 , IBLIntensity      (1.0f)
 { /* DO_NOTHING */ }
@@ -443,9 +443,6 @@ void LightMgr::Edit()
         if (ImGui::BeginChild(u8"ライトパラメータ"))
         {
             ImGui::Text(light.Tag.c_str());
-            //ImGui::BulletText(u8"強度 : %.1f", light.IBLIntensity);
-            //ImGui::BulletText(u8"X回転 : %.1f", light.SunLightAngle.x);
-            //ImGui::BulletText(u8"Y回転 : %.1f", light.SunLightAngle.y); 
             ImGui::DragFloat(u8"強度", &light.IBLIntensity, 0.1f);
             ImGui::DragFloat(u8"垂直角", &light.SunLightAngle.x, 0.1f, -360.0f, 360.0f);
             ImGui::DragFloat(u8"水平角", &light.SunLightAngle.y, 0.1f, -360.0f, 360.0f);
@@ -500,4 +497,67 @@ const EditorLight* LightMgr::GetLight() const
     { return nullptr; }
 
     return &m_Light[m_CurrentIndex];
+}
+
+//-----------------------------------------------------------------------------
+//      マウス操作を行います.
+//-----------------------------------------------------------------------------
+void LightMgr::OnMouse(float x, float y, float gain, bool down)
+{
+    if (down)
+    {
+        if (!m_Drag)
+        {
+            m_CurrCursor.x = x;
+            m_CurrCursor.y = y;
+            m_PrevCursor.x = x;
+            m_PrevCursor.y = y;
+            m_Drag = true;
+        }
+        else
+        {
+            m_PrevCursor.x = m_CurrCursor.x;
+            m_PrevCursor.y = m_CurrCursor.y;
+
+            m_CurrCursor.x = x;
+            m_CurrCursor.y = y;
+
+            auto diffV = -(m_CurrCursor.x - m_PrevCursor.x) * gain;
+            auto diffH =  (m_CurrCursor.y - m_PrevCursor.y) * gain;
+
+            auto& light = m_Light[m_CurrentIndex];
+            light.SunLightAngle.x += diffH;
+            light.SunLightAngle.y += diffV;
+
+            asdx::Clamp(light.SunLightAngle.x, -90.0f, 90.0f);
+            asdx::Clamp(light.SunLightAngle.y, -90.0f, 90.0f);
+        }
+    }
+    else
+    {
+        if (m_Drag)
+        {
+            m_PrevCursor.x = m_CurrCursor.x;
+            m_PrevCursor.y = m_CurrCursor.y;
+
+            m_CurrCursor.x = x;
+            m_CurrCursor.y = y;
+
+            auto diffH = -(m_CurrCursor.x - m_PrevCursor.x) * gain;
+            auto diffV =  (m_CurrCursor.y - m_PrevCursor.y) * gain;
+
+            auto& light = m_Light[m_CurrentIndex];
+            light.SunLightAngle.x += diffH;
+            light.SunLightAngle.y += diffV;
+
+            asdx::Clamp(light.SunLightAngle.x, -90.0f, 90.0f);
+            asdx::Clamp(light.SunLightAngle.y, -90.0f, 90.0f);
+        }
+
+        m_Drag = false;
+        m_PrevCursor.x = 0;
+        m_PrevCursor.y = 0;
+        m_CurrCursor.x = 0;
+        m_CurrCursor.y = 0;
+    }
 }

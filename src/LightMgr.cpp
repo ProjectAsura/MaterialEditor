@@ -529,8 +529,8 @@ void LightMgr::OnMouse(float x, float y, float gain, bool down)
             light.SunLightAngle.x += diffH;
             light.SunLightAngle.y += diffV;
 
-            asdx::Clamp(light.SunLightAngle.x, -90.0f, 90.0f);
-            asdx::Clamp(light.SunLightAngle.y, -90.0f, 90.0f);
+            asdx::Clamp(light.SunLightAngle.x, -360.0f, 360.0f);
+            asdx::Clamp(light.SunLightAngle.y, -360.0f, 360.0f);
         }
     }
     else
@@ -550,8 +550,8 @@ void LightMgr::OnMouse(float x, float y, float gain, bool down)
             light.SunLightAngle.x += diffH;
             light.SunLightAngle.y += diffV;
 
-            asdx::Clamp(light.SunLightAngle.x, -90.0f, 90.0f);
-            asdx::Clamp(light.SunLightAngle.y, -90.0f, 90.0f);
+            asdx::Clamp(light.SunLightAngle.x, -360.0f, 360.0f);
+            asdx::Clamp(light.SunLightAngle.y, -360.0f, 360.0f);
         }
 
         m_Drag = false;

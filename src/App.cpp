@@ -266,8 +266,8 @@ bool CreateGrid
 //-----------------------------------------------------------------------------
 asdx::Vector3 ToDirection(const asdx::Vector2& angle)
 {
-    auto theta = asdx::ToRadian(angle.y);
-    auto phi   = asdx::ToRadian(angle.x);
+    auto theta = asdx::ToRadian(angle.x);
+    auto phi   = asdx::ToRadian(angle.y);
     return asdx::Vector3(
         cos(theta) * cos(phi),
         sin(theta),
@@ -1158,7 +1158,8 @@ void App::DrawGuide()
         cameraReleative += (-m_CameraController.GetCamera().GetAxisZ() * kDistanceToDraw);
 
         auto world = 
-            asdx::Matrix::CreateRotationY(asdx::ToRadian(angle.y)) *
+            asdx::Matrix::CreateRotationZ(asdx::F_PIDIV2) *
+            asdx::Matrix::CreateRotationY(-asdx::ToRadian(angle.y)) *
             asdx::Matrix::CreateRotationX(asdx::ToRadian(angle.x)) *
             asdx::Matrix::CreateTranslation(cameraReleative);
 

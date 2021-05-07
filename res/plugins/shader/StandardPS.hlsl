@@ -73,7 +73,7 @@ PSOutput LightingPS(const VSOutput input)
     output.Color.rgb += Emissive.Sample(AnisotropicWrap, uv).rgb;
     output.Color.a = 1.0f;
 
-    output.NRM = EncodeNRM(N, orm.y, orm.z);
+    output.NRM = EncodeNRM(N, mro.y, mro.x);
 
     return output;
 }

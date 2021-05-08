@@ -136,12 +136,14 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     <ClCompile Include="..\src\DebugPrimitive.cpp" />
     <ClCompile Include="..\src\EditorMaterial.cpp" />
     <ClCompile Include="..\src\EditorModel.cpp" />
+    <ClCompile Include="..\src\FxParser.cpp" />
     <ClCompile Include="..\src\LightMgr.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\MeshLoader.cpp" />
     <ClCompile Include="..\src\PluginMaterial.cpp" />
     <ClCompile Include="..\src\PluginMgr.cpp" />
     <ClCompile Include="..\src\PluginShader.cpp" />
+    <ClCompile Include="..\src\Tokenizer.cpp" />
     <ClCompile Include="..\src\WorkSpace.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -155,10 +157,12 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     <ClInclude Include="..\include\DebugPrimitive.h" />
     <ClInclude Include="..\include\EditorMaterial.h" />
     <ClInclude Include="..\include\EditorModel.h" />
+    <ClInclude Include="..\include\FxParser.h" />
     <ClInclude Include="..\include\LightMgr.h" />
     <ClInclude Include="..\include\ExportContext.h" />
     <ClInclude Include="..\include\MeshLoader.h" />
     <ClInclude Include="..\include\PluginMgr.h" />
+    <ClInclude Include="..\include\Tokenizer.h" />
     <ClInclude Include="..\include\WorkSpace.h" />
   </ItemGroup>
   <ItemGroup>
@@ -174,14 +178,6 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\res\plugins\shader\StandardPS.hlsl">
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">LightingPS</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">LightingPS</EntryPointName>
-    </FxCompile>
     <FxCompile Include="..\res\shaders\EditorPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
@@ -205,6 +201,10 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     <FxCompile Include="..\res\shaders\GuideVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\LightingCompositePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="..\res\shaders\ShadowSkinningVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

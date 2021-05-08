@@ -65,6 +65,7 @@ private:
     asdx::PixelShader                   m_OETFPS;
     asdx::PixelShader                   m_GuidePS;
     asdx::PixelShader                   m_ShapePS;
+    asdx::PixelShader                   m_CompositePS;
     asdx::ConstantBuffer                m_SceneCB;
     asdx::ConstantBuffer                m_GuideCB;
     asdx::ConstantBuffer                m_LightCB;
@@ -80,9 +81,11 @@ private:
     Config                              m_Config;
     bool                                m_CameraControl = false;
     asdx::Matrix                        m_Proj = asdx::Matrix::CreateIdentity();
-    asdx::ColorTarget2D                 m_LightingBuffer;
+    asdx::ColorTarget2D                 m_DiffuseBuffer;
+    asdx::ColorTarget2D                 m_SpecularBuffer;
     asdx::ColorTarget2D                 m_NRMBuffer;
     asdx::ColorTarget2D                 m_DummyColorBuffer;
+    asdx::ColorTarget2D                 m_LightingBuffer;
     asdx::DepthTarget2D                 m_DepthBuffer;
     asdx::DepthTarget2D                 m_ShadowBuffer;
     bool                                m_ReloadShader  = false; // リロード要求.

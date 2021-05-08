@@ -126,6 +126,12 @@
     <ClCompile Include="..\src\DebugPrimitive.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\FxParser.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Tokenizer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\App.h">
@@ -173,6 +179,12 @@
     <ClInclude Include="..\include\DebugPrimitive.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\FxParser.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Tokenizer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -186,9 +198,6 @@
     </FxCompile>
     <FxCompile Include="..\res\shaders\EditorSkinningVS.hlsl">
       <Filter>リソース ファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="..\res\plugins\shader\StandardPS.hlsl">
-      <Filter>リソース ファイル\plugins</Filter>
     </FxCompile>
     <FxCompile Include="..\res\shaders\GuidePS.hlsl">
       <Filter>リソース ファイル</Filter>
@@ -212,6 +221,9 @@
       <Filter>リソース ファイル</Filter>
     </FxCompile>
     <FxCompile Include="..\res\shaders\ShapePS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\res\shaders\LightingCompositePS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
   </ItemGroup>

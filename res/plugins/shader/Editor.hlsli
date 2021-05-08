@@ -36,8 +36,15 @@ struct VSOutput
 ///////////////////////////////////////////////////////////////////////////////
 struct PSOutput
 {
-    float4 Color : SV_TARGET0;
-    float4 NRM   : SV_TARGET1;  // 法線/ラフネス/メタルネス.
+    float4 Diffuse  : SV_TARGET0;  // ディフューズライティング結果.
+    float4 Specular : SV_TARGET1;  // スペキュラーライティング結果.
+    float4 NRM      : SV_TARGET2;  // 法線/ラフネス/メタルネス.
+};
+
+struct LightingResult
+{
+    float3  Diffuse;
+    float3  Specular;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -259,7 +266,7 @@ float3 EvaluateSpecularIBL
 //-----------------------------------------------------------------------------
 //      等方性IBLを評価します.
 //-----------------------------------------------------------------------------
-float3 EvaluateIBLIsotropy
+LightingResult EvaluateIBLIsotropy
 (
     float3  N,              // 法線ベクトル.
     float3  V,              // 視線ベクトル.
@@ -288,13 +295,18 @@ float3 EvaluateIBLIsotropy
     float3 Edss = 1.0f - (FssEss + Fms * Ems);
     float3 subSurface = lerp(Kd * Edss, 0.0f, metalness);
 
-    return diffuse + (FssEss * specular + (Fms * Ems + subSurface) * diffuse);
+
+    LightingResult result = (LightingResult)0;
+    result.Diffuse  = diffuse + (Fms * Ems + subSurface) * diffuse;
+    result.Specular = FssEss * specular;
+
+    return result;
 }
 
 //-----------------------------------------------------------------------------
 //      異方性IBLを評価します.
 //-----------------------------------------------------------------------------
-float3 EvaluateIBLAnisotropy
+LightingResult EvaluateIBLAnisotropy
 (
     float3  T,              // 接線ベクトル.
     float3  B,              // 従接線ベクトル.
@@ -326,13 +338,17 @@ float3 EvaluateIBLAnisotropy
     float3 Edss = 1.0f - (FssEss + Fms * Ems);
     float3 subSurface = lerp(Kd * Edss, 0.0f, metalness);
 
-    return diffuse + (FssEss * specular + (Fms * Ems + subSurface) * diffuse);
+    LightingResult result = (LightingResult)0;
+    result.Diffuse  = diffuse + (Fms * Ems + subSurface) * diffuse;
+    result.Specular = FssEss * specular;
+
+    return result;
 }
 
 //-----------------------------------------------------------------------------
 //      直接光を評価します.
 //-----------------------------------------------------------------------------
-float3 EvaluateDirectLightIsotropicGGX
+LightingResult EvaluateDirectLightIsotropicGGX
 (
     float3 N,           // 法線ベクトル.
     float3 V,           // 視線ベクトル.
@@ -357,13 +373,16 @@ float3 EvaluateDirectLightIsotropicGGX
     float3 F = F_Schlick(Ks, f90, LdotH);
     float3 specular = (D * G * F) / F_PI;
 
-    return (diffuse + specular) * NdotL * SunLightIntensity;
+    LightingResult result = (LightingResult)0;
+    result.Diffuse  = diffuse  * NdotL * SunLightIntensity;
+    result.Specular = specular * NdotL * SunLightIntensity;
+    return result;
 }
 
 //-----------------------------------------------------------------------------
 //      異方性マテリアルの直接光を評価します.
 //-----------------------------------------------------------------------------
-float3 EvaluateDirectLightAnisotropicGGX
+LightingResult EvaluateDirectLightAnisotropicGGX
 (
     float3 T,           // 接線ベクトル.
     float3 B,           // 従法線ベクトル.
@@ -393,8 +412,11 @@ float3 EvaluateDirectLightAnisotropicGGX
     float3 F = F_Schlick(Ks, f90, LdotH);
     float3 specular = (D * G * F) / F_PI;
 
-    return (diffuse + specular) * NdotL * SunLightIntensity;
+    LightingResult result = (LightingResult)0;
+    result.Diffuse  = diffuse  * NdotL * SunLightIntensity;
+    result.Specular = specular * NdotL * SunLightIntensity;
+    return result;
 }
 
 
-#endif//EDITOR_DEF_HLSLI
+#endif//EDITOR_HLSLI

@@ -52,17 +52,18 @@ void App::Draw3D()
     // 不透明モデル描画.
     {
         ID3D11RenderTargetView* pRTV[] = {
-            m_LightingBuffer.GetTargetView(),
+            m_DiffuseBuffer .GetTargetView(),
+            m_SpecularBuffer.GetTargetView(),
             m_NRMBuffer     .GetTargetView(),
         };
-
         auto pDSV = m_DepthBuffer.GetTargetView();
 
         auto cc = m_Config.Background.ClearColor.GetValue();
-        float clearColor0[] = { cc.x, cc.y, cc.z, 1.0f };
+        float clearColor0[] = { 0.0f, 0.0f, 0.0f, 1.0f };
         float clearColor1[] = { 0.0f, 0.0f, 0.0f, 0.0f };
         m_pDeviceContext->ClearRenderTargetView(pRTV[0], clearColor0);
-        m_pDeviceContext->ClearRenderTargetView(pRTV[1], clearColor1);
+        m_pDeviceContext->ClearRenderTargetView(pRTV[1], clearColor0);
+        m_pDeviceContext->ClearRenderTargetView(pRTV[2], clearColor1);
         m_pDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
         m_pDeviceContext->RSSetViewports(1, &m_Viewport);
         m_pDeviceContext->RSSetScissorRects(1, &m_ScissorRect);
@@ -78,12 +79,37 @@ void App::Draw3D()
                 m_Config.Camera.FarClip.GetValue());
         }
 
-
-        m_pDeviceContext->OMSetRenderTargets(2, pRTV, pDSV);
+        m_pDeviceContext->OMSetRenderTargets(3, pRTV, pDSV);
 
         DrawModel(true, asdx::BlendType::Opaque);
     }
 
+    // Screen-Space SSS
+    {
+    }
+
+    // ライティング合成.
+    {
+        ID3D11ShaderResourceView* pSRVs[] = {
+            m_DiffuseBuffer .GetShaderResource(),
+            m_SpecularBuffer.GetShaderResource(),
+            m_DepthBuffer   .GetShaderResource(),
+        };
+
+        auto cc = m_Config.Background.ClearColor.GetValue();
+        float clearColor[] = { cc.x, cc.y, cc.z, 1.0f };
+        auto pRTV = m_LightingBuffer.GetTargetView();
+        auto pSmp = asdx::RenderState::GetInstance().GetSmp(asdx::SamplerType::PointClamp);
+        m_pDeviceContext->ClearRenderTargetView(pRTV, clearColor);
+        m_pDeviceContext->RSSetViewports(1, &m_Viewport);
+        m_pDeviceContext->RSSetScissorRects(1, &m_ScissorRect);
+        m_CompositePS.Bind(m_pDeviceContext);
+        m_pDeviceContext->OMSetRenderTargets(1, &pRTV, nullptr);
+        m_pDeviceContext->PSSetShaderResources(0, 3, pSRVs);
+        m_pDeviceContext->PSSetSamplers(0, 1, &pSmp);
+        DrawQuad();
+        m_CompositePS.UnBind(m_pDeviceContext);
+    }
 
     // GTAO & GTSO
 

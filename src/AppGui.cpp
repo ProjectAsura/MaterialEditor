@@ -246,21 +246,21 @@ void DrawExportMenu(MenuContext& context)
         }
     }
 
-    auto exportContext = context.pWorkSpace->GetMaterials()->CreateExportContext();
-    if (exportContext == nullptr)
-    {
-        DisposeExportContext(exportContext);
-        asdx::ErrorDlg("エクスポート失敗", "出力データの生成に失敗しました.");
-        return;
-    }
+    //auto exportContext = context.pWorkSpace->GetMaterials()->CreateExportContext();
+    //if (exportContext == nullptr)
+    //{
+    //    DisposeExportContext(exportContext);
+    //    asdx::ErrorDlg("エクスポート失敗", "出力データの生成に失敗しました.");
+    //    return;
+    //}
 
-    auto ret = CallExporter(exporter.c_str(), exportContext);
-    if (ret)
-    { ILOGA("Info : Export Success."); }
-    else
-    { ELOGA("Error : Export Failed."); }
+    //auto ret = CallExporter(exporter.c_str(), exportContext);
+    //if (ret)
+    //{ ILOGA("Info : Export Success."); }
+    //else
+    //{ ELOGA("Error : Export Failed."); }
 
-    DisposeExportContext(exportContext);
+    //DisposeExportContext(exportContext);
 }
 
 //-----------------------------------------------------------------------------

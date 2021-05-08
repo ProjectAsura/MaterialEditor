@@ -68,17 +68,17 @@ PluginMgr& PluginMgr::Instance()
 //-----------------------------------------------------------------------------
 bool PluginMgr::Load()
 {
-    // plugins/materialフォルダ下にあるファイルを全部開く.
+    // plugins/shaderフォルダ下にあるAFXファイルを全部開く.
     {
         std::string path;
-        if (!asdx::SearchFilePathA("res/plugins/material", path))
+        if (!asdx::SearchFilePathA("res/plugins/shader", path))
         {
             ELOG("Error : Folder Not Found.");
             return false;
         }
 
         std::list<std::string> files;
-        if (!asdx::SearchFilesA(path.c_str(), ".mat", files))
+        if (!asdx::SearchFilesA(path.c_str(), ".afx", files))
         {
             ELOG("Error : File Not Found");
             return false;
@@ -427,165 +427,6 @@ bool PluginMgr::FindMasterMaterial(const std::string& name, PluginMaterial** res
 }
 
 //-----------------------------------------------------------------------------
-//      マテリアルインスタンスを生成します.
-//-----------------------------------------------------------------------------
-MaterialInstance* PluginMgr::CreateInstance(const std::string& masterName)
-{
-    PluginMaterial* mat;
-    if (!FindMasterMaterial(masterName, &mat))
-    { return nullptr; }
-
-    auto instance = new MaterialInstance();
-    instance->m_MaterialName = masterName;
-
-    auto shader = mat->GetLightingShader();
-
-    // パラメータ生成.
-    instance->m_Bool.resize(mat->m_Bool.size());
-    for (size_t i = 0; i < instance->m_Bool.size(); ++i)
-    {
-        PluginShader::MemberInfo info = {};
-        if (shader->FindMemberInfo("CbUser", mat->m_Bool[i].Target, info))
-        {
-            instance->m_Bool[i].Tag         = mat->m_Bool[i].DisplayTag;
-            instance->m_Bool[i].Param.SetValue(mat->m_Bool[i].Default);
-            instance->m_Bool[i].Offset      = info.Offset;
-            instance->m_Bool[i].Converter   = CONVERTER_NONE;
-        }
-    }
-
-    instance->m_Int.resize(mat->m_Int.size());
-    for (size_t i = 0; i < instance->m_Int.size(); ++i)
-    {
-        PluginShader::MemberInfo info = {};
-        if (shader->FindMemberInfo("CbUser", mat->m_Int[i].Target, info))
-        {
-            instance->m_Int[i].Tag          = mat->m_Int[i].DisplayTag;
-            instance->m_Int[i].Param.SetValue(mat->m_Int[i].Default);
-            instance->m_Int[i].Offset       = info.Offset;
-            instance->m_Int[i].Converter    = CONVERTER_NONE;
-        }
-    }
-
-    instance->m_Float.resize(mat->m_Float.size());
-    for (size_t i = 0; i < instance->m_Float.size(); ++i)
-    {
-        PluginShader::MemberInfo info = {};
-        if (shader->FindMemberInfo("CbUser", mat->m_Float[i].Target, info))
-        {
-            instance->m_Float[i].Tag        = mat->m_Float[i].DisplayTag;
-            instance->m_Float[i].Param.SetValue(mat->m_Float[i].Default);
-            instance->m_Float[i].Offset     = info.Offset;
-            instance->m_Float[i].Converter  = mat->m_Float[i].Converter;
-        }
-    }
-
-    instance->m_Float2.resize(mat->m_Float2.size());
-    for (size_t i = 0; i < instance->m_Float2.size(); ++i)
-    {
-        PluginShader::MemberInfo info = {};
-        if (shader->FindMemberInfo("CbUser", mat->m_Float2[i].Target, info))
-        {
-            instance->m_Float2[i].Tag       = mat->m_Float2[i].DisplayTag;
-            instance->m_Float2[i].Param.SetValue(mat->m_Float2[i].Default);
-            instance->m_Float2[i].Offset    = info.Offset;
-            instance->m_Float2[i].Converter = mat->m_Float2[i].Converter;
-        }
-    }
-
-    instance->m_Float3.resize(mat->m_Float3.size());
-    for (size_t i = 0; i < instance->m_Float3.size(); ++i)
-    {
-        PluginShader::MemberInfo info = {};
-        if (shader->FindMemberInfo("CbUser", mat->m_Float3[i].Target, info))
-        {
-            instance->m_Float3[i].Tag       = mat->m_Float3[i].DisplayTag;
-            instance->m_Float3[i].Param.SetValue(mat->m_Float3[i].Default);
-            instance->m_Float3[i].Offset    = info.Offset;
-            instance->m_Float3[i].Converter = mat->m_Float3[i].Converter;
-        }
-    }
-
-    instance->m_Float4.resize(mat->m_Float4.size());
-    for (size_t i = 0; i < instance->m_Float4.size(); ++i)
-    {
-        PluginShader::MemberInfo info = {};
-        if (shader->FindMemberInfo("CbUser", mat->m_Float4[i].Target, info))
-        {
-            instance->m_Float4[i].Tag       = mat->m_Float4[i].DisplayTag;
-            instance->m_Float4[i].Param.SetValue(mat->m_Float4[i].Default);
-            instance->m_Float4[i].Offset    = info.Offset;
-            instance->m_Float4[i].Converter = mat->m_Float4[i].Converter;
-        }
-    }
-
-    instance->m_Color3.resize(mat->m_Color3.size());
-    for (size_t i = 0; i < instance->m_Color3.size(); ++i)
-    {
-        PluginShader::MemberInfo info = {};
-        if (shader->FindMemberInfo("CbUser", mat->m_Color3[i].Target, info))
-        {
-            instance->m_Color3[i].Tag       = mat->m_Color3[i].DisplayTag;
-            instance->m_Color3[i].Param.SetValue(mat->m_Color3[i].Default);
-            instance->m_Color3[i].Offset    = info.Offset;
-            instance->m_Color3[i].Converter = CONVERTER_NONE;
-        }
-    }
-
-    instance->m_Color4.resize(mat->m_Color4.size());
-    for (size_t i = 0; i < instance->m_Color4.size(); ++i)
-    {
-        PluginShader::MemberInfo info = {};
-        if (shader->FindMemberInfo("CbUser", mat->m_Color4[i].Target, info))
-        {
-            instance->m_Color4[i].Tag       = mat->m_Color4[i].DisplayTag;
-            instance->m_Color4[i].Param.SetValue(mat->m_Color4[i].Default);
-            instance->m_Color4[i].Offset    = info.Offset;
-            instance->m_Color4[i].Converter = CONVERTER_NONE;
-        }
-    }
-
-    instance->m_Bit32.resize(mat->m_Bit32.size());
-    for (size_t i = 0; i < instance->m_Bit32.size(); ++i)
-    {
-        PluginShader::MemberInfo info = {};
-        if (shader->FindMemberInfo("CbUser", mat->m_Bit32[i].Target, info))
-        {
-            instance->m_Bit32[i].Tag        = mat->m_Bit32[i].DisplayTag;
-            instance->m_Bit32[i].Param.SetValue(mat->m_Bit32[i].Default);
-            instance->m_Bit32[i].Offset     = info.Offset;
-            instance->m_Bit32[i].Converter  = CONVERTER_NONE;
-        }
-    }
-
-    instance->m_Texture2D.resize(mat->m_Texture2D.size());
-    for (size_t i = 0; i < instance->m_Texture2D.size(); ++i)
-    {
-        uint8_t slot = 0;
-        if (shader->FindTextureSlot(mat->m_Texture2D[i].Target, slot))
-        {
-            instance->m_Texture2D[i].Tag      = mat->m_Texture2D[i].DisplayTag;
-            instance->m_Texture2D[i].Default  = mat->m_Texture2D[i].Default;
-            instance->m_Texture2D[i].Register = slot;
-        }
-    }
-
-    return instance;
-}
-
-//-----------------------------------------------------------------------------
-//      マテリアルインスタンスを破棄します.
-//-----------------------------------------------------------------------------
-void PluginMgr::DeleteInstance(MaterialInstance*& instance)
-{
-    if (instance != nullptr)
-    {
-        delete instance;
-        instance = nullptr;
-    }
-}
-
-//-----------------------------------------------------------------------------
 //      コンボボックスを描画します.
 //-----------------------------------------------------------------------------
 const std::string& PluginMgr::DrawTypeCombo(const std::string& selectedItem)
@@ -703,3 +544,18 @@ void PluginMgr::Sync()
     m_ShaderDisposer.FrameSync();
     m_BufferDisposer.FrameSync();
 }
+
+//-----------------------------------------------------------------------------
+//      最初のマスターマテリアル名を取得します.
+//-----------------------------------------------------------------------------
+const std::string& PluginMgr::GetFirstMasterMaterialName() const
+{
+    auto itr = m_MasterMaterials.begin();
+    return itr->first;
+}
+
+//-----------------------------------------------------------------------------
+//      マスターマテリアルが含まれるかどうかチェックします.
+//-----------------------------------------------------------------------------
+bool PluginMgr::ContainMasterMaterial(const std::string& name) const
+{ return m_MasterMaterials.find(name) != m_MasterMaterials.end(); }

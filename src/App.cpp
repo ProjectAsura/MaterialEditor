@@ -32,6 +32,7 @@ namespace {
 #include "../res/shaders/Compiled/TriangleVS.inc"
 #include "../res/shaders/Compiled/ShapeVS.inc"
 #include "../res/shaders/Compiled/ShapePS.inc"
+#include "../res/shaders/Compiled/LightingCompositePS.inc"
 #include "../../asdx11/res/shaders/Compiled/CopyPS.inc"
 #include "../../asdx11/res/shaders/Compiled/OETFPS.inc"
 
@@ -402,6 +403,12 @@ bool App::OnInit()
             ELOG("Error : ShapePS Init Failed.");
             return false;
         }
+
+        if (!m_CompositePS.Init(m_pDevice, ASDX_SHADER_BIN(LightingCompositePS)))
+        {
+            ELOG("Error : LightingCompositePS Init Failed.");
+            return false;
+        }
     }
 
     // プラグインマネージャー初期化.
@@ -502,6 +509,18 @@ bool App::OnInit()
         desc.SampleDesc.Count   = 1;
         desc.SampleDesc.Quality = 0;
 
+        if (!m_DiffuseBuffer.Create(m_pDevice, desc))
+        {
+            ELOG("Error : ColorTarget2D::Create() Failed.");
+            return false;
+        }
+
+        if (!m_SpecularBuffer.Create(m_pDevice, desc))
+        {
+            ELOG("Error : ColorTarget2D::Create() Failed.");
+            return false;
+        }
+
         if (!m_LightingBuffer.Create(m_pDevice, desc))
         {
             ELOG("Error : ColorTarget2D::Create() Failed.");
@@ -598,6 +617,7 @@ void App::OnTerm()
     m_OETFPS            .Term();
     m_GuidePS           .Term();
     m_ShapePS           .Term();
+    m_CompositePS       .Term();
 
     m_SceneCB.Term();
     m_GuideCB.Term();
@@ -615,8 +635,10 @@ void App::OnTerm()
 
     m_ArrowShape.Term();
 
-    m_LightingBuffer    .Release();
+    m_DiffuseBuffer     .Release();
+    m_SpecularBuffer    .Release();
     m_NRMBuffer         .Release();
+    m_LightingBuffer    .Release();
     m_ShadowBuffer      .Release();
     m_DepthBuffer       .Release();
     m_DummyColorBuffer  .Release();

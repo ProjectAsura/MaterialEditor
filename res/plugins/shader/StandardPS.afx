@@ -1,0 +1,96 @@
+//-----------------------------------------------------------------------------
+// File : StandardPS.hlsl
+// Desc : Standard Material.
+// Copyright(c) Project Asura. All right reserved.
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------------
+#include "Editor.hlsli"
+
+/* ユーザー定義データはスロット番号11から開始してください. 10番まではシステム使用とします.*/
+Properties 
+{
+    float2 UVOffset("UVオフセット", 0.01) = float2(0.0, 0.0);
+    float2 UVScale("UVスケール", 0.01) = float2(1.0, 1.0);
+    float  UVRotate("UV回転", 0.01) = 0.0;
+    float  AlphaThreshold("アルファ閾値", 0.01, range(0.0, 1.0)) = 0.0;
+
+    Texture2D  BaseColor("ベースカラー", true) = "checkerboard";
+    Texture2D  MRO("MRO", false) = "mro";
+    Texture2D  Normal("法線マップ", false) = "normal";
+    Texture2D  Emissive("エミッシブ", false) = "black";
+};
+
+//-----------------------------------------------------------------------------
+//      ライティング処理です.
+//-----------------------------------------------------------------------------
+PSOutput LightingPS(const VSOutput input)
+{
+    PSOutput output = (PSOutput)0;
+
+    // UVアニメーション.
+    float2 uv = UVAnimation(GetTexCoord0(input), UVScale, UVOffset, UVRotate);
+
+    // ベースカラー取得.
+    float4 baseColor = BaseColor.Sample(AnisotropicWrap, uv);
+    if (baseColor.a < AlphaThreshold)
+    { discard; }
+
+    // 法線／オクルージョン／ラフネス／メタルネスを取得.
+    float3 normal = Normal.Sample(AnisotropicWrap, uv).xyz * 2.0f - 1.0f;
+    float3 mro    = MRO.Sample(AnisotropicWrap, uv).rgb;
+
+    // 従接線ベクトルを計算.
+    float3 bitangent = GetBitangent(input);
+    float3 N = FromTangentSpaceToWorld(normal, input.Tangent, bitangent, input.Normal);
+
+    // ビュー空間の深度と位置座標を取得.
+    float3 viewPos = GetViewPosition(input);
+
+    // ワールド空間の位置を復元.
+    float3 worldPos = ToWorldPosition(viewPos);
+
+    // 視線ベクトルライトベクトルを算出.
+    float3 V = normalize(CameraPos - worldPos);
+    float3 L = normalize(SunLightDir);
+
+    float3 Kd = ToKd(baseColor.rgb, mro.x);
+    float3 Ks = ToKs(baseColor.rgb, mro.x);
+
+    // IBLライティング.
+    LightingResult result = EvaluateIBLIsotropy(N, V, Kd, Ks, mro.z, mro.y, mro.x);
+    output.Diffuse.rgb  += result.Diffuse;
+    output.Specular.rgb += result.Specular;
+
+    // 直接光ライティング.
+    result = EvaluateDirectLightIsotropicGGX(N, V, L, Kd, Ks, mro.y);
+    output.Diffuse.rgb  += result.Diffuse;
+    output.Specular.rgb += result.Specular;
+
+    output.Diffuse.a  = 1.0f;
+    output.Specular.a = 1.0f;
+
+    // エミッシブ.
+    output.Specular.rgb += Emissive.Sample(AnisotropicWrap, uv).rgb;
+
+    // Normal / Roughness / Metalness.
+    output.NRM = EncodeNRM(N, mro.y, mro.x);
+
+    return output;
+}
+
+//-----------------------------------------------------------------------------
+//      シャドウイング処理です.
+//-----------------------------------------------------------------------------
+void ShadowingPS(const VSOutput input)
+{
+    // UVアニメーション.
+    float2 uv = UVAnimation(GetTexCoord0(input), UVScale, UVOffset, UVRotate);
+
+    // ベースカラー取得.
+    float4 baseColor = BaseColor.Sample(AnisotropicWrap, uv);
+    if (baseColor.a < AlphaThreshold)
+    { discard; }
+}

@@ -102,8 +102,8 @@ VSOutput main(const VSInput input, uint instanceId : SV_InstanceID)
 
     output.Position      = projPos;
     output.Color         = input.Color;
-    output.Normal        = skinningNormal;
-    output.Tangent       = skinningTangent;
+    output.Normal        = skinningNormal.xyz;
+    output.Tangent       = skinningTangent.xyz;
     output.TexCoord01.xy = UnpackHalf2(input.TexCoord.x);
     output.TexCoord01.zw = UnpackHalf2(input.TexCoord.y);
     output.TexCoord23.xy = UnpackHalf2(input.TexCoord.z);

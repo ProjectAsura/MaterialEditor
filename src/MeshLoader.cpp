@@ -564,7 +564,7 @@ void MeshLoader::ParseMaterial(const aiMaterial* pSrcMaterial)
         if (pSrcMaterial->Get(AI_MATKEY_NAME, name) == AI_SUCCESS)
         { 
             dstMaterial.Name = name.C_Str();
-            dstMaterial.Hash = asdx::Fnv1a(name.C_Str()).GetHash();
+            dstMaterial.Hash = asdx::CalcHash32(reinterpret_cast<const uint8_t*>(name.C_Str()), uint32_t(name.length));
         }
     }
 

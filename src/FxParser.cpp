@@ -2606,10 +2606,10 @@ void FxParser::ParseProperties()
             float4  value4("test", 1.0f) = float4(0.0f, 0.0f, 0.0f, 0.0f);
             color3  value5("emissive") = color3(0.0f, 0.0f, 0.0f);
             color4  value6("base_color") = color4(0.0f, 0.0f, 0.0f, 1.0f);
-            map1D   myTexture1("noise", false) = "texture_file_name";
-            map2D   myTexture2("roughness") = "white";
-            map3D   myTexture3("volume", true) = "white";
-            mapCube mayTexture4("ibl_diffuse", false) = "black";
+            texture1D   myTexture1("noise", false) = "texture_file_name";
+            texture2D   myTexture2("roughness") = "white";
+            texture3D   myTexture3("volume", true) = "white";
+            textureCube mayTexture4("ibl_diffuse", false) = "black";
         };
     
     */
@@ -3039,31 +3039,31 @@ void FxParser::ParseProperties()
 
             offset += (sizeof(float) * 4);
         }
-        else if (m_Tokenizer.CompareAsLower("map1d"))
+        else if (m_Tokenizer.CompareAsLower("Texture1D"))
         {
             ParseTextureProperty(PROPERTY_TYPE_TEXTURE1D);
         }
-        else if (m_Tokenizer.CompareAsLower("map1darray"))
+        else if (m_Tokenizer.CompareAsLower("Texture1DArray"))
         {
             ParseTextureProperty(PROPERTY_TYPE_TEXTURE1D_ARRAY);
         }
-        else if (m_Tokenizer.CompareAsLower("map2d"))
+        else if (m_Tokenizer.CompareAsLower("Texture2D"))
         {
             ParseTextureProperty(PROPERTY_TYPE_TEXTURE2D);
         }
-        else if (m_Tokenizer.CompareAsLower("map2darray"))
+        else if (m_Tokenizer.CompareAsLower("Texture2DArray"))
         {
             ParseTextureProperty(PROPERTY_TYPE_TEXTURE2D_ARRAY);
         }
-        else if (m_Tokenizer.CompareAsLower("map3d"))
+        else if (m_Tokenizer.CompareAsLower("Texture3D"))
         {
             ParseTextureProperty(PROPERTY_TYPE_TEXTURE3D);
         }
-        else if (m_Tokenizer.CompareAsLower("mapcube"))
+        else if (m_Tokenizer.CompareAsLower("TextureCube"))
         {
             ParseTextureProperty(PROPERTY_TYPE_TEXTURECUBE);
         }
-        else if (m_Tokenizer.CompareAsLower("mapcubearray"))
+        else if (m_Tokenizer.CompareAsLower("TextureCubeArray"))
         {
             ParseTextureProperty(PROPERTY_TYPE_TEXTURECUBE_ARRAY);
         }
@@ -3284,7 +3284,7 @@ void FxParser::ParseProperties()
 void FxParser::ParseTextureProperty(PROPERTY_TYPE type)
 {
     // 次のフォーマット.
-    // mapXXX name("display", srgb) = default;
+    // textureXXX name("display", srgb) = default;
     auto srgb = false;
 
     auto name = std::string(m_Tokenizer.NextAsChar());
@@ -3307,6 +3307,7 @@ void FxParser::ParseTextureProperty(PROPERTY_TYPE type)
     m_Tokenizer.Next();
     assert(m_Tokenizer.Compare(";"));
     m_Tokenizer.Next();
+    defValue = Replace(defValue, "\"", "");
 
     TextureProperty prop;
     prop.Name           = name;

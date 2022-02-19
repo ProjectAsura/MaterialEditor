@@ -49,6 +49,10 @@ void App::Draw3D()
     }
 #endif
 
+    // 背景描画.
+    {
+    }
+
     // 不透明モデル描画.
     {
         ID3D11RenderTargetView* pRTV[] = {

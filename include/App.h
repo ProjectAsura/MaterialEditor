@@ -66,14 +66,17 @@ private:
     asdx::PixelShader                   m_GuidePS;
     asdx::PixelShader                   m_ShapePS;
     asdx::PixelShader                   m_CompositePS;
+
     asdx::ConstantBuffer                m_SceneCB;
     asdx::ConstantBuffer                m_GuideCB;
     asdx::ConstantBuffer                m_LightCB;
     asdx::ConstantBuffer                m_MeshCB;
     asdx::ConstantBuffer                m_OETFCB;
+
     asdx::VertexBuffer                  m_AxisVB;
     asdx::VertexBuffer                  m_GridVB;
     asdx::VertexBuffer                  m_TriangleVB;
+
     uint32_t                            m_AxisVertexCount = 6;
     uint32_t                            m_GridVertexCount = 0;
     asdx::CameraUpdater                 m_CameraController;
@@ -81,6 +84,7 @@ private:
     Config                              m_Config;
     bool                                m_CameraControl = false;
     asdx::Matrix                        m_Proj = asdx::Matrix::CreateIdentity();
+
     asdx::ColorTarget2D                 m_DiffuseBuffer;
     asdx::ColorTarget2D                 m_SpecularBuffer;
     asdx::ColorTarget2D                 m_NRMBuffer;

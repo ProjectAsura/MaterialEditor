@@ -628,20 +628,19 @@ void App::OnTerm()
     m_AxisVB    .Term();
     m_GridVB    .Term();
     m_TriangleVB.Term();
-    m_GuideVS   .Term();
-    m_GuidePS   .Term();
+
     m_AxisVertexCount = 0;
     m_GridVertexCount = 0;
-
-    m_ArrowShape.Term();
 
     m_DiffuseBuffer     .Release();
     m_SpecularBuffer    .Release();
     m_NRMBuffer         .Release();
-    m_LightingBuffer    .Release();
-    m_ShadowBuffer      .Release();
-    m_DepthBuffer       .Release();
     m_DummyColorBuffer  .Release();
+    m_LightingBuffer    .Release();
+    m_DepthBuffer       .Release();
+    m_ShadowBuffer      .Release();
+
+    m_ArrowShape.Term();
 
     PluginMgr::Instance().Term();
     LightMgr ::Instance().Term();

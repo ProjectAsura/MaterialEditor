@@ -10,6 +10,7 @@
 #include <EditorModel.h>
 #include <MeshLoader.h>
 #include <asdxLogger.h>
+#include <asdxMisc.h>
 #include <asdxDeviceContext.h>
 
 
@@ -81,12 +82,12 @@ bool EditorMesh::Init(ID3D11Device* pDevice, const asdx::ResMesh& mesh)
     {
         auto& vertex = vertices[i];
         vertex.Position     = mesh.Positions[i];
-        vertex.Color        = (mesh.Colors.empty()) ? 0xFFFFFFFF : mesh.Colors[i];
-        vertex.TangentSpace = mesh.TangentSpaces[i];
-        vertex.TexCoord0    = (mesh.TexCoords[0].empty()) ? 0 : mesh.TexCoords[0][i];
-        vertex.TexCoord1    = (mesh.TexCoords[1].empty()) ? 0 : mesh.TexCoords[1][i];
-        vertex.TexCoord2    = (mesh.TexCoords[2].empty()) ? 0 : mesh.TexCoords[2][i];
-        vertex.TexCoord3    = (mesh.TexCoords[3].empty()) ? 0 : mesh.TexCoords[3][i];
+        //vertex.Color        = (mesh.Colors.empty()) ? 0xFFFFFFFF : mesh.Colors[i];
+        ////vertex.TangentSpace = mesh.TangentSpaces[i];
+        //vertex.TexCoord0    = (mesh.TexCoords[0].empty()) ? 0 : mesh.TexCoords[0][i];
+        //vertex.TexCoord1    = (mesh.TexCoords[1].empty()) ? 0 : mesh.TexCoords[1][i];
+        //vertex.TexCoord2    = (mesh.TexCoords[2].empty()) ? 0 : mesh.TexCoords[2][i];
+        //vertex.TexCoord3    = (mesh.TexCoords[3].empty()) ? 0 : mesh.TexCoords[3][i];
 
         m_Box.maxi = asdx::Vector3::Max(m_Box.maxi, vertex.Position);
         m_Box.mini = asdx::Vector3::Min(m_Box.mini, vertex.Position);
@@ -322,15 +323,42 @@ EditorModel::~EditorModel()
 //-----------------------------------------------------------------------------
 bool EditorModel::Init(const char* path)
 {
+    auto ext = asdx::GetExtA(path);
+
+
     auto pDevice = asdx::DeviceContext::Instance().GetDevice();
 
     asdx::ResModel res;
-    MeshLoader loader;
-    if (!loader.Load(path, res))
+    //MeshLoader loader;
+    //if (!loader.Load(path, res))
+    //{
+    //    ELOGA("Error : MeshLoader::Load() Failed.");
+    //    return false;
+    //}
+
+    // OBJファイル.
+    if (_stricmp(ext.c_str(), "obj") == 0)
     {
-        ELOGA("Error : MeshLoader::Load() Failed.");
+    }
+    // FBXファイル.
+    else if (_stricmp(ext.c_str(), "fbx") == 0)
+    {
+    }
+    // GLTF Asciiファイル.
+    else if (_stricmp(ext.c_str(), "gltf") == 0)
+    {
+    }
+    // GLTF Binaryファイル.
+    else if (_stricmp(ext.c_str(), "glb") == 0)
+    {
+    }
+    else
+    {
+        // 非サポートフォーマット.
+        ELOGA("Error : Unsupported File Format. path = %s", path);
         return false;
     }
+
 
     m_Meshes.resize(res.Meshes.size());
 

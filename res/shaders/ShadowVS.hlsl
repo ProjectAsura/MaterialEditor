@@ -16,9 +16,13 @@
 struct VSInput
 {
     float3  Position     : POSITION;        // 位置座標.
+    float3  Normal       : NORMAL;          // 法線ベクトル.
+    float3  Tangent      : TANGENT;         // 接線ベクトル.
     float4  Color        : COLOR;           // カラー.
-    uint    TangentSpace : TANGENT_SPACE;   // 接線空間.
-    uint4   TexCoord     : TEXCOORD;        // テクスチャ座標.
+    float2  TexCoord0    : TEXCOORD0;       // テクスチャ座標0.
+    float2  TexCoord1    : TEXCOORD1;       // テクスチャ座標1
+    float2  TexCoord2    : TEXCOORD2;       // テクスチャ座標2.
+    float2  TexCoord3    : TEXCOORD3;       // テクスチャ座標3.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,23 +56,31 @@ cbuffer CbShadow : register(b2)
 };
 
 //-----------------------------------------------------------------------------
+// Resources.
+//-----------------------------------------------------------------------------
+StructuredBuffer<float4x4>  InstanceMatrix : register(t1);
+
+//-----------------------------------------------------------------------------
 //      メインエントリーポイントです.
 //-----------------------------------------------------------------------------
-VSOutput main(const VSInput input)
+VSOutput main(const VSInput input, uint instanceId : SV_InstanceID)
 {
     VSOutput output = (VSOutput)0;
 
     float4 localPos = float4(input.Position, 1.0f);
-    float4 projPos = mul(ShadowMatrix, localPos);
+    float4 worldPos = mul(World, localPos);
+    worldPos = mul(InstanceMatrix[instanceId], worldPos);
+    float4 projPos = mul(ShadowMatrix, worldPos);
 
-    UnpackTN(input.TangentSpace, output.Tangent, output.Normal);
+    float3 normal  = mul((float3x3)World, input.Normal);
+    float3 tangent = mul((float3x3)World, input.Tangent);
 
     output.Position      = projPos;
+    output.Normal        = normal;
+    output.Tangent       = tangent;
     output.Color         = input.Color;
-    output.TexCoord01.xy = UnpackHalf2(input.TexCoord.x);
-    output.TexCoord01.zw = UnpackHalf2(input.TexCoord.y);
-    output.TexCoord23.xy = UnpackHalf2(input.TexCoord.z);
-    output.TexCoord23.zw = UnpackHalf2(input.TexCoord.w);
+    output.TexCoord01    = float4(input.TexCoord0, input.TexCoord1);
+    output.TexCoord23    = float4(input.TexCoord2, input.TexCoord3);
 
     return output;
 }

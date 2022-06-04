@@ -12,6 +12,9 @@
 #include <asdxLogger.h>
 #include <asdxMisc.h>
 #include <asdxDeviceContext.h>
+#include <OBJLoader.h>
+#include <FBXLoader.h>
+#include <GLTFLoader.h>
 
 
 namespace {
@@ -328,7 +331,7 @@ bool EditorModel::Init(const char* path)
 
     auto pDevice = asdx::DeviceContext::Instance().GetDevice();
 
-    asdx::ResModel res;
+    asdx::ResModel model;
     //MeshLoader loader;
     //if (!loader.Load(path, res))
     //{
@@ -339,18 +342,32 @@ bool EditorModel::Init(const char* path)
     // OBJファイル.
     if (_stricmp(ext.c_str(), "obj") == 0)
     {
+        OBJLoader loader;
+        if (!loader.Load(path, model))
+        {
+            ELOGA("Error : OBJLoader::Load() Failed. path = %s", path);
+            return false;
+        }
     }
     // FBXファイル.
     else if (_stricmp(ext.c_str(), "fbx") == 0)
     {
+        FBXLoader loader;
+        if (!loader.Load(path, model))
+        {
+            ELOGA("Error : FBXLoader::Load() Failed. path = %s", path);
+            return false;
+        }
     }
-    // GLTF Asciiファイル.
-    else if (_stricmp(ext.c_str(), "gltf") == 0)
+    // GLTFファイル.
+    else if (_stricmp(ext.c_str(), "gltf") == 0 || _stricmp(ext.c_str(), "glb") == 0)
     {
-    }
-    // GLTF Binaryファイル.
-    else if (_stricmp(ext.c_str(), "glb") == 0)
-    {
+        GLTFLoader loader;
+        if (!loader.Load(path, model))
+        {
+            ELOGA("Error : GLTFLoader::Load() Failed. path = %s", path);
+            return false;
+        }
     }
     else
     {
@@ -360,11 +377,11 @@ bool EditorModel::Init(const char* path)
     }
 
 
-    m_Meshes.resize(res.Meshes.size());
+    m_Meshes.resize(model.Meshes.size());
 
-    for(size_t i=0; i<res.Meshes.size(); ++i)
+    for(size_t i=0; i<model.Meshes.size(); ++i)
     {
-        if (!m_Meshes[i].Init(pDevice, res.Meshes[i]))
+        if (!m_Meshes[i].Init(pDevice, model.Meshes[i]))
         {
             ELOG("Error : EditorMesh::Init() Failed.");
             return false;

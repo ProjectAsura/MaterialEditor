@@ -42,7 +42,7 @@ struct IndexOBJ
 //-----------------------------------------------------------------------------
 //      ロードします.
 //-----------------------------------------------------------------------------
-bool OBJLoader::Load(const char* path, asdx::ResModel& model, asdx::ResMaterialSet& materials)
+bool OBJLoader::Load(const char* path, asdx::ResModel& model)
 {
     if (path == nullptr)
     {
@@ -54,13 +54,13 @@ bool OBJLoader::Load(const char* path, asdx::ResModel& model, asdx::ResMaterialS
     m_DirectoryPath = asdx::GetDirectoryPathA(path);
 
     // OBJファイルをロード.
-    return LoadOBJ(path, model, materials);
+    return LoadOBJ(path, model);
 }
 
 //-----------------------------------------------------------------------------
 //      OBJファイルをロードします.
 //-----------------------------------------------------------------------------
-bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model, asdx::ResMaterialSet& materials)
+bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model)
 {
     std::ifstream stream;
     stream.open(path, std::ios::in);
@@ -190,7 +190,7 @@ bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model, asdx::ResMateri
             stream >> path;
             if (strlen(path) > 0)
             {
-                if (!LoadMTL(path, materials))
+                if (!LoadMTL(path, model))
                 {
                     ELOGA("Error : Material Load Failed.");
                     return false;
@@ -261,7 +261,7 @@ bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model, asdx::ResMateri
 //-----------------------------------------------------------------------------
 //      MTLファイルをロードします.
 //-----------------------------------------------------------------------------
-bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
+bool OBJLoader::LoadMTL(const char* path, asdx::ResModel& model)
 {
     std::ifstream stream;
 
@@ -289,8 +289,8 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
         {
             index++;
             asdx::ResMaterial mat;
-            set.Materials.push_back(mat);
-            stream >> set.Materials[index].Name;
+            model.Materials.push_back(mat);
+            stream >> model.Materials[index].Name;
         }
         else if (0 == strcmp(buf, "Ka"))
         {
@@ -299,7 +299,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             prop.Type = asdx::PROPERTY_TYPE_FLOAT3;
             stream >> prop.Value.Float3.x >> prop.Value.Float3.y >> prop.Value.Float3.z;
 
-            set.Materials[index].Props.push_back(prop);
+            model.Materials[index].Props.push_back(prop);
         }
         else if (0 == strcmp(buf, "Kd"))
         {
@@ -308,7 +308,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             prop.Type = asdx::PROPERTY_TYPE_FLOAT3;
             stream >> prop.Value.Float3.x >> prop.Value.Float3.y >> prop.Value.Float3.z;
 
-            set.Materials[index].Props.push_back(prop);
+            model.Materials[index].Props.push_back(prop);
         }
         else if (0 == strcmp(buf, "Ks"))
         {
@@ -317,7 +317,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             prop.Type = asdx::PROPERTY_TYPE_FLOAT3;
             stream >> prop.Value.Float3.x >> prop.Value.Float3.y >> prop.Value.Float3.z;
 
-            set.Materials[index].Props.push_back(prop);
+            model.Materials[index].Props.push_back(prop);
         }
         else if (0 == strcmp(buf, "Ke"))
         {
@@ -326,7 +326,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             prop.Type = asdx::PROPERTY_TYPE_FLOAT3;
             stream >> prop.Value.Float3.x >> prop.Value.Float3.y >> prop.Value.Float3.z;
 
-            set.Materials[index].Props.push_back(prop);
+            model.Materials[index].Props.push_back(prop);
         }
         else if (0 == strcmp(buf, "d") || 0 == strcmp(buf, "Tr"))
         {
@@ -335,7 +335,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             prop.Type = asdx::PROPERTY_TYPE_FLOAT;
             stream >> prop.Value.Float;
 
-            set.Materials[index].Props.push_back(prop);
+            model.Materials[index].Props.push_back(prop);
         }
         else if (0 == strcmp(buf, "Ns"))
         {
@@ -344,7 +344,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             prop.Type = asdx::PROPERTY_TYPE_FLOAT;
             stream >> prop.Value.Float;
 
-            set.Materials[index].Props.push_back(prop);
+            model.Materials[index].Props.push_back(prop);
         }
         else if (0 == strcmp(buf, "map_Ka"))
         {
@@ -352,7 +352,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             tex.Name = asdx::TAG_AMBIENT;
             stream >> tex.Path;
 
-            set.Materials[index].Textures.push_back(tex);
+            model.Materials[index].Textures.push_back(tex);
         }
         else if (0 == strcmp(buf, "map_Kd"))
         {
@@ -360,7 +360,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             tex.Name = asdx::TAG_DIFFUSE;
             stream >> tex.Path;
 
-            set.Materials[index].Textures.push_back(tex);
+            model.Materials[index].Textures.push_back(tex);
         }
         else if (0 == strcmp(buf, "map_Ks"))
         {
@@ -368,7 +368,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             tex.Name = asdx::TAG_SPECULAR;
             stream >> tex.Path;
 
-            set.Materials[index].Textures.push_back(tex);
+            model.Materials[index].Textures.push_back(tex);
         }
         else if (0 == _stricmp(buf, "map_bump") || 0 == strcmp(buf, "bump"))
         {
@@ -376,7 +376,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             tex.Name = asdx::TAG_BUMP;
             stream >> tex.Path;
 
-            set.Materials[index].Textures.push_back(tex);
+            model.Materials[index].Textures.push_back(tex);
         }
         else if (0 == strcmp(buf, "disp"))
         {
@@ -384,7 +384,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             tex.Name = asdx::TAG_DISPLACEMENT;
             stream >> tex.Path;
 
-            set.Materials[index].Textures.push_back(tex);
+            model.Materials[index].Textures.push_back(tex);
         }
         else if (0 == strcmp(buf, "norm"))
         {
@@ -392,7 +392,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             tex.Name = asdx::TAG_NORMAL;
             stream >> tex.Path;
 
-            set.Materials[index].Textures.push_back(tex);
+            model.Materials[index].Textures.push_back(tex);
         }
         else if (0 == strcmp(buf, "map_ORM"))
         {
@@ -400,7 +400,7 @@ bool OBJLoader::LoadMTL(const char* path, asdx::ResMaterialSet& set)
             tex.Name = asdx::TAG_ORM;
             stream >> tex.Path;
 
-            set.Materials[index].Textures.push_back(tex);
+            model.Materials[index].Textures.push_back(tex);
         }
 
         stream.ignore(OBJ_BUFFER_LENGTH, '\n');

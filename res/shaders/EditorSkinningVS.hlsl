@@ -15,11 +15,15 @@
 struct VSInput
 {
     float3  Position     : POSITION;        // 位置座標.
+    float3  Normal       : NORMAL;          // 法線ベクトル.
+    float3  Tangent      : TANGENT;         // 接線ベクトル.
     float4  Color        : COLOR;           // カラー.
-    uint    TangentSpace : TANGENT_SPACE;   // 接線空間.
-    uint4   TexCoord     : TEXCOORD;        // テクスチャ座標.
-    uint4   BoneIndex    : BONE_INDEX;
-    float4  BoneWeight   : BONE_WEIGHT;
+    float2  TexCoord0    : TEXCOORD0;       // テクスチャ座標0.
+    float2  TexCoord1    : TEXCOORD1;       // テクスチャ座標1
+    float2  TexCoord2    : TEXCOORD2;       // テクスチャ座標2.
+    float2  TexCoord3    : TEXCOORD3;       // テクスチャ座標3.
+    uint4   BoneIndex    : BONE_INDEX;      // ボーンインデックス.
+    float4  BoneWeight   : BONE_WEIGHT;     // ボーンウェイト.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -94,8 +98,8 @@ VSOutput main(const VSInput input, uint instanceId : SV_InstanceID)
     float4 viewPos  = mul(View, worldPos);
     float4 projPos  = mul(Proj, viewPos);
 
-    float3 tangent, normal;
-    UnpackTN(input.TangentSpace, tangent, normal);
+    float3 normal  = mul((float3x3)World, input.Normal);
+    float3 tangent = mul((float3x3)World, input.Tangent);
 
     float4 skinningNormal  = Skinning(float4(normal,  0), input.BoneIndex, input.BoneWeight);
     float4 skinningTangent = Skinning(float4(tangent, 0), input.BoneIndex, input.BoneWeight);
@@ -104,10 +108,8 @@ VSOutput main(const VSInput input, uint instanceId : SV_InstanceID)
     output.Color         = input.Color;
     output.Normal        = skinningNormal.xyz;
     output.Tangent       = skinningTangent.xyz;
-    output.TexCoord01.xy = UnpackHalf2(input.TexCoord.x);
-    output.TexCoord01.zw = UnpackHalf2(input.TexCoord.y);
-    output.TexCoord23.xy = UnpackHalf2(input.TexCoord.z);
-    output.TexCoord23.zw = UnpackHalf2(input.TexCoord.w);
+    output.TexCoord01    = float4(input.TexCoord0, input.TexCoord1);
+    output.TexCoord23    = float4(input.TexCoord2, input.TexCoord3);
 
     return output;
 }

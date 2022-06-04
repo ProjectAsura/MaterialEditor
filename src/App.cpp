@@ -41,17 +41,25 @@ namespace {
 // Global Varaibles.
 //-----------------------------------------------------------------------------
 static const D3D11_INPUT_ELEMENT_DESC kElements[] = {
-    { "POSITION",      0, DXGI_FORMAT_R32G32B32_FLOAT,   0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "COLOR",         0, DXGI_FORMAT_R8G8B8A8_UNORM,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TANGENT_SPACE", 0, DXGI_FORMAT_R32_UINT,          0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TEXCOORD",      0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    { "POSITION",      0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "NORMAL",        0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TANGENT",       0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "COLOR",         0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",      0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",      1, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",      2, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",      3, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
 
 static const D3D11_INPUT_ELEMENT_DESC kSkinningElements[] = {
     { "POSITION",      0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "COLOR",         0, DXGI_FORMAT_R8G8B8A8_UNORM,     0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TANGENT_SPACE", 0, DXGI_FORMAT_R32_UINT,           0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TEXCOORD",      0, DXGI_FORMAT_R32G32B32A32_UINT,  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "NORMAL",        0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TANGENT",       0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "COLOR",         0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",      0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",      1, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",      2, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",      3, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "BONE_INDEX",    0, DXGI_FORMAT_R16G16B16A16_UINT,  1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "BONE_WEIGHT",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
@@ -308,14 +316,26 @@ App::~App()
 //-----------------------------------------------------------------------------
 bool App::OnInit()
 {
-    const char* fontPath = "../res/fonts/07やさしさゴシック.ttf";
+    // コンフィグ読み込み.
+    {
+        std::string path;
+        if (asdx::SearchFilePathA("MaterialEditor.config", path))
+        {
+            if (!m_Config.Load(path.c_str()))
+            {
+                // 失敗したらデフォルト値設定.
+                m_Config = Config();
+            }
+        }
+    }
+
     if (!asdx::GuiMgr::GetInstance().Init(
         m_pDevice,
         m_pDeviceContext,
         m_hWnd,
         m_Width,
         m_Height,
-        fontPath))
+        m_Config.FontPath.c_str()))
     {
         ELOGA("Error : GuiMgr::Init() Failed.");
         return false;
@@ -564,7 +584,6 @@ bool App::OnInit()
         }
     }
 
-
     // シャドウマップ用.
     {
         asdx::TargetDesc2D desc = {};
@@ -605,6 +624,9 @@ bool App::OnInit()
 //-----------------------------------------------------------------------------
 void App::OnTerm()
 {
+    // コンフィグ出力.
+    m_Config.Save("MaterialEditor.config");
+
     m_EditorVS          .Term();
     m_EditorSkinningVS  .Term();
     m_ShadowVS          .Term();
@@ -971,28 +993,16 @@ void App::OnDrop(const std::vector<std::string>& dropFiles)
     {
         auto ext = asdx::GetExtA(dropFiles[i].c_str());
 
+        // モデルファイルからワークスペースを新規作成.
         if (ext == "fbx" 
          || ext == "obj"
-         || ext == "3ds"
-         || ext == "dae"
-         || ext == "collada"
-         || ext == "blend"
-         || ext == "dxf"
          || ext == "gltf"
-         || ext == "glb"
-         || ext == "lwo"
-         || ext == "mdl"
-         || ext == "md2"
-         || ext == "md3"
-         || ext == "md5"
-         || ext == "ms3d"
-         || ext == "ply"
-         || ext == "stl"
-         || ext == "x")
+         || ext == "glb")
         {
             if (m_WorkSpace.New(dropFiles[i].c_str()))
             { return; }
         }
+        // ワークスペース.
         else if (ext == "work")
         {
             if (m_WorkSpace.LoadAsync(dropFiles[i].c_str()))

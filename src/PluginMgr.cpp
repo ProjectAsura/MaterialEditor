@@ -12,7 +12,7 @@
 #include <asdxLogger.h>
 #include <asdxDeviceContext.h>
 #include <imgui.h>
-#include <DirectXTex.h>
+#include "..\external\directxtex_desktop_2019.2022.5.10.1\include\DirectXTex.h"
 
 
 //-----------------------------------------------------------------------------

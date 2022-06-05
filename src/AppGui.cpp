@@ -68,12 +68,12 @@ struct OSS
     const char* Url;
 };
 static OSS kLicenses[] = {
-    {"Dear Imgui", "https://github.com/ocornut/imgui/blob/master/LICENSE.txt"},
-    {"ImgGuizmo", "https://github.com/CedricGuillemet/ImGuizmo/blob/master/LICENSE"},
-    {"TinyXML-2", "https://github.com/leethomason/tinyxml2/blob/master/LICENSE.txt"},
-    {"meshoptimizer", "https://github.com/zeux/meshoptimizer/blob/master/LICENSE.md"},
-    {"DirectXTex", "https://github.com/microsoft/DirectXTex/blob/master/LICENSE"},
-    {"assimp", "https://github.com/assimp/assimp/blob/master/LICENSE"},
+    {"Dear Imgui"       , "https://github.com/ocornut/imgui/blob/master/LICENSE.txt"},
+    {"ImgGuizmo"        , "https://github.com/CedricGuillemet/ImGuizmo/blob/master/LICENSE"},
+    {"TinyXML-2"        , "https://github.com/leethomason/tinyxml2/blob/master/LICENSE.txt"},
+    {"meshoptimizer"    , "https://github.com/zeux/meshoptimizer/blob/master/LICENSE.md"},
+    {"DirectXTex"       , "https://github.com/microsoft/DirectXTex/blob/master/LICENSE"},
+    {"assimp"           , "https://github.com/assimp/assimp/blob/master/LICENSE"},
 };
 
 

@@ -225,7 +225,8 @@ const asura::Properties& PluginMaterial::GetProperties() const
 void* PluginMaterial::Map(ID3D11DeviceContext* pContext)
 {
     D3D11_MAPPED_SUBRESOURCE subResource = {};
-    auto hr = pContext->Map(m_EditableCB.GetPtr(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
+    auto hr = pContext->Map(
+        m_EditableCB.GetPtr(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
     if (FAILED(hr))
     { return nullptr; }
 

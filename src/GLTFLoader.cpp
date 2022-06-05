@@ -49,6 +49,38 @@ bool DummyWriteImage(const std::string*, const std::string*, tinygltf::Image*, b
     return true;
 }
 
+//-----------------------------------------------------------------------------
+//      クオータニオンから回転角に変換します.
+//-----------------------------------------------------------------------------
+static void QuatToAngleAxis
+(
+    const std::vector<double>   quaternion,
+    float&                      outAngleRadian,
+    float*                      axis
+)
+{
+    double qx = quaternion[0];
+    double qy = quaternion[1];
+    double qz = quaternion[2];
+    double qw = quaternion[3];
+  
+    double angleRadians = 2 * acos(qw);
+    if (angleRadians == 0.0)
+    {
+        outAngleRadian = 0.0f;
+        axis[0] = 0.0f;
+        axis[1] = 0.0f;
+        axis[2] = 1.0f;
+        return;
+    }
+
+    double denom = sqrt(1 - qw * qw);
+    outAngleRadian = float(angleRadians);
+    axis[0] = float(qx / denom);
+    axis[1] = float(qy / denom);
+    axis[2] = float(qz / denom);
+}
+
 } // namespace
 
 
@@ -109,10 +141,70 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
 
     auto meshCount = gltfModel.meshes.size();
 
+    std::vector<asdx::Matrix>   transforms;
+    transforms.resize(meshCount);
+
+    // 行列初期化.
+    for(size_t i=0; i<meshCount; ++i)
+    {
+        transforms[i].Identity();
+    }
+
+    for(size_t i=0; i<gltfModel.nodes.size(); ++i)
+    {
+        auto& srcNode = gltfModel.nodes[i];
+        auto meshId = srcNode.mesh;
+        if (meshId != -1)
+        {
+            if (srcNode.matrix.size() == 16)
+            {
+                transforms[i].row[0] = asdx::Vector4(float(srcNode.matrix[0]),  float(srcNode.matrix[1]),  float(srcNode.matrix[2]),  float(srcNode.matrix[3]));
+                transforms[i].row[1] = asdx::Vector4(float(srcNode.matrix[4]),  float(srcNode.matrix[5]),  float(srcNode.matrix[6]),  float(srcNode.matrix[7]));
+                transforms[i].row[2] = asdx::Vector4(float(srcNode.matrix[8]),  float(srcNode.matrix[9]),  float(srcNode.matrix[10]), float(srcNode.matrix[11]));
+                transforms[i].row[3] = asdx::Vector4(float(srcNode.matrix[12]), float(srcNode.matrix[13]), float(srcNode.matrix[14]), float(srcNode.matrix[15]));
+            }
+            else
+            {
+                asdx::Matrix matrix = asdx::Matrix::CreateIdentity();
+
+                if (srcNode.scale.size() == 3)
+                {
+                    matrix *= asdx::Matrix::CreateScale(
+                        float(srcNode.scale[0]),
+                        float(srcNode.scale[1]),
+                        float(srcNode.scale[2]));
+                }
+
+                if (srcNode.rotation.size() == 4)
+                {
+                    float angleRad;
+                    float axis[3];
+                    QuatToAngleAxis(srcNode.rotation, angleRad, axis);
+
+                    matrix *= asdx::Matrix::CreateFromAxisAngle(
+                        asdx::Vector3(axis[0], axis[1], axis[2]), angleRad);
+                }
+
+                if (srcNode.translation.size() == 3)
+                {
+                    matrix *= asdx::Matrix::CreateTranslation(
+                        float(srcNode.translation[0]),
+                        float(srcNode.translation[1]),
+                        float(srcNode.translation[2]));
+                }
+
+                transforms[i] = matrix;
+            }
+        }
+    }
+
+
     // メッシュ変換.
     for(size_t i=0; i<meshCount; ++i)
     {
         auto& srcMesh = gltfModel.meshes[i];
+
+        auto transformsT = asdx::Matrix::Transpose(transforms[i]);
 
         auto primitiveIndex = 0;
         for(auto& primitive : srcMesh.primitives)
@@ -132,9 +224,14 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                 auto& buffer    = gltfModel.buffers[view.buffer];
                 auto offset     = accessor.byteOffset + view.byteOffset;
 
-                const auto ptr = &(buffer.data[offset]);
+                const auto ptr = reinterpret_cast<asdx::Vector3*>(buffer.data.data() + offset);
                 dstMesh.Positions.resize(accessor.count);
-                memcpy(dstMesh.Positions.data(), ptr, accessor.count * sizeof(asdx::Vector3));
+
+                for(size_t idx=0; idx<accessor.count; ++idx)
+                {
+                    dstMesh.Positions[idx] = ptr[idx];
+                    dstMesh.Positions[idx] = asdx::Vector3::TransformCoord(dstMesh.Positions[idx], transforms[i]);
+                }
             }
 
             // 法線ベクトル.
@@ -146,9 +243,15 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                 auto& buffer    = gltfModel.buffers[view.buffer];
                 auto offset     = accessor.byteOffset + view.byteOffset;
 
-                const auto ptr = &(buffer.data[offset]);
+                const auto ptr = reinterpret_cast<asdx::Vector3*>(buffer.data.data() + offset);
                 dstMesh.Normals.resize(accessor.count);
-                memcpy(dstMesh.Normals.data(), ptr, accessor.count * sizeof(asdx::Vector3));
+
+                for(size_t idx=0; idx<accessor.count; ++idx)
+                {
+                    dstMesh.Normals[idx] = ptr[idx];
+                    dstMesh.Normals[idx] = asdx::Vector3::TransformNormal(dstMesh.Normals[idx], transformsT);
+                    dstMesh.Normals[idx] = asdx::Vector3::SafeNormalize(dstMesh.Normals[idx], dstMesh.Normals[idx]);
+                }
             }
 
             // 接線ベクトル.
@@ -160,10 +263,16 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                 auto& buffer    = gltfModel.buffers[view.buffer];
                 auto offset     = accessor.byteOffset + view.byteOffset;
 
-                assert(view.byteStride == sizeof(asdx::Vector3));
-
-                const auto ptr = &(buffer.data[offset]);
+                const auto ptr = reinterpret_cast<asdx::Vector3*>(buffer.data.data() + offset);
                 dstMesh.Tangents.resize(accessor.count);
+
+                for(size_t idx=0; idx<accessor.count; ++idx)
+                {
+                    dstMesh.Tangents[idx] = ptr[idx];
+                    dstMesh.Tangents[idx] = asdx::Vector3::TransformNormal(dstMesh.Tangents[idx], transformsT);
+                    dstMesh.Tangents[idx] = asdx::Vector3::SafeNormalize(dstMesh.Tangents[idx], dstMesh.Tangents[idx]);
+                }
+
                 memcpy(dstMesh.Tangents.data(), ptr, accessor.count * sizeof(asdx::Vector3));
             }
 
@@ -184,14 +293,14 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                     {
                     case TINYGLTF_COMPONENT_TYPE_FLOAT:
                         {
-                            const auto ptr = &(buffer.data[offset]);
+                            const auto ptr = buffer.data.data() + offset;
                             memcpy(dstMesh.Tangents.data(), ptr, accessor.count * sizeof(asdx::Vector4));
                         }
                         break;
 
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
                         {
-                            const auto ptr = &(buffer.data[offset]);
+                            const auto ptr = buffer.data.data() + offset;
                             for(size_t idx=0; idx<accessor.count; ++idx)
                             {
                                 dstMesh.Colors[idx].x = float(ptr[idx * 4 + 0]) / 255.0f;
@@ -209,7 +318,7 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                     {
                     case TINYGLTF_COMPONENT_TYPE_FLOAT:
                         {
-                            const auto ptr = reinterpret_cast<float*>(&buffer.data[offset]);
+                            const auto ptr = reinterpret_cast<float*>(buffer.data.data() + offset);
                             for(size_t idx=0; idx<accessor.count; ++idx)
                             {
                                 dstMesh.Colors[idx].x = ptr[idx * 3 + 0];
@@ -222,7 +331,7 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
 
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
                         {
-                            const auto ptr = &(buffer.data[offset]);
+                            const auto ptr = buffer.data.data() + offset;
                             for(size_t idx=0; idx<accessor.count; ++idx)
                             {
                                 dstMesh.Colors[idx].x = float(ptr[idx * 3 + 0]) / 255.0f;
@@ -251,7 +360,7 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                 {
                 case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
                     {
-                        const auto ptr = &(buffer.data[offset]);
+                        const auto ptr = buffer.data.data() + offset;
                         for(size_t idx=0; idx<accessor.count; ++idx)
                         {
                             dstMesh.BoneIndices[idx].x = uint16_t(ptr[idx * 4 + 0]);
@@ -264,7 +373,7 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
 
                 case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
                     {
-                        const auto ptr = &(buffer.data[offset]);
+                        const auto ptr = buffer.data.data() + offset;
                         memcpy(dstMesh.BoneIndices.data(), ptr, accessor.count * sizeof(asdx::ResBoneIndex));
                     }
                     break;
@@ -280,7 +389,7 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                 auto& buffer    = gltfModel.buffers[view.buffer];
                 auto offset     = accessor.byteOffset + view.byteOffset;
 
-                const auto ptr = &(buffer.data[offset]);
+                const auto ptr = buffer.data.data() + offset;
                 dstMesh.BoneWeights.resize(accessor.count);
                 memcpy(dstMesh.BoneWeights.data(), ptr, accessor.count * sizeof(asdx::Vector4));
             }
@@ -303,14 +412,14 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                 {
                 case TINYGLTF_COMPONENT_TYPE_FLOAT:
                     {
-                        const auto ptr = &(buffer.data[offset]);
+                        const auto ptr = buffer.data.data() + offset;
                         memcpy(dstMesh.TexCoords[layer].data(), ptr, accessor.count * sizeof(asdx::Vector2));
                     }
                     break;
 
                 case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
                     {
-                        const auto ptr = &(buffer.data[offset]);
+                        const auto ptr = buffer.data.data() + offset;
                         for(size_t idx=0; idx<accessor.count; ++idx)
                         {
                             dstMesh.TexCoords[layer][idx].x = float(ptr[idx * 2 + 0]) / 255.0f;
@@ -321,7 +430,7 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
 
                 case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
                     {
-                        const auto ptr = reinterpret_cast<uint16_t*>(&(buffer.data[offset]));
+                        const auto ptr = reinterpret_cast<uint16_t*>(buffer.data.data() + offset);
                         for(size_t idx=0; idx<accessor.count; ++idx)
                         {
                             dstMesh.TexCoords[layer][idx].x = float(ptr[idx * 2 + 0]) / 65535.0f;
@@ -345,14 +454,14 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                 {
                 case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
                     {
-                        const auto ptr = reinterpret_cast<uint32_t*>(&(buffer.data[offset]));
+                        const auto ptr = reinterpret_cast<uint32_t*>(buffer.data.data() + offset);
                         memcpy(dstMesh.Indices.data(), ptr, accessor.count * sizeof(uint32_t));
                     }
                     break;
 
                 case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
                     {
-                        const auto ptr = reinterpret_cast<uint16_t*>(&(buffer.data[offset]));
+                        const auto ptr = reinterpret_cast<uint16_t*>(buffer.data.data() + offset);
                         for(size_t idx=0; idx<accessor.count; ++idx)
                         {
                             dstMesh.Indices[idx] = uint32_t(ptr[idx]);

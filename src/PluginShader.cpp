@@ -17,107 +17,6 @@
 #include <ctime>
 
 
-#if 0
-namespace {
-
-//-----------------------------------------------------------------------------
-//      変換を考慮して値を取得します.
-//-----------------------------------------------------------------------------
-float GetValue(const UiFloat& info)
-{
-    switch (info.Converter)
-    {
-    case CONVERTER_NONE:
-    default:
-        return info.Param.GetValue();
-
-    case CONVERTER_RADIAN:
-        return asdx::ToRadian(info.Param.GetValue());
-
-    case CONVERTER_DEGREE:
-        return asdx::ToDegree(info.Param.GetValue());
-    }
-}
-
-//-----------------------------------------------------------------------------
-//      変換を考慮して値を取得します.
-//-----------------------------------------------------------------------------
-asdx::Vector2 GetValue(const UiFloat2& info)
-{
-    switch (info.Converter)
-    {
-    case CONVERTER_NONE:
-    default:
-        return info.Param.GetValue();
-
-    case CONVERTER_RADIAN:
-        return asdx::Vector2(
-            asdx::ToRadian(info.Param.GetValue().x),
-            asdx::ToRadian(info.Param.GetValue().y));
-
-    case CONVERTER_DEGREE:
-        return asdx::Vector2(
-            asdx::ToDegree(info.Param.GetValue().x),
-            asdx::ToDegree(info.Param.GetValue().y));
-    }
-}
-
-//-----------------------------------------------------------------------------
-//      変換を考慮して値を取得します.
-//-----------------------------------------------------------------------------
-asdx::Vector3 GetValue(const UiFloat3& info)
-{
-    switch (info.Converter)
-    {
-    case CONVERTER_NONE:
-    default:
-        return info.Param.GetValue();
-
-    case CONVERTER_RADIAN:
-        return asdx::Vector3(
-            asdx::ToRadian(info.Param.GetValue().x),
-            asdx::ToRadian(info.Param.GetValue().y),
-            asdx::ToRadian(info.Param.GetValue().z));
-
-    case CONVERTER_DEGREE:
-        return asdx::Vector3(
-            asdx::ToDegree(info.Param.GetValue().x),
-            asdx::ToDegree(info.Param.GetValue().y),
-            asdx::ToDegree(info.Param.GetValue().z));
-    }
-}
-
-//-----------------------------------------------------------------------------
-//      変換を考慮して値を取得します.
-//-----------------------------------------------------------------------------
-asdx::Vector4 GetValue(const UiFloat4& info)
-{
-    switch (info.Converter)
-    {
-    case CONVERTER_NONE:
-    default:
-        return info.Param.GetValue();
-
-    case CONVERTER_RADIAN:
-        return asdx::Vector4(
-            asdx::ToRadian(info.Param.GetValue().x),
-            asdx::ToRadian(info.Param.GetValue().y),
-            asdx::ToRadian(info.Param.GetValue().z),
-            asdx::ToRadian(info.Param.GetValue().w));
-
-    case CONVERTER_DEGREE:
-        return asdx::Vector4(
-            asdx::ToDegree(info.Param.GetValue().x),
-            asdx::ToDegree(info.Param.GetValue().y),
-            asdx::ToDegree(info.Param.GetValue().z),
-            asdx::ToDegree(info.Param.GetValue().w));
-    }
-}
-
-} // namespace
-#endif
-
-
 namespace {
 
 //-----------------------------------------------------------------------------
@@ -211,16 +110,19 @@ bool PluginShader::Compile(const char* sourceCode, size_t size, const char* entr
     {
         ELOGA("Error : D3DCompileFromFile() Failed. errcode = 0x%x, msg = %s",
             hr, reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
-#if defined(DEBUG) || defined(_DEBUG)
+    #if defined(DEBUG) || defined(_DEBUG)
         OutputErrorShader(sourceCode, size);
-#endif
+    #endif
         return false;
     }
 
     asdx::RefPtr<ID3D11ShaderReflection> pReflection;
 
     // シェーダリフレクション生成.
-    hr = D3DReflect(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), IID_PPV_ARGS(pReflection.GetAddress()));
+    hr = D3DReflect(
+        pBlob->GetBufferPointer(),
+        pBlob->GetBufferSize(),
+        IID_PPV_ARGS(pReflection.GetAddress()));
     if (FAILED(hr))
     {
         ELOGA("Error : D3DReflect() Failed. errcode = 0x%x", hr);
@@ -303,7 +205,11 @@ bool PluginShader::Compile(const char* sourceCode, size_t size, const char* entr
     }
 
     auto pDevice = asdx::DeviceContext::Instance().GetDevice();
-    hr = pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, m_PS.GetAddress());
+    hr = pDevice->CreatePixelShader(
+        pBlob->GetBufferPointer(),
+        pBlob->GetBufferSize(),
+        nullptr,
+        m_PS.GetAddress());
     if (FAILED(hr))
     {
         ELOGA("Error : ID3D11Device::CreatePixelShader() Failed. errcode = 0x%x", hr);

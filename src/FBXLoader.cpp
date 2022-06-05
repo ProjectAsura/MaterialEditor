@@ -894,6 +894,8 @@ void FBXLoader::ParseVertex(FbxMesh* pSrcMesh, MeshFBX& dstMesh)
         if (pColors != nullptr)
         { dstMesh.Colors.resize( faces.size() * 3 ); }
 
+        auto worldT = asdx::Matrix::Transpose(world);
+
         uint32_t idx = 0;
         for( size_t i=0; i<faces.size(); ++i )
         {
@@ -920,7 +922,7 @@ void FBXLoader::ParseVertex(FbxMesh* pSrcMesh, MeshFBX& dstMesh)
                     dstMesh.Normals[idx].x = static_cast<float>( normal[0] );
                     dstMesh.Normals[idx].y = static_cast<float>( normal[1] );
                     dstMesh.Normals[idx].z = static_cast<float>( normal[2] );
-                    dstMesh.Normals[idx] = asdx::Vector3::TransformNormal(dstMesh.Normals[idx], asdx::Matrix::Transpose(world));
+                    dstMesh.Normals[idx] = asdx::Vector3::TransformNormal(dstMesh.Normals[idx], worldT);
                     dstMesh.Normals[idx] = asdx::Vector3::SafeNormalize(dstMesh.Normals[idx], dstMesh.Normals[idx]);
                 }
 
@@ -930,7 +932,7 @@ void FBXLoader::ParseVertex(FbxMesh* pSrcMesh, MeshFBX& dstMesh)
                     dstMesh.Tangents[idx].x = static_cast<float>( tangent[0] );
                     dstMesh.Tangents[idx].y = static_cast<float>( tangent[1] );
                     dstMesh.Tangents[idx].z = static_cast<float>( tangent[2] );
-                    dstMesh.Tangents[idx] = asdx::Vector3::TransformNormal(dstMesh.Tangents[idx], asdx::Matrix::Transpose(world));
+                    dstMesh.Tangents[idx] = asdx::Vector3::TransformNormal(dstMesh.Tangents[idx], worldT);
                     dstMesh.Tangents[idx] = asdx::Vector3::SafeNormalize(dstMesh.Tangents[idx], dstMesh.Tangents[idx]);
                 }
 

@@ -12,6 +12,7 @@
 #include <imgui.h>
 #include <asdxLogger.h>
 #include <asdxRenderState.h>
+#include <asdxLocalization.h>
 
 
 namespace {
@@ -37,28 +38,35 @@ static const uint32_t kSizeTable[] = {
     0,  // PROPERTY_TYPE_TEXTURECUBE_ARRAY
 };
 
-const char* kBlendState[] = {
-    u8"不透明",
-    u8"アルファブレンド",
-    u8"加算",
-    u8"減算",
-    u8"事前乗算済みアルファブレンド",
-    u8"乗算",
-    u8"スクリーン"
+static const asdx::Localization kBlendState[] = {
+    asdx::Localization(u8"不透明", u8"Opaque"),
+    asdx::Localization(u8"アルファブレンド", u8"Alpha Blend"),
+    asdx::Localization(u8"加算", u8"Additive"),
+    asdx::Localization(u8"減算", u8"Subtract"),
+    asdx::Localization(u8"事前乗算済みアルファブレンド", u8"PreMultyplied Alpha"),
+    asdx::Localization(u8"乗算", u8"Multiply"),
+    asdx::Localization(u8"スクリーン", u8"Screen"),
 };
 
-const char* kRasterizerState[] = {
-    u8"両面表示",
-    u8"背面表示",
-    u8"前面表示"
+static const asdx::Localization kRasterizerState[] = {
+    asdx::Localization(u8"両面表示", u8"Both"),
+    asdx::Localization(u8"背面表示", u8"Back Face"),
+    asdx::Localization(u8"前面表示", u8"Front Face"),
 };
 
-const char* kDepthState[] = {
-    u8"深度テスト無効・深度書き込み無効",
-    u8"深度テスト有効・深度書き込み有効",
-    u8"深度テスト有効・深度書き込み無効",
-    u8"深度テスト無効・深度書き込み有効"
+static const asdx::Localization kDepthState[] = {
+    asdx::Localization(u8"深度テスト無効・深度書き込み無効", u8"Depth Test Disable / Write Disable"),
+    asdx::Localization(u8"深度テスト有効・深度書き込み有効", u8"Depth Test Enable  / Write Enable"),
+    asdx::Localization(u8"深度テスト有効・深度書き込み無効", u8"Depth Test Enable  / Write Disable"),
+    asdx::Localization(u8"深度テスト無効・深度書き込み有効", u8"Depth Test Disable / Write Enable"),
 };
+
+static const asdx::Localization kTagShadowReceive(u8"シャドウレシーブ", u8"Shadow Receive");
+static const asdx::Localization kTagShadowCast(u8"シャドウキャスト", u8"Shadow Cast");
+static const asdx::Localization kTagDisplaceFace(u8"表示面", u8"Display Face");
+static const asdx::Localization kTagBlendSettings(u8"ブレンド設定", u8"Blend State");
+static const asdx::Localization kTagDepthSettings(u8"深度設定", u8"Depth State");
+static const asdx::Localization kTagInvalidMaterial(u8"無効なマテリアルです", u8"Invalid Material");
 
 } // namespace 
 
@@ -588,20 +596,20 @@ void EditMaterialView::Deserialize(const char* tag, tinyxml2::XMLElement* elemen
 //-----------------------------------------------------------------------------
 void EditMaterialView::Draw()
 {
-    m_ShadowCast.DrawCheckbox(u8"シャドウキャスト");
-    m_ShadowReceive.DrawCheckbox(u8"シャドウレシーブ");
+    m_ShadowCast.DrawCheckbox(kTagShadowCast.c_str());
+    m_ShadowReceive.DrawCheckbox(kTagShadowReceive.c_str());
     m_BlendState.DrawCombo(
-            u8"ブレンド設定",
+            kTagBlendSettings.c_str(),
             _countof(kBlendState),
             kBlendState);
 
     m_RasterizerState.DrawCombo(
-            u8"表示面",
+            kTagDisplaceFace.c_str(),
             _countof(kRasterizerState),
             kRasterizerState);
 
     m_DepthState.DrawCombo(
-            u8"深度設定",
+            kTagDepthSettings.c_str(),
             _countof(kDepthState),
             kDepthState);
 
@@ -850,7 +858,7 @@ void EditorMaterial::Edit(const std::string& filterType)
         }
         else
         {
-            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), u8"無効なマテリアルです.");
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), kTagInvalidMaterial.c_str());
         }
     }
 

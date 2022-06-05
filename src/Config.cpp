@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+﻿//---------------------------------------------------------"--------------------
 // File : Config.cpp
 // Desc : Configuration.
 // Copyright(c) Project Asura. All right reserved.
@@ -11,6 +11,7 @@
 #include <imgui.h>
 #include <asdxMisc.h>
 #include <asdxLogger.h>
+#include <asdxLocalization.h>
 
 
 namespace {
@@ -18,10 +19,33 @@ namespace {
 //-----------------------------------------------------------------------------
 // Constant Values.
 //-----------------------------------------------------------------------------
-const char* kCameraTypeLabel[] = {
-    u8"注視点モード",
-    u8"ウォークスルーモード"
+static const asdx::Localization kCameraTypeLabel[] = {
+    asdx::Localization(u8"注視点モード", u8"LookAt Mode"),
+    asdx::Localization(u8"ウォークスルーモード", u8"Walktrough Mode"),
 };
+static const asdx::Localization kTagBackGround(u8"背景", u8"Background");
+static const asdx::Localization kTagClearColor(u8"クリアカラー", u8"Clear Color");
+static const asdx::Localization kTagShowTexture(u8"背景画像表示", u8"Show Texture");
+static const asdx::Localization kTagCamera(u8"カメラ", u8"Camera");
+static const asdx::Localization kTagType(u8"タイプ", u8"Type");
+static const asdx::Localization kTagFovY(u8"垂直画角", u8"Field Of View Y");
+static const asdx::Localization kTagNearClip(u8"ニアクリップ平面", u8"Near Clip");
+static const asdx::Localization kTagFarClip(u8"ファークリップ平面", u8"Far Clip");
+static const asdx::Localization kTagRotationGain(u8"回転量", u8"Rotation Gain");
+static const asdx::Localization kTagDollyGain(u8"ドリー量", u8"Dolly Gain");
+static const asdx::Localization kTagMoveGain(u8"移動量", u8"Move Gain");
+static const asdx::Localization kTagWheelGain(u8"ホイール量", u8"Wheel Gain");
+static const asdx::Localization kTagModelPreview(u8"モデルプレビュー", u8"Preview Model");
+static const asdx::Localization kTagScale(u8"拡大縮小", u8"Scale");
+static const asdx::Localization kTagRotation(u8"回転", u8"Rotation");
+static const asdx::Localization kTagTranslation(u8"平行移動", u8"Transliation");
+static const asdx::Localization kTagAutoTurn(u8"自動回転", u8"Auto Turn");
+static const asdx::Localization kTagAutoTurnSpeed(u8"自動回転速度", u8"Auto Turn Speed");
+static const asdx::Localization kTagDebug(u8"デバッグ", u8"Debug");
+static const asdx::Localization kTagDrawBone(u8"ボーンの表示", u8"Draw Bone");
+static const asdx::Localization kTagDrawSunLightDir(u8"サンライト方向の表示", u8"Sun Light Direction");
+static const asdx::Localization kTagDrawGrid(u8"グリッドの表示", u8"Draw Grid");
+static const asdx::Localization kTagDrawAxis(u8"座標軸の表示", u8"Draw Axis");
 
 } // namespace
 
@@ -102,11 +126,11 @@ void BackgroundSetting::Deserialize(tinyxml2::XMLElement* element)
 //-----------------------------------------------------------------------------
 void BackgroundSetting::Edit()
 {
-    if (!ImGui::CollapsingHeader(u8"背景"))
+    if (!ImGui::CollapsingHeader(kTagBackGround.c_str()))
     { return; }
 
-    ClearColor.DrawPicker(u8"クリアカラー");
-    ShowTexture.DrawCheckbox(u8"背景画像表示");
+    ClearColor.DrawPicker(kTagClearColor.c_str());
+    ShowTexture.DrawCheckbox(kTagShowTexture.c_str());
 }
 
 
@@ -169,18 +193,18 @@ void CameraSetting::Deserialize(tinyxml2::XMLElement* element)
 //-----------------------------------------------------------------------------
 void CameraSetting::Edit()
 {
-    if (!ImGui::CollapsingHeader(u8"カメラ"))
+    if (!ImGui::CollapsingHeader(kTagCamera.c_str()))
     { return; }
 
-    Type.DrawCombo(u8"タイプ", _countof(kCameraTypeLabel), kCameraTypeLabel);
+    Type.DrawCombo(kTagType.c_str(), _countof(kCameraTypeLabel), kCameraTypeLabel);
 
-    FieldOfView .DrawSlider(u8"垂直画角", 0.1f, 1.0f, 360.0f);
-    NearClip    .DrawSlider(u8"ニアクリップ平面", 0.1f, 0.01f, 1000000.0f);
-    FarClip     .DrawSlider(u8"ファークリップ平面", 1.0f, 0.01f, 10000000.0f);
-    RotateGain  .DrawSlider(u8"回転量", 0.001f, -100.0f, 100.0f);
-    DollyGain   .DrawSlider(u8"ドリー量", 0.001f, -100.0f, 100.0f);
-    MoveGain    .DrawSlider(u8"移動量", 0.001f, -100.0f, 100.0f);
-    WheelGain   .DrawSlider(u8"ホイール量", 0.001f, -100.0f, 100.0f);
+    FieldOfView .DrawSlider(kTagFovY.c_str(), 0.1f, 1.0f, 360.0f);
+    NearClip    .DrawSlider(kTagNearClip.c_str(), 0.1f, 0.01f, 1000000.0f);
+    FarClip     .DrawSlider(kTagFarClip.c_str(), 1.0f, 0.01f, 10000000.0f);
+    RotateGain  .DrawSlider(kTagRotationGain.c_str(), 0.001f, -100.0f, 100.0f);
+    DollyGain   .DrawSlider(kTagDollyGain.c_str(), 0.001f, -100.0f, 100.0f);
+    MoveGain    .DrawSlider(kTagMoveGain.c_str(), 0.001f, -100.0f, 100.0f);
+    WheelGain   .DrawSlider(kTagWheelGain.c_str(), 0.001f, -100.0f, 100.0f);
 }
 
 
@@ -234,14 +258,14 @@ void ModelPreviewSetting::Deserialize(tinyxml2::XMLElement* element)
 //-----------------------------------------------------------------------------
 void ModelPreviewSetting::Edit()
 {
-    if (!ImGui::CollapsingHeader(u8"モデルプレビュー"))
+    if (!ImGui::CollapsingHeader(kTagModelPreview.c_str()))
     { return; }
 
-    Scale            .DrawSlider(u8"拡大縮小");
-    Rotation         .DrawSlider(u8"回転", 0.1f, -360.0f, 360.0f);
-    Translation      .DrawSlider(u8"平行移動");
-    AutoRotation     .DrawCheckbox(u8"自動回転");
-    AutoRotationSpeed.DrawSlider(u8"自動回転速度");
+    Scale            .DrawSlider(kTagScale.c_str());
+    Rotation         .DrawSlider(kTagRotation.c_str(), 0.1f, -360.0f, 360.0f);
+    Translation      .DrawSlider(kTagTranslation.c_str());
+    AutoRotation     .DrawCheckbox(kTagAutoTurn.c_str());
+    AutoRotationSpeed.DrawSlider(kTagAutoTurnSpeed.c_str());
 }
 
 
@@ -293,13 +317,13 @@ void DebugSetting::Deserialize(tinyxml2::XMLElement* element)
 //-----------------------------------------------------------------------------
 void DebugSetting::Edit()
 {
-    if (!ImGui::CollapsingHeader(u8"デバッグ"))
+    if (!ImGui::CollapsingHeader(kTagDebug.c_str()))
     { return; }
 
-    DrawBone    .DrawCheckbox(u8"ボーンの表示");
-    DrawLightDir.DrawCheckbox(u8"サンライト方向の表示");
-    DrawGrid    .DrawCheckbox(u8"グリッドの表示");
-    DrawAxis    .DrawCheckbox(u8"座標軸の表示");
+    DrawBone    .DrawCheckbox(kTagDrawBone.c_str());
+    DrawLightDir.DrawCheckbox(kTagDrawSunLightDir.c_str());
+    DrawGrid    .DrawCheckbox(kTagDrawGrid.c_str());
+    DrawAxis    .DrawCheckbox(kTagDrawAxis.c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -12,6 +12,7 @@
 #include <asdxLogger.h>
 #include <asdxMisc.h>
 #include <asdxImGuiExtension.h>
+#include <asdxLocalization.h>
 #include <imgui_internal.h>
 #include <ImGuizmo.h>
 #include <AppVersion.h>
@@ -29,6 +30,33 @@ static const char* kHelpLink = "https://github.com/ProjectAsura/MaterialEditor/b
 static const char* kReleaseNoteLink = "https://github.com/ProjectAsura/MaterialEditor/blob/master/doc/release_note.md";
 static const ImVec4 kRed   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 static const ImVec4 kCyan  = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
+
+static const asdx::Localization kTagPolygonCount(u8"ポリゴン数 : %lu", u8"Polygon Count : %lu");
+static const asdx::Localization kTagConnect(u8"接続", u8"Connected");
+static const asdx::Localization kTagDisconnect(u8"切断", u8"Disconnected");
+static const asdx::Localization kTagFile(u8"ファイル", u8"File");
+static const asdx::Localization kTagWorkSpace(u8"ワークスペース", u8"WorkSpace");
+static const asdx::Localization kTagOpen(u8"開く", u8"Open");
+static const asdx::Localization kTagSaveAs(u8"名前を付けて保存", u8"Save As");
+static const asdx::Localization kTagSave(u8"上書き保存", u8"Save");
+static const asdx::Localization kTagConnectionSettings(u8"接続設定", u8"Connection Settings");
+static const asdx::Localization kTagLicense(u8"ライセンス", u8"License");
+static const asdx::Localization kTagVersionInfo(u8"バージョン情報", u8"Version Info");
+static const asdx::Localization kTagReleaseNotes(u8"リリースノート", u8"Release Notes");
+static const asdx::Localization kTagHelp(u8"ヘルプ", u8"Help");
+static const asdx::Localization kTagInformation(u8"情報", u8"Information");
+static const asdx::Localization kTagRuntimeLinkage(u8"ランタイム連携", u8"Runtime Linkage");
+static const asdx::Localization kTagExport(u8"エクスポート", u8"Export");
+static const asdx::Localization kTagExportSetting(u8"エクスポート設定", u8"Export Settings");
+static const asdx::Localization kTagMaterial(u8"マテリアル", u8"Material");
+static const asdx::Localization kTagNoMaterial(u8"マテリアルが存在しません", u8"No Material");
+static const asdx::Localization kTagNameFilter(u8"名前フィルタ", u8"Name Filter");
+static const asdx::Localization kTagLight(u8"ライト", u8"Light");
+static const asdx::Localization kTagConfig(u8"設定", u8"Config");
+static const asdx::Localization kTagEdit(u8"編集", u8"Edit");
+static const asdx::Localization kTagLanguage(u8"言語", u8"Language");
+static const asdx::Localization kTagJapanese(u8"日本語", u8"Japanese");
+static const asdx::Localization kTagEnglish(u8"英語", u8"English");
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,12 +115,12 @@ void DrawFPS(float fps, uint64_t polygonCount, bool connect)
     ImGui::Text(u8"FPS : %.2f", fps);
 
     // ポリゴン数
-    ImGui::Text(u8"ポリゴン数 : %lu", polygonCount);
+    ImGui::Text(kTagPolygonCount.c_str(), polygonCount);
 
     if (connect)
-    { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), u8"接続"); }
+    { ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), kTagConnect.c_str()); }
     else
-    { ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), u8"切断"); }
+    { ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), kTagDisconnect.c_str()); }
 
     ImGui::End();
 }
@@ -102,12 +130,12 @@ void DrawFPS(float fps, uint64_t polygonCount, bool connect)
 //-----------------------------------------------------------------------------
 void DrawFileMenu(WorkSpace* workSpace)
 {
-    if (!ImGui::BeginMenu(u8"ファイル"))
+    if (!ImGui::BeginMenu(kTagFile.c_str()))
     { return; }
 
-    if (ImGui::BeginMenu(u8"ワークスペース"))
+    if (ImGui::BeginMenu(kTagWorkSpace.c_str()))
     {
-        if (ImGui::MenuItem(u8"開く"))
+        if (ImGui::MenuItem(kTagOpen.c_str()))
         {
             std::string path;
             if (asdx::OpenFileDlg(kWorkFilter, path, ""))
@@ -117,7 +145,7 @@ void DrawFileMenu(WorkSpace* workSpace)
             }
         }
 
-        if (ImGui::MenuItem(u8"名前を付けて保存"))
+        if (ImGui::MenuItem(kTagSaveAs.c_str()))
         {
             std::string base, ext;
             if (asdx::SaveFileDlg(kWorkFilter, base, ext))
@@ -130,7 +158,7 @@ void DrawFileMenu(WorkSpace* workSpace)
             }
         }
 
-        if (ImGui::MenuItem(u8"上書き保存"))
+        if (ImGui::MenuItem(kTagSave.c_str()))
         {
             if (workSpace->Save())
             { ILOGA("Info : WorkSpace Save Success."); }
@@ -146,27 +174,27 @@ void DrawFileMenu(WorkSpace* workSpace)
 }
 
 //-----------------------------------------------------------------------------
-//      外部連携メニューを表示します.
+//      ランタイム連携メニューを表示します.
 //-----------------------------------------------------------------------------
-void DrawExternalLinkage(bool connect)
+void DrawRuntimeLinkage(bool connect)
 {
-    if (!ImGui::BeginMenu(u8"外部連携"))
+    if (!ImGui::BeginMenu(kTagRuntimeLinkage.c_str()))
         return;
 
     if (connect)
     {
-        if (ImGui::MenuItem(u8"切断"))
+        if (ImGui::MenuItem(kTagDisconnect.c_str()))
         {
         }
     }
     else
     {
-        if (ImGui::MenuItem(u8"接続"))
+        if (ImGui::MenuItem(kTagConnect.c_str()))
         {
         }
     }
 
-    if (ImGui::MenuItem(u8"接続設定"))
+    if (ImGui::MenuItem(kTagConnectionSettings.c_str()))
     {
     }
 
@@ -178,16 +206,16 @@ void DrawExternalLinkage(bool connect)
 //-----------------------------------------------------------------------------
 void DrawAppInfo(MenuContext& context)
 {
-    if (!ImGui::BeginMenu(u8"情報"))
+    if (!ImGui::BeginMenu(kTagInformation.c_str()))
         return;
 
-    if (ImGui::MenuItem(u8"ヘルプ"))
+    if (ImGui::MenuItem(kTagHelp.c_str()))
     { ::ShellExecuteA(nullptr, "open", kHelpLink, "", "", SW_SHOWNORMAL); }
 
-    if (ImGui::MenuItem(u8"リリースノート"))
+    if (ImGui::MenuItem(kTagReleaseNotes.c_str()))
     { ::ShellExecuteA(nullptr, "open", kReleaseNoteLink, "", "", SW_SHOWNORMAL); }
 
-    if (ImGui::MenuItem(u8"バージョン情報"))
+    if (ImGui::MenuItem(kTagVersionInfo.c_str()))
     {
         std::string msg = "Version : ";
         msg += std::to_string(APP_MAJOR_VERSION) + "." + std::to_string(APP_MINOR_VERSION);
@@ -203,7 +231,7 @@ void DrawAppInfo(MenuContext& context)
         asdx::InfoDlg("Version Information", msg.c_str());
     }
 
-    if (ImGui::MenuItem(u8"ライセンス"))
+    if (ImGui::MenuItem(kTagLicense.c_str()))
     { context.ShowLicense = true; }
 
     ImGui::EndMenu();
@@ -214,19 +242,19 @@ void DrawAppInfo(MenuContext& context)
 //-----------------------------------------------------------------------------
 void DrawExportMenu(MenuContext& context)
 {
-    if (!ImGui::MenuItem(u8"エクスポート"))
+    if (!ImGui::MenuItem(kTagExport.c_str()))
     { return; }
 
     if (context.pWorkSpace->GetMaterials() == nullptr)
     {
-        asdx::ErrorDlg("エクスポート失敗", "出力するマテリアルがありません");
+        asdx::ErrorDlg("Export Failed.", "出力するマテリアルがありません");
         return;
     }
 
     auto exporter = context.pWorkSpace->GetExporter();
     if (exporter.empty() || exporter == "")
     {
-        asdx::ErrorDlg("エクスポート失敗", "エクスポーターが設定されていません");
+        asdx::ErrorDlg("Export Failed.", "エクスポーターが設定されていません");
         return;
     }
 
@@ -264,6 +292,23 @@ void DrawExportMenu(MenuContext& context)
 }
 
 //-----------------------------------------------------------------------------
+//      言語メニューを描画します.
+//-----------------------------------------------------------------------------
+void DrawLanguageMenu()
+{
+    if (!ImGui::BeginMenu(kTagLanguage.c_str()))
+    { return; }
+
+    if (ImGui::MenuItem(kTagJapanese.c_str()))
+    { asdx::SetCurrentLanguageType(asdx::LANGUAGE_JP); }
+
+    if (ImGui::MenuItem(kTagEnglish.c_str()))
+    { asdx::SetCurrentLanguageType(asdx::LANGUAGE_EN); }
+
+    ImGui::EndMenu();
+}
+
+//-----------------------------------------------------------------------------
 //      ポップアップメニューを描画します.
 //-----------------------------------------------------------------------------
 void DrawPopupMenu(MenuContext& context)
@@ -277,8 +322,11 @@ void DrawPopupMenu(MenuContext& context)
     // エクスポートメニュー.
     DrawExportMenu(context);
 
-    // 外部連携.
-    DrawExternalLinkage(false);
+    // ランタイム連携.
+    DrawRuntimeLinkage(false);
+
+    // 言語メニュー.
+    DrawLanguageMenu();
 
     // 情報.
     DrawAppInfo(context);
@@ -325,7 +373,7 @@ void DrawModalDialog(MenuContext& context)
 //-----------------------------------------------------------------------------
 void DrawMaterialTab(MenuContext& context)
 {
-    if (!ImGui::BeginTabItem(u8"マテリアル"))
+    if (!ImGui::BeginTabItem(kTagMaterial.c_str()))
     { return; }
 
     auto pModel = context.pWorkSpace->GetModel();
@@ -333,13 +381,13 @@ void DrawMaterialTab(MenuContext& context)
 
     if (pModel == nullptr || pMaterials == nullptr)
     {
-        ImGui::TextColored(kRed, u8"マテリアルがありません");
+        ImGui::TextColored(kRed, kTagNoMaterial.c_str());
         ImGui::EndTabItem();
         return;
     }
 
     // 名前フィルタ.
-    pMaterials->NameFilter.Draw(u8"名前フィルタ");
+    pMaterials->NameFilter.Draw(kTagNameFilter.c_str());
 
     // マテリアルタイプフィルタ.
     pMaterials->TypeFilter = PluginMgr::Instance().DrawFilterCombo(pMaterials->TypeFilter);
@@ -366,7 +414,7 @@ void DrawMaterialTab(MenuContext& context)
 //-----------------------------------------------------------------------------
 void DrawLightTab()
 {
-    if (!ImGui::BeginTabItem(u8"ライト"))
+    if (!ImGui::BeginTabItem(kTagLight.c_str()))
     { return; }
 
     LightMgr::Instance().Edit();
@@ -380,14 +428,14 @@ void DrawLightTab()
 //-----------------------------------------------------------------------------
 void DrawConfigTab(MenuContext& context)
 {
-    if (!ImGui::BeginTabItem(u8"設定"))
+    if (!ImGui::BeginTabItem(kTagConfig.c_str()))
     { return; }
 
     // 背景.
     context.pConfig->Background.Edit();
 
     // エクスポーター
-    if (ImGui::CollapsingHeader(u8"エクスポート設定"))
+    if (ImGui::CollapsingHeader(kTagExportSetting.c_str()))
     { 
         auto prev = context.pWorkSpace->GetExporter();
         auto curr = PluginMgr::Instance().DrawExporterCombo(prev);
@@ -423,7 +471,7 @@ void DrawEditorPanel(MenuContext& context)
     ImGui::SetNextWindowPos (pos,  ImGuiCond_Once);
     ImGui::SetNextWindowSize(size, ImGuiCond_Once);
 
-    if (!ImGui::Begin(u8"編集", &context.pConfig->PanelEdit.Open))
+    if (!ImGui::Begin(kTagEdit.c_str(), &context.pConfig->PanelEdit.Open))
     { return; }
 
     int flag = 0;

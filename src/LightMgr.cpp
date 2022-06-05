@@ -12,8 +12,19 @@
 #include <asdxLogger.h>
 #include <asdxDeviceContext.h>
 #include <asdxRenderState.h>
+#include <asdxLocalization.h>
 #include <imgui.h>
 #include "..\external\directxtex_desktop_2019.2022.5.10.1\include\DirectXTex.h"
+
+
+namespace {
+static const asdx::Localization kTagHideTexture(u8"背景画像無し", u8"Hide Texture");
+static const asdx::Localization kTagLightParameter(u8"ライトパラメータ", u8"Light Parameter");
+static const asdx::Localization kTagIntensity(u8"強度", u8"Intensity");
+static const asdx::Localization kTagAngleV(u8"垂直角", u8"Angle V");
+static const asdx::Localization kTagAngleH(u8"水平角", u8"Angle H");
+
+} // namespace
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -391,16 +402,16 @@ void LightMgr::Edit()
         }
         else
         {
-            if (ImGui::Button(u8"背景画像無し"))
+            if (ImGui::Button(kTagHideTexture.c_str()))
             { m_CurrentIndex = i; }
         }
         ImGui::SameLine();
-        if (ImGui::BeginChild(u8"ライトパラメータ"))
+        if (ImGui::BeginChild(kTagLightParameter.c_str()))
         {
             ImGui::Text(light.Tag.c_str());
-            ImGui::DragFloat(u8"強度", &light.IBLIntensity, 0.1f);
-            ImGui::DragFloat(u8"垂直角", &light.SunLightAngle.x, 0.1f, -360.0f, 360.0f);
-            ImGui::DragFloat(u8"水平角", &light.SunLightAngle.y, 0.1f, -360.0f, 360.0f);
+            ImGui::DragFloat(kTagIntensity.c_str(), &light.IBLIntensity, 0.1f);
+            ImGui::DragFloat(kTagAngleV.c_str(), &light.SunLightAngle.x, 0.1f, -360.0f, 360.0f);
+            ImGui::DragFloat(kTagAngleH.c_str(), &light.SunLightAngle.y, 0.1f, -360.0f, 360.0f);
             ImGui::EndChild();
         }
 

@@ -446,7 +446,7 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
             asdx::ResProperty prop = {};
             prop.Name           = asdx::TAG_ALPHA;
             prop.Type           = asdx::PROPERTY_TYPE_FLOAT;
-            prop.Value.Float    = float(srcMat.alphaCutoff);
+            prop.Value.Float    = (srcMat.alphaMode == "MASK") ? float(srcMat.alphaCutoff) : 1.0f;
 
             dstMat.Props.emplace_back(prop);
         }

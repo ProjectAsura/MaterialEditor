@@ -14,6 +14,37 @@
 #include <asdxDeviceContext.h>
 
 
+namespace {
+
+///////////////////////////////////////////////////////////////////////////////
+// DefaultTexturePair structure
+///////////////////////////////////////////////////////////////////////////////
+struct DefaultTexturePair
+{
+    const char*             Tag;
+    DEFAULT_TEXTURE_TYPE    Type;
+};
+
+//-----------------------------------------------------------------------------
+// Constant Values.
+//-----------------------------------------------------------------------------
+
+// デフォルトテクスチャテーブル.
+static const DefaultTexturePair kDefaultTexutreTable[] = {
+    { "checkerboard", DEFAULT_TEXTURE_CHECKER_BOARD },
+    { "white"       , DEFAULT_TEXTURE_WHITE },
+    { "black"       , DEFAULT_TEXTURE_BLACK },
+    { "normal"      , DEFAULT_TEXTURE_NORMAL },
+    { "mro"         , DEFAULT_TEXTURE_MRO },
+    { "orm"         , DEFAULT_TEXTURE_ORM },
+    { "velocity"    , DEFAULT_TEXTURE_VELCOITY },
+    { "red"         , DEFAULT_TEXTURE_RED },
+    { "green"       , DEFAULT_TEXTURE_GREEN },
+    { "blue"        , DEFAULT_TEXTURE_BLUE },
+    { "gray"        , DEFAULT_TEXTURE_GRAY },
+};
+
+} // namespace
 
 
 //-----------------------------------------------------------------------------
@@ -21,18 +52,12 @@
 //-----------------------------------------------------------------------------
 DEFAULT_TEXTURE_TYPE ParseDefaultTextureType(const char* text)
 {
-    if (_stricmp(text, "checkerboard") == 0)
-    { return DEFAULT_TEXTURE_CHECKER_BOARD; }
-    else if (_stricmp(text, "white") == 0)
-    { return DEFAULT_TEXTURE_WHITE; }
-    else if (_stricmp(text, "black") == 0)
-    { return DEFAULT_TEXTURE_BLACK; }
-    else if (_stricmp(text, "normal") == 0)
-    { return DEFAULT_TEXTURE_NORMAL; }
-    else if (_stricmp(text, "mro") == 0)
-    { return DEFAULT_TEXTURE_MRO; }
-    else if (_stricmp(text, "velocity") == 0)
-    { return DEFAULT_TEXTURE_VELCOITY; }
+    auto count = _countof(kDefaultTexutreTable);
+    for(size_t i=0; i<count; ++i)
+    {
+        if (_stricmp(kDefaultTexutreTable[i].Tag, text) == 0)
+        { return kDefaultTexutreTable[i].Type; }
+    }
 
     return DEFAULT_TEXTURE_CHECKER_BOARD;
 }

@@ -14,6 +14,7 @@
 #include <asdxMisc.h>
 #include <asdxLogger.h>
 #include <asdxDeviceContext.h>
+#include <ctime>
 
 
 #if 0
@@ -116,6 +117,46 @@ asdx::Vector4 GetValue(const UiFloat4& info)
 } // namespace
 #endif
 
+
+namespace {
+
+//-----------------------------------------------------------------------------
+//      時刻を文字列として取得します.
+//-----------------------------------------------------------------------------
+std::string GetTimeString()
+{
+    auto t = time(nullptr);
+    tm local = {};
+    localtime_s(&local, &t);
+
+    char buf[128] = {};
+    strftime(buf, sizeof(buf), "%Y%m%d_%H%M%S", &local);
+
+    return std::string(buf);
+}
+
+//-----------------------------------------------------------------------------
+//      エラーシェーダを出力します.
+//-----------------------------------------------------------------------------
+void OutputErrorShader(const char* sourceCode, size_t size)
+{
+    std::string path = "ErrorShader_";
+    path += GetTimeString();
+    path += ".hlsl";
+
+    FILE* file;
+    auto err = fopen_s(&file, path.c_str(), "w");
+    if (err != 0)
+    { return; }
+
+    fwrite(sourceCode, size, 1, file);
+    fclose(file);
+}
+
+
+} // namespace
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // PluginShader class
 ///////////////////////////////////////////////////////////////////////////////
@@ -170,6 +211,9 @@ bool PluginShader::Compile(const char* sourceCode, size_t size, const char* entr
     {
         ELOGA("Error : D3DCompileFromFile() Failed. errcode = 0x%x, msg = %s",
             hr, reinterpret_cast<char*>(pErrorBlob->GetBufferPointer()));
+#if defined(DEBUG) || defined(_DEBUG)
+        OutputErrorShader(sourceCode, size);
+#endif
         return false;
     }
 

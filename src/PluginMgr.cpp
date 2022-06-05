@@ -11,8 +11,23 @@
 #include <asdxMisc.h>
 #include <asdxLogger.h>
 #include <asdxDeviceContext.h>
+#include <asdxLocalization.h>
 #include <imgui.h>
 #include "..\external\directxtex_desktop_2019.2022.5.10.1\include\DirectXTex.h"
+
+
+namespace {
+
+//-----------------------------------------------------------------------------
+// Constant Values.
+//-----------------------------------------------------------------------------
+static const asdx::Localization kTagMaterialType(u8"マテリアルタイプ", u8"Material Type");
+static const asdx::Localization kTagFilterType(u8"フィルタタイプ", u8"Filter Type");
+static const asdx::Localization kTagNoFilter(u8"フィルタなし", u8"No Filter");
+static const asdx::Localization kTagNoExporter(u8"エクスポーターがありません", u8"No Exporter");
+static const asdx::Localization kTagExporter(u8"エクスポーター", u8"Exporter");
+
+} // namspace
 
 
 //-----------------------------------------------------------------------------
@@ -230,6 +245,45 @@ bool PluginMgr::Load()
         }
     }
 
+    // オクルージョン／ラフネス／メタルネス生成.
+    {
+        DirectX::ScratchImage image;
+        auto hr = image.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, 32, 32, 1, 1);
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::ScratchImage::Initialize2D() Failed.");
+            return false;
+        }
+
+        auto ptr = image.GetPixels();
+        auto idx = 0;
+        for(auto i=0; i<32; ++i)
+        {
+            for(auto j=0; j<32; ++j)
+            {
+                {
+                    ptr[idx + 0] = 255;     // Occlusion
+                    ptr[idx + 1] = 255;     // Roughness
+                    ptr[idx + 2] = 0;       // Metalness
+                    ptr[idx + 3] = 0;
+                }
+                idx += 4;
+            }
+        }
+
+        hr = DirectX::CreateShaderResourceView(
+            pDevice,
+            image.GetImages(),
+            image.GetImageCount(),
+            image.GetMetadata(),
+            m_DefaultSRV[DEFAULT_TEXTURE_ORM].GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::CreatShaderResourceView() Failed.");
+            return false;
+        }
+    }
+
     // 法線生成.
     {
         DirectX::ScratchImage image;
@@ -346,7 +400,163 @@ bool PluginMgr::Load()
             return false;
         }
     }
-    
+
+    // レッドマップ生成.
+    {
+        DirectX::ScratchImage image;
+        auto hr = image.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, 32, 32, 1, 1);
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::ScratchImage::Initialize2D() Failed.");
+            return false;
+        }
+
+        auto ptr = image.GetPixels();
+        auto idx = 0;
+        for(auto i=0; i<32; ++i)
+        {
+            for(auto j=0; j<32; ++j)
+            {
+                {
+                    ptr[idx + 0] = 255;
+                    ptr[idx + 1] = 0;
+                    ptr[idx + 2] = 0;
+                    ptr[idx + 3] = 255;
+                }
+                idx += 4;
+            }
+        }
+
+        hr = DirectX::CreateShaderResourceView(
+            pDevice,
+            image.GetImages(),
+            image.GetImageCount(),
+            image.GetMetadata(),
+            m_DefaultSRV[DEFAULT_TEXTURE_RED].GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::CreatShaderResourceView() Failed.");
+            return false;
+        }
+    }
+
+    // グリーンマップ生成.
+    {
+        DirectX::ScratchImage image;
+        auto hr = image.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, 32, 32, 1, 1);
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::ScratchImage::Initialize2D() Failed.");
+            return false;
+        }
+
+        auto ptr = image.GetPixels();
+        auto idx = 0;
+        for(auto i=0; i<32; ++i)
+        {
+            for(auto j=0; j<32; ++j)
+            {
+                {
+                    ptr[idx + 0] = 0;
+                    ptr[idx + 1] = 255;
+                    ptr[idx + 2] = 0;
+                    ptr[idx + 3] = 255;
+                }
+                idx += 4;
+            }
+        }
+
+        hr = DirectX::CreateShaderResourceView(
+            pDevice,
+            image.GetImages(),
+            image.GetImageCount(),
+            image.GetMetadata(),
+            m_DefaultSRV[DEFAULT_TEXTURE_GREEN].GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::CreatShaderResourceView() Failed.");
+            return false;
+        }
+    }
+
+    // ブルーマップ生成.
+    {
+        DirectX::ScratchImage image;
+        auto hr = image.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, 32, 32, 1, 1);
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::ScratchImage::Initialize2D() Failed.");
+            return false;
+        }
+
+        auto ptr = image.GetPixels();
+        auto idx = 0;
+        for(auto i=0; i<32; ++i)
+        {
+            for(auto j=0; j<32; ++j)
+            {
+                {
+                    ptr[idx + 0] = 0;
+                    ptr[idx + 1] = 0;
+                    ptr[idx + 2] = 255;
+                    ptr[idx + 3] = 255;
+                }
+                idx += 4;
+            }
+        }
+
+        hr = DirectX::CreateShaderResourceView(
+            pDevice,
+            image.GetImages(),
+            image.GetImageCount(),
+            image.GetMetadata(),
+            m_DefaultSRV[DEFAULT_TEXTURE_BLUE].GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::CreatShaderResourceView() Failed.");
+            return false;
+        }
+    }
+
+    // グレーマップ生成.
+    {
+        DirectX::ScratchImage image;
+        auto hr = image.Initialize2D(DXGI_FORMAT_R8G8B8A8_UNORM, 32, 32, 1, 1);
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::ScratchImage::Initialize2D() Failed.");
+            return false;
+        }
+
+        auto ptr = image.GetPixels();
+        auto idx = 0;
+        for(auto i=0; i<32; ++i)
+        {
+            for(auto j=0; j<32; ++j)
+            {
+                {
+                    ptr[idx + 0] = 128;
+                    ptr[idx + 1] = 128;
+                    ptr[idx + 2] = 128;
+                    ptr[idx + 3] = 255;
+                }
+                idx += 4;
+            }
+        }
+
+        hr = DirectX::CreateShaderResourceView(
+            pDevice,
+            image.GetImages(),
+            image.GetImageCount(),
+            image.GetMetadata(),
+            m_DefaultSRV[DEFAULT_TEXTURE_GRAY].GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error : DirectX::CreatShaderResourceView() Failed.");
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -432,7 +642,7 @@ bool PluginMgr::FindMasterMaterial(const std::string& name, PluginMaterial** res
 const std::string& PluginMgr::DrawTypeCombo(const std::string& selectedItem)
 {
     PluginMaterial* selectedMat = nullptr;
-    if (ImGui::BeginCombo(u8"マテリアルタイプ", selectedItem.c_str()))
+    if (ImGui::BeginCombo(kTagMaterialType.c_str(), selectedItem.c_str()))
     {
         for (auto& itr : m_MasterMaterials)
         {
@@ -458,10 +668,10 @@ const std::string& PluginMgr::DrawFilterCombo(const std::string& selectedItem)
 {
     bool nofilter = false;
     PluginMaterial* selectedMat = nullptr;
-    if (ImGui::BeginCombo(u8"フィルタタイプ", selectedItem.c_str()))
+    if (ImGui::BeginCombo(kTagFilterType.c_str(), selectedItem.c_str()))
     {
-        auto selected = (u8"フィルタ無し" == selectedItem);
-        if (ImGui::Selectable(u8"フィルタ無し", selected))
+        auto selected = (kTagNoFilter.c_str() == selectedItem);
+        if (ImGui::Selectable(kTagNoFilter.c_str(), selected))
             nofilter = true;
         if (selected)
             ImGui::SetItemDefaultFocus();
@@ -490,12 +700,12 @@ const std::string& PluginMgr::DrawExporterCombo(const std::string& selectedItem)
 {
     if (m_Exporters.empty())
     {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), u8"エクスポーターがありません");
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), kTagNoExporter.c_str());
         return selectedItem;
     }
 
     auto idx = -1;
-    if (ImGui::BeginCombo(u8"エクスポーター", selectedItem.c_str()))
+    if (ImGui::BeginCombo(kTagExporter.c_str(), selectedItem.c_str()))
     {
         for(size_t i=0; i<m_Exporters.size(); ++i)
         {

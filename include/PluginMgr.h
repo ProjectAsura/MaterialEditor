@@ -32,6 +32,11 @@ enum DEFAULT_TEXTURE_TYPE
     DEFAULT_TEXTURE_NORMAL          = 3,    // ñ@ê¸.
     DEFAULT_TEXTURE_MRO             = 4,    // MRO
     DEFAULT_TEXTURE_VELCOITY        = 5,    // ë¨ìx.
+    DEFAULT_TEXTURE_ORM             = 6,    // ORM
+    DEFAULT_TEXTURE_RED             = 7,    // ê‘.
+    DEFAULT_TEXTURE_GREEN           = 8,    // óŒ.
+    DEFAULT_TEXTURE_BLUE            = 9,    // ê¬.
+    DEFAULT_TEXTURE_GRAY            = 10,   // äDêF.
 
     DEFAULT_TEXTURE_COUNT
 };

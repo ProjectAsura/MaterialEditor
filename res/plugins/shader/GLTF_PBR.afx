@@ -1,0 +1,99 @@
+//-----------------------------------------------------------------------------
+// File : StandardPS.hlsl
+// Desc : Standard Material.
+// Copyright(c) Project Asura. All right reserved.
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------------
+#include "Editor.hlsli"
+
+/* ユーザー定義データはスロット番号11から開始してください. 10番まではシステム使用とします.*/
+Properties 
+{
+    float4 BaseColorScale("ベースカラースケール", 0.01, range(0.0, 1.0)) = float4(1.0, 1.0, 1.0, 1.0);
+    float  MetalnessScale("メタルネススケール", 0.01, range(0.0, 1.0)) = 1.0;
+    float  RoughnessScale("ラフネススケール", 0.01, range(0.0, 1.0)) = 1.0;
+    float3 EmissiveScale("エミッシブスケール", 0.01) = float3(0.0, 0.0, 0.0);
+    float  AlphaThreshold("アルファ閾値", 0.01, range(0.0, 1.0)) = 0.0;
+
+    Texture2D  BaseColor("ベースカラー", true) = "checkerboard";
+    Texture2D  ORM("ORM", false) = "orm";
+    Texture2D  Normal("法線マップ", false) = "normal";
+    Texture2D  Emissive("エミッシブ", false) = "black";
+};
+
+//-----------------------------------------------------------------------------
+//      ライティング処理です.
+//-----------------------------------------------------------------------------
+PSOutput LightingPS(const VSOutput input)
+{
+    PSOutput output = (PSOutput)0;
+
+    // UVアニメーション.
+    float2 uv = GetTexCoord0(input);
+
+    // ベースカラー取得.
+    float4 baseColor = BaseColor.Sample(AnisotropicWrap, uv) * BaseColorScale;
+    if (baseColor.a < AlphaThreshold)
+    { discard; }
+
+    // 法線／オクルージョン／ラフネス／メタルネスを取得.
+    float3 normal = Normal.Sample(AnisotropicWrap, uv).xyz * 2.0f - 1.0f;
+    float3 orm    = ORM.Sample(AnisotropicWrap, uv).rgb;
+    orm.y *= RoughnessScale;
+    orm.z *= MetalnessScale;
+
+    // 従接線ベクトルを計算.
+    float3 bitangent = GetBitangent(input);
+    float3 N = FromTangentSpaceToWorld(normal, input.Tangent, bitangent, input.Normal);
+
+    // ビュー空間の深度と位置座標を取得.
+    float3 viewPos = GetViewPosition(input);
+
+    // ワールド空間の位置を復元.
+    float3 worldPos = ToWorldPosition(viewPos);
+
+    // 視線ベクトルライトベクトルを算出.
+    float3 V = normalize(CameraPos - worldPos);
+    float3 L = normalize(SunLightDir);
+
+    float3 Kd = ToKd(baseColor.rgb, orm.z);
+    float3 Ks = ToKs(baseColor.rgb, orm.z);
+
+    // IBLライティング.
+    LightingResult result = EvaluateIBLIsotropy(N, V, Kd, Ks, orm.x, orm.y, orm.z);
+    output.Diffuse.rgb  += result.Diffuse;
+    output.Specular.rgb += result.Specular;
+
+    // 直接光ライティング.
+    result = EvaluateDirectLightIsotropicGGX(N, V, L, Kd, Ks, orm.y);
+    output.Diffuse.rgb  += result.Diffuse;
+    output.Specular.rgb += result.Specular;
+
+    output.Diffuse.a  = 1.0f;
+    output.Specular.a = 1.0f;
+
+    // エミッシブ.
+    output.Specular.rgb += Emissive.Sample(AnisotropicWrap, uv).rgb * EmissiveScale;
+
+    // Normal / Roughness / Metalness.
+    output.NRM = EncodeNRM(N, orm.y, orm.z);
+
+    return output;
+}
+
+//-----------------------------------------------------------------------------
+//      シャドウイング処理です.
+//-----------------------------------------------------------------------------
+void ShadowingPS(const VSOutput input)
+{
+    // UVアニメーション.
+    float2 uv = GetTexCoord0(input);
+
+    // ベースカラー取得.
+    float4 baseColor = BaseColor.Sample(AnisotropicWrap, uv) * BaseColorScale;
+    if (baseColor.a < AlphaThreshold)
+    { discard; }
+}

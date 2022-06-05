@@ -36,7 +36,8 @@ public:
     asdx::Vector2       SunLightAngle;
     float               SunLightIntensity;
     std::string         BackgroundPath;
-    std::string         IBLPath;
+    std::string         DiffuseIBLPath;
+    std::string         SpecularIBLPath;
     float               IBLIntensity;
 
     //-------------------------------------------------------------------------
@@ -70,11 +71,6 @@ public:
     ID3D11ShaderResourceView* GetBackground() const;
 
     //-------------------------------------------------------------------------
-    //! @brief      IBLテクスチャを取得します.
-    //-------------------------------------------------------------------------
-    ID3D11ShaderResourceView* GetIBL() const;
-
-    //-------------------------------------------------------------------------
     //! @brief      DiffuseLDキューブマップを取得します.
     //-------------------------------------------------------------------------
     ID3D11ShaderResourceView* GetDiffuseLD() const;
@@ -88,10 +84,9 @@ private:
     //=========================================================================
     // private variables.
     //=========================================================================
-    asdx::RefPtr<ID3D11ShaderResourceView>  m_Background;
-    asdx::RefPtr<ID3D11ShaderResourceView>  m_IBL;
-    asdx::RefPtr<ID3D11ShaderResourceView>  m_DiffuseLD;
-    asdx::RefPtr<ID3D11ShaderResourceView>  m_SpecularLD;
+    asdx::RefPtr<ID3D11ShaderResourceView>  m_Background;   //!< 背景画像.
+    asdx::RefPtr<ID3D11ShaderResourceView>  m_DiffuseLD;    //!< Diffuse LDマップ.
+    asdx::RefPtr<ID3D11ShaderResourceView>  m_SpecularLD;   //!< Specular LDマップ.
 
     //=========================================================================
     // private methods.

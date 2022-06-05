@@ -121,6 +121,16 @@ public:
     //-------------------------------------------------------------------------
     const asdx::Matrix& GetInstanceMatrix(uint32_t index) const;
 
+    //-------------------------------------------------------------------------
+    //! @brief      マテリアル番号を設定します.
+    //-------------------------------------------------------------------------
+    void SetMaterialId(uint32_t index);
+
+    //-------------------------------------------------------------------------
+    //! @brief      マテリアル番号を取得します.
+    //-------------------------------------------------------------------------
+    uint32_t GetMaterialId() const;
+
 private:
     //=========================================================================
     // private variables.
@@ -135,6 +145,7 @@ private:
     asdx::IndexBuffer           m_IB;
     uint32_t                    m_InstanceCount;
     asdx::Matrix                m_InstanceMatrix[kMaxInstanceCount];
+    uint32_t                    m_MaterialId;
 
     asdx::RefPtr<ID3D11Buffer>              m_InstanceMatrixResource;
     asdx::RefPtr<ID3D11ShaderResourceView>  m_InstanceMatrixSRV;
@@ -202,7 +213,7 @@ public:
     //! @param[in]      index       メッシュ番号.
     //! @return     メッシュを返却します.
     //-------------------------------------------------------------------------
-    const EditorMesh& GetMesh(uint32_t index) const;
+    EditorMesh& GetMesh(uint32_t index);
 
     //-------------------------------------------------------------------------
     //! @brief      バウンディングボックスを取得します.

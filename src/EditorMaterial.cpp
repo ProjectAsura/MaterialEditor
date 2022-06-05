@@ -55,10 +55,10 @@ static const asdx::Localization kRasterizerState[] = {
 };
 
 static const asdx::Localization kDepthState[] = {
-    asdx::Localization(u8"深度テスト無効・深度書き込み無効", u8"Depth Test Disable / Write Disable"),
-    asdx::Localization(u8"深度テスト有効・深度書き込み有効", u8"Depth Test Enable  / Write Enable"),
-    asdx::Localization(u8"深度テスト有効・深度書き込み無効", u8"Depth Test Enable  / Write Disable"),
-    asdx::Localization(u8"深度テスト無効・深度書き込み有効", u8"Depth Test Disable / Write Enable"),
+    asdx::Localization(u8"デフォルト", u8"Default"),
+    asdx::Localization(u8"読み込みのみ", u8"Read Only"),
+    asdx::Localization(u8"書き込みのみ", u8"Write Only"),
+    asdx::Localization(u8"無効", u8"None"),
 };
 
 static const asdx::Localization kTagShadowReceive(u8"シャドウレシーブ", u8"Shadow Receive");
@@ -364,7 +364,7 @@ tinyxml2::XMLElement* EditMaterialParameter::Serialize(tinyxml2::XMLDocument* do
 //      描画処理を行います.
 //-----------------------------------------------------------------------------
 void EditMaterialTexture::Draw()
-{ Texture.DrawControl(Label.c_str(), "", 100, 100, true); }
+{ Texture.DrawControl(Label.c_str(), "", 100, 100); }
 
 //-----------------------------------------------------------------------------
 //      シェーダリソースビューを取得します.
@@ -557,6 +557,9 @@ void EditMaterialView::Dispose(EditMaterialView*& pView)
 
     for(auto& itr : pView->m_Params)
     { itr.Dispose(); }
+
+    for(auto& itr : pView->m_Textures)
+    { itr.Texture.Term(); }
 
     pView->m_Params  .clear();
     pView->m_Textures.clear();

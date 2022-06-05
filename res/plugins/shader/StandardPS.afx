@@ -42,6 +42,10 @@ PSOutput LightingPS(const VSOutput input)
     float3 normal = Normal.Sample(AnisotropicWrap, uv).xyz * 2.0f - 1.0f;
     float3 mro    = MRO.Sample(AnisotropicWrap, uv).rgb;
 
+    float occlusion = mro.z;
+    float roughness = mro.y;
+    float metalness = mro.x;
+
     // 従接線ベクトルを計算.
     float3 bitangent = GetBitangent(input);
     float3 N = FromTangentSpaceToWorld(normal, input.Tangent, bitangent, input.Normal);
@@ -56,16 +60,16 @@ PSOutput LightingPS(const VSOutput input)
     float3 V = normalize(CameraPos - worldPos);
     float3 L = normalize(SunLightDir);
 
-    float3 Kd = ToKd(baseColor.rgb, mro.x);
-    float3 Ks = ToKs(baseColor.rgb, mro.x);
+    float3 Kd = ToKd(baseColor.rgb, metalness);
+    float3 Ks = ToKs(baseColor.rgb, metalness);
 
     // IBLライティング.
-    LightingResult result = EvaluateIBLIsotropy(N, V, Kd, Ks, mro.z, mro.y, mro.x);
+    LightingResult result = EvaluateIBLIsotropy(N, V, Kd, Ks, occlusion, roughness, metalness);
     output.Diffuse.rgb  += result.Diffuse;
     output.Specular.rgb += result.Specular;
 
     // 直接光ライティング.
-    result = EvaluateDirectLightIsotropicGGX(N, V, L, Kd, Ks, mro.y);
+    result = EvaluateDirectLightIsotropicGGX(N, V, L, Kd, Ks, roughness);
     output.Diffuse.rgb  += result.Diffuse;
     output.Specular.rgb += result.Specular;
 
@@ -76,7 +80,7 @@ PSOutput LightingPS(const VSOutput input)
     output.Specular.rgb += Emissive.Sample(AnisotropicWrap, uv).rgb;
 
     // Normal / Roughness / Metalness.
-    output.NRM = EncodeNRM(N, mro.y, mro.x);
+    output.NRM = EncodeNRM(N, roughness, metalness);
 
     return output;
 }

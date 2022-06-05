@@ -72,23 +72,49 @@ bool WorkSpace::New(const char* modelPath)
         if (!pWorkSpace->m_Model->Init(path))
         {
             delete pWorkSpace->m_Model;
-            pWorkSpace->m_Model = nullptr;
-
-            pWorkSpace->m_Loading = false;
+            pWorkSpace->m_Model     = nullptr;
+            pWorkSpace->m_Loading   = false;
             return;
         }
 
         // マテリアル生成.
         pWorkSpace->m_Materials = new EditorMaterials();
-        pWorkSpace->m_Materials->Resize(pWorkSpace->m_Model->GetMeshCount());
+
+        auto meshCount = pWorkSpace->m_Model->GetMeshCount();
+
+        // 重複をしないマテリアル名を取得.
+        std::vector<std::string> matNames;
+        for(auto i=0u; i<meshCount; ++i)
+        {
+            auto& mesh = pWorkSpace->m_Model->GetMesh(i);
+
+            // 重複検索.
+            auto find = false;
+            for(size_t j=0; j<matNames.size(); ++j)
+            {
+                if (mesh.GetMaterialName() == matNames[j])
+                {
+                    find = true;
+                    auto id = uint32_t(j);
+                    mesh.SetMaterialId(id);
+                    break;
+                }
+            }
+
+            // 見つからなければ登録.
+            if (!find)
+            {
+                auto id = uint32_t(matNames.size());
+                matNames.push_back(mesh.GetMaterialName());
+                mesh.SetMaterialId(id);
+            }
+        }
 
         // マテリアル名を設定.
-        for(auto i=0u; i<pWorkSpace->m_Model->GetMeshCount(); ++i)
-        {
-            auto& mesh     = pWorkSpace->m_Model->GetMesh(i);
-            auto& material = pWorkSpace->m_Materials->GetMaterial(i);
-            material.SetName(mesh.GetMaterialName());
-        }
+        auto matCount = uint32_t(matNames.size());
+        pWorkSpace->m_Materials->Resize(matCount);
+        for(auto i=0u; i<matCount; ++i)
+        { pWorkSpace->m_Materials->GetMaterial(i).SetName(matNames[i]); }
 
         pWorkSpace->m_WorkDir    = asdx::ToFullPath(asdx::GetDirectoryPathA(path).c_str());
         pWorkSpace->m_ModelPath  = asdx::ToRelativePath(pWorkSpace->m_WorkDir.c_str(), path);
@@ -218,15 +244,45 @@ bool WorkSpace::Load(const char* path)
     // 読み込み成功している場合は絶対にnullptrにならない.
     assert(m_Model != nullptr);
 
+    auto meshCount = m_Model->GetMeshCount();
+
+    // 重複をしないマテリアル名を取得.
+    std::vector<std::string> matNames;
+    for(auto i=0u; i<meshCount; ++i)
+    {
+        auto& mesh = m_Model->GetMesh(i);
+
+        // 重複検索.
+        auto find = false;
+        for(size_t j=0; j<matNames.size(); ++j)
+        {
+            if (mesh.GetMaterialName() == matNames[j])
+            {
+                find = true;
+                auto id = uint32_t(j);
+                mesh.SetMaterialId(id);
+                break;
+            }
+        }
+
+        // 見つからなければ登録.
+        if (!find)
+        {
+            auto id = uint32_t(matNames.size());
+            matNames.push_back(mesh.GetMaterialName());
+            mesh.SetMaterialId(id);
+        }
+    }
+
+    auto matCount = uint32_t(matNames.size());
+
     m_Materials = new EditorMaterials();
-    m_Materials->Resize(m_Model->GetMeshCount());
+    m_Materials->Resize(matCount);
 
     // マテリアル名を設定.
-    for(auto i=0u; i<m_Model->GetMeshCount(); ++i)
+    for(auto i=0u; i<matCount; ++i)
     {
-        auto& mesh      = m_Model->GetMesh(i);
-        auto& material  = m_Materials->GetMaterial(i);
-        material.SetName(mesh.GetMaterialName());
+        m_Materials->GetMaterial(i).SetName(matNames[i]);
     }
 
     // マテリアルを読み込み.

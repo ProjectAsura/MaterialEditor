@@ -18,6 +18,10 @@
 
 
 namespace {
+
+//-----------------------------------------------------------------------------
+// Constant Values.
+//-----------------------------------------------------------------------------
 static const asdx::Localization kTagHideTexture(u8"背景画像無し", u8"Hide Texture");
 static const asdx::Localization kTagLightParameter(u8"ライトパラメータ", u8"Light Parameter");
 static const asdx::Localization kTagIntensity(u8"強度", u8"Intensity");
@@ -90,7 +94,8 @@ bool EditorLight::Load(const char* path, const std::string& dir)
         auto e = root->FirstChildElement("IBL");
         if (e != nullptr)
         {
-            IBLPath         = e->Attribute("path");
+            DiffuseIBLPath  = e->Attribute("diffuse_path");
+            SpecularIBLPath = e->Attribute("specular_path");
             IBLIntensity    = e->FloatAttribute("intensity");
         }
     }
@@ -127,8 +132,9 @@ bool EditorLight::Save(const char* path)
     }
 
     {
-        auto e = doc.NewElement("IBL");
-        e->SetAttribute("path", IBLPath.c_str());
+        auto e = doc.NewElement("SphereIBL");
+        e->SetAttribute("diffuse_path", DiffuseIBLPath.c_str());
+        e->SetAttribute("specular_path", SpecularIBLPath.c_str());
         e->SetAttribute("intensity", IBLIntensity);
         root->InsertEndChild(e);
     }
@@ -148,12 +154,22 @@ bool EditorLight::Save(const char* path)
 //-----------------------------------------------------------------------------
 bool EditorLight::LoadTexture(const std::string& dir)
 {
-    std::string iblPath;
+    std::string diffusePath;
     {
-        auto temp = dir + "/" + IBLPath;
-        if (!asdx::SearchFilePathA(temp.c_str(), iblPath))
+        auto temp = dir + "/" + DiffuseIBLPath;
+        if (!asdx::SearchFilePathA(temp.c_str(), diffusePath))
         {
-            ELOGA("Error : File Not Found. path = %s", iblPath.c_str());
+            ELOGA("Error : File Not Found. path = %s", DiffuseIBLPath.c_str());
+            return false;
+        }
+    }
+
+    std::string specularPath;
+    {
+        auto temp = dir + "/" + SpecularIBLPath;
+        if (!asdx::SearchFilePathA(temp.c_str(), specularPath))
+        {
+            ELOGA("Error : File Not Found. path = %s", SpecularIBLPath.c_str());
             return false;
         }
     }
@@ -201,20 +217,20 @@ bool EditorLight::LoadTexture(const std::string& dir)
         }
     }
 
-    // IBLテクスチャ読み込み.
+    // DiffuseLDキューブマップ読み込み.
     {
-        auto path = asdx::ToStringW(iblPath);
+        auto path = asdx::ToStringW(diffusePath);
 
         DirectX::ScratchImage scrathImage;
         auto hr = DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, scrathImage);
         if (FAILED(hr))
         {
-            ELOGA("Error : DirectX::LoadFromDDSFile() Failed. path = %s", iblPath.c_str());
+            ELOGA("Error : DirectX::LoadFromDDSFile() Failed. path = %s", diffusePath.c_str());
             return false;
         }
 
-        if (m_IBL.GetPtr() != nullptr)
-        { m_IBL.Reset(); }
+        if (m_DiffuseLD.GetPtr() != nullptr)
+        { m_DiffuseLD.Reset(); }
 
         hr = DirectX::CreateShaderResourceViewEx(
             pDevice,
@@ -226,7 +242,40 @@ bool EditorLight::LoadTexture(const std::string& dir)
             0,
             DirectX::TEX_MISC_TEXTURECUBE,
             false,
-            m_IBL.GetAddress());
+            m_DiffuseLD.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOGA("Error : DirectX::CreateShaderResourceViewEx() Faile. errcode = 0x%x", hr);
+            return false;
+        }
+    }
+
+    // SpecularLDキューブマップ読み込み.
+    {
+        auto path = asdx::ToStringW(specularPath);
+
+        DirectX::ScratchImage scrathImage;
+        auto hr = DirectX::LoadFromDDSFile(path.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, scrathImage);
+        if (FAILED(hr))
+        {
+            ELOGA("Error : DirectX::LoadFromDDSFile() Failed. path = %s", specularPath.c_str());
+            return false;
+        }
+
+        if (m_SpecularLD.GetPtr() != nullptr)
+        { m_SpecularLD.Reset(); }
+
+        hr = DirectX::CreateShaderResourceViewEx(
+            pDevice,
+            scrathImage.GetImages(),
+            scrathImage.GetImageCount(),
+            scrathImage.GetMetadata(),
+            D3D11_USAGE_DEFAULT,
+            D3D11_BIND_SHADER_RESOURCE,
+            0,
+            DirectX::TEX_MISC_TEXTURECUBE,
+            false,
+            m_SpecularLD.GetAddress());
         if (FAILED(hr))
         {
             ELOGA("Error : DirectX::CreateShaderResourceViewEx() Faile. errcode = 0x%x", hr);

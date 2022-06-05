@@ -252,6 +252,14 @@ bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model)
                 mesh.Indices.push_back(indexOffset);
                 indexOffset++;
             }
+
+            // 法線データが無ければ生成.
+            if (mesh.Normals.empty())
+            { asdx::CalcNormals(mesh); }
+
+            // 接線データが無ければ生成を試みる.
+            if (mesh.Tangents.empty())
+            { asdx::CalcTangents(mesh); }
         }
     }
 

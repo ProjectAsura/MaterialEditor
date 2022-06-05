@@ -1035,7 +1035,8 @@ void App::DrawModel(bool lightingPass, asdx::BlendType blendType)
     for(auto i=0u; i<count; ++i)
     {
         auto& mesh      = model->GetMesh(i);
-        auto& material  = materials->GetMaterial(i);
+        auto  matId     = mesh.GetMaterialId();
+        auto& material  = materials->GetMaterial(matId);
     
         if (!lightingPass && !material.CastShadow())
         { continue; }
@@ -1141,7 +1142,7 @@ void App::DrawGuide()
         auto pCB = m_GuideCB.GetBuffer();
         m_pDeviceContext->UpdateSubresource(pCB, 0, nullptr, &res, 0, 0);
 
-        auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::Readonly);
+        auto pDSS = asdx::RenderState::GetInstance().GetDSS(asdx::DepthType::ReadOnly);
         m_GuideVS.Bind(m_pDeviceContext);
         m_GuidePS.Bind(m_pDeviceContext);
         m_pDeviceContext->VSSetConstantBuffers(0, 1, &pCB);

@@ -170,6 +170,7 @@ void PluginMaterial::Term()
     m_ShadowingShader.Term();
     m_EditableCB     .Reset();
     m_Name           .clear();
+    m_ShaderPath     .clear();
 }
 
 //-----------------------------------------------------------------------------

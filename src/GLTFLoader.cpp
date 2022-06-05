@@ -265,7 +265,7 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                 case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
                     {
                         const auto ptr = &(buffer.data[offset]);
-                        memcpy(dstMesh.BoneIndices.data(), ptr, accessor.count * view.byteStride);
+                        memcpy(dstMesh.BoneIndices.data(), ptr, accessor.count * sizeof(asdx::ResBoneIndex));
                     }
                     break;
                 }
@@ -361,6 +361,14 @@ bool GLTFLoader::Load(const char* path, asdx::ResModel& model)
                     break;
                 }
             }
+
+            // 法線データが無ければ生成.
+            if (dstMesh.Normals.empty())
+            { asdx::CalcNormals(dstMesh); }
+
+            // 接線データが無ければ生成を試みる.
+            if (dstMesh.Tangents.empty())
+            { asdx::CalcTangents(dstMesh); }
 
             // メッシュを追加.
             model.Meshes.emplace_back(dstMesh);

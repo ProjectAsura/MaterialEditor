@@ -25,12 +25,13 @@ namespace {
 struct Vertex
 {
     asdx::Vector3   Position;
-    uint32_t        Color;
-    uint32_t        TangentSpace;
-    uint32_t        TexCoord0;
-    uint32_t        TexCoord1;
-    uint32_t        TexCoord2;
-    uint32_t        TexCoord3;
+    asdx::Vector3   Normal;
+    asdx::Vector3   Tangent;
+    asdx::Vector4   Color;
+    asdx::Vector2   TexCoord0;
+    asdx::Vector2   TexCoord1;
+    asdx::Vector2   TexCoord2;
+    asdx::Vector2   TexCoord3;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,6 +55,7 @@ struct SkinningData
 //-----------------------------------------------------------------------------
 EditorMesh::EditorMesh()
 : m_InstanceCount(1)
+, m_MaterialId   (0)
 { /* DO_NOTHING */ }
 
 //-----------------------------------------------------------------------------
@@ -83,14 +85,19 @@ bool EditorMesh::Init(ID3D11Device* pDevice, const asdx::ResMesh& mesh)
 
     for(size_t i=0; i<vertices.size(); ++i)
     {
+        assert(mesh.Positions.empty() == false);
+        assert(mesh.Normals  .empty() == false);
+        assert(mesh.Tangents .empty() == false);
+
         auto& vertex = vertices[i];
         vertex.Position     = mesh.Positions[i];
-        //vertex.Color        = (mesh.Colors.empty()) ? 0xFFFFFFFF : mesh.Colors[i];
-        ////vertex.TangentSpace = mesh.TangentSpaces[i];
-        //vertex.TexCoord0    = (mesh.TexCoords[0].empty()) ? 0 : mesh.TexCoords[0][i];
-        //vertex.TexCoord1    = (mesh.TexCoords[1].empty()) ? 0 : mesh.TexCoords[1][i];
-        //vertex.TexCoord2    = (mesh.TexCoords[2].empty()) ? 0 : mesh.TexCoords[2][i];
-        //vertex.TexCoord3    = (mesh.TexCoords[3].empty()) ? 0 : mesh.TexCoords[3][i];
+        vertex.Color        = (mesh.Colors.empty()) ? asdx::Vector4(1.0f, 1.0f, 1.0f, 1.0f) : mesh.Colors[i];
+        vertex.Normal       = mesh.Normals[i];
+        vertex.Tangent      = mesh.Tangents[i];
+        vertex.TexCoord0    = (mesh.TexCoords[0].empty()) ? asdx::Vector2(0.0f, 0.0f) : mesh.TexCoords[0][i];
+        vertex.TexCoord1    = (mesh.TexCoords[1].empty()) ? asdx::Vector2(0.0f, 0.0f) : mesh.TexCoords[1][i];
+        vertex.TexCoord2    = (mesh.TexCoords[2].empty()) ? asdx::Vector2(0.0f, 0.0f) : mesh.TexCoords[2][i];
+        vertex.TexCoord3    = (mesh.TexCoords[3].empty()) ? asdx::Vector2(0.0f, 0.0f) : mesh.TexCoords[3][i];
 
         m_Box.maxi = asdx::Vector3::Max(m_Box.maxi, vertex.Position);
         m_Box.mini = asdx::Vector3::Min(m_Box.mini, vertex.Position);
@@ -192,6 +199,9 @@ bool EditorMesh::Init(ID3D11Device* pDevice, const asdx::ResMesh& mesh)
 //-----------------------------------------------------------------------------
 void EditorMesh::Term()
 {
+    m_MeshName      .clear();
+    m_MaterialName  .clear();
+
     m_IndexCount        = 0;
     m_HasSkinningData   = false;
 
@@ -202,6 +212,8 @@ void EditorMesh::Term()
     m_InstanceCount = 0;
     m_InstanceMatrixResource.Reset();
     m_InstanceMatrixSRV.Reset();
+
+    m_MaterialId = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -299,6 +311,18 @@ void EditorMesh::SetInstanceMatrix(uint32_t index, const asdx::Matrix& matrix)
     m_InstanceMatrix[index] = matrix;
 }
 
+//-----------------------------------------------------------------------------
+//      マテリアル番号を設定します.
+//-----------------------------------------------------------------------------
+void EditorMesh::SetMaterialId(uint32_t index)
+{ m_MaterialId = index; }
+
+//-----------------------------------------------------------------------------
+//      マテリアル番号を取得します.
+//-----------------------------------------------------------------------------
+uint32_t EditorMesh::GetMaterialId() const
+{ return m_MaterialId; }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // EditorModel class
@@ -327,17 +351,9 @@ EditorModel::~EditorModel()
 bool EditorModel::Init(const char* path)
 {
     auto ext = asdx::GetExtA(path);
-
-
     auto pDevice = asdx::DeviceContext::Instance().GetDevice();
 
     asdx::ResModel model;
-    //MeshLoader loader;
-    //if (!loader.Load(path, res))
-    //{
-    //    ELOGA("Error : MeshLoader::Load() Failed.");
-    //    return false;
-    //}
 
     // OBJファイル.
     if (_stricmp(ext.c_str(), "obj") == 0)
@@ -432,7 +448,7 @@ uint32_t EditorModel::GetMeshCount() const
 //-----------------------------------------------------------------------------
 //      メッシュを取得します.
 //-----------------------------------------------------------------------------
-const EditorMesh& EditorModel::GetMesh(uint32_t index) const
+EditorMesh& EditorModel::GetMesh(uint32_t index)
 { return m_Meshes[index]; }
 
 //-----------------------------------------------------------------------------

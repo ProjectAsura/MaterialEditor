@@ -84,7 +84,6 @@ void App::Draw3D()
         }
 
         m_pDeviceContext->OMSetRenderTargets(3, pRTV, pDSV);
-
         DrawModel(true, asdx::BlendType::Opaque);
     }
 
@@ -112,6 +111,13 @@ void App::Draw3D()
         m_pDeviceContext->PSSetShaderResources(0, 3, pSRVs);
         m_pDeviceContext->PSSetSamplers(0, 1, &pSmp);
         DrawQuad();
+
+        ID3D11ShaderResourceView* pNullSRVs[] = {
+            nullptr,
+            nullptr,
+            nullptr,
+        };
+        m_pDeviceContext->PSSetShaderResources(0, 3, pNullSRVs);
         m_CompositePS.UnBind(m_pDeviceContext);
     }
 

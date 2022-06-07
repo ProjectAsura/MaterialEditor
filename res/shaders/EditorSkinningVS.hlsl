@@ -90,24 +90,25 @@ VSOutput main(const VSInput input, uint instanceId : SV_InstanceID)
 {
     VSOutput output = (VSOutput)0;
 
-    float4 localPos = float4(input.Position, 1.0f);
-    float4 skinningPos = Skinning(localPos, input.BoneIndex, input.BoneWeight);
-    float4 worldPos = mul(World, localPos);
+    float4 localPos     = float4(input.Position, 1.0f);
+    //float4 skinningPos  = Skinning(localPos, input.BoneIndex, input.BoneWeight);
+    float4 worldPos     = mul(World, localPos);
     worldPos = mul(InstanceMatrix[instanceId], worldPos);
 
     float4 viewPos  = mul(View, worldPos);
     float4 projPos  = mul(Proj, viewPos);
 
+    //float4 skinningNormal  = Skinning(float4(normal,  0), input.BoneIndex, input.BoneWeight);
+    //float4 skinningTangent = Skinning(float4(tangent, 0), input.BoneIndex, input.BoneWeight);
+
     float3 normal  = mul((float3x3)World, input.Normal);
     float3 tangent = mul((float3x3)World, input.Tangent);
 
-    float4 skinningNormal  = Skinning(float4(normal,  0), input.BoneIndex, input.BoneWeight);
-    float4 skinningTangent = Skinning(float4(tangent, 0), input.BoneIndex, input.BoneWeight);
 
     output.Position      = projPos;
     output.Color         = input.Color;
-    output.Normal        = skinningNormal.xyz;
-    output.Tangent       = skinningTangent.xyz;
+    output.Normal        = normal;
+    output.Tangent       = tangent;
     output.TexCoord01    = float4(input.TexCoord0, input.TexCoord1);
     output.TexCoord23    = float4(input.TexCoord2, input.TexCoord3);
 

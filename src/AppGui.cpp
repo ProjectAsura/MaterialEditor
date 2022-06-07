@@ -57,6 +57,8 @@ static const asdx::Localization kTagEdit(u8"編集", u8"Edit");
 static const asdx::Localization kTagLanguage(u8"言語", u8"Language");
 static const asdx::Localization kTagJapanese(u8"日本語", u8"Japanese");
 static const asdx::Localization kTagEnglish(u8"英語", u8"English");
+static const asdx::Localization kMsgNoMaterial("出力するマテリアルがありません", "No material for export.");
+static const asdx::Localization kMsgNoExporter("エクスポーターが設定されていません", "Expoter is not setted.");
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -247,14 +249,14 @@ void DrawExportMenu(MenuContext& context)
 
     if (context.pWorkSpace->GetMaterials() == nullptr)
     {
-        asdx::ErrorDlg("Export Failed.", "出力するマテリアルがありません");
+        asdx::ErrorDlg("Export Failed.", kMsgNoMaterial.c_str());
         return;
     }
 
     auto exporter = context.pWorkSpace->GetExporter();
     if (exporter.empty() || exporter == "")
     {
-        asdx::ErrorDlg("Export Failed.", "エクスポーターが設定されていません");
+        asdx::ErrorDlg("Export Failed.", kMsgNoExporter.c_str());
         return;
     }
 

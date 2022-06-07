@@ -780,6 +780,9 @@ const PluginShader* EditorMaterial::Bind(ID3D11DeviceContext* pContext, bool lig
     // シェーダを取得.
     auto shader = (lightingPass) ? material->GetLightingShader() : material->GetShadowingShader();
 
+    // 定数バッファ設定.
+    shader->SetCBV(pContext, "CbProperties", material->m_EditableCB.GetPtr());
+
     // テクスチャ設定.
     instance->SetTextures(pContext, shader);
 

@@ -512,7 +512,7 @@ void FBXLoader::ParseMesh(FbxNode* pNode, asdx::ResModel& model)
             if (dst.TexCoords[j].size() == 0)
             { continue; }
 
-            dst.TexCoords[j].resize(count);
+            mesh.TexCoords[j].resize(count);
         }
 
         mesh.Indices.resize(count);
@@ -545,8 +545,20 @@ void FBXLoader::ParseMesh(FbxNode* pNode, asdx::ResModel& model)
                 if (dst.TexCoords[k].size() == 0)
                 { continue; }
 
-                dst.TexCoords[k][j] = dst.TexCoords[k][j];
+                // V方向をフリップ.
+                mesh.TexCoords[k][j].x = dst.TexCoords[k][j].x;
+                mesh.TexCoords[k][j].y = 1.0f - dst.TexCoords[k][j].y;
             }
+        }
+
+        for(size_t j=0; j<count; j+=3)
+        {
+            auto i0 = mesh.Indices[j + 0];
+            auto i1 = mesh.Indices[j + 1];
+            auto i2 = mesh.Indices[j + 2];
+            mesh.Indices[j + 0] = i0;
+            mesh.Indices[j + 1] = i2;
+            mesh.Indices[j + 2] = i1;
         }
 
         model.Meshes.emplace_back(mesh);

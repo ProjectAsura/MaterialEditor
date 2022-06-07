@@ -143,7 +143,12 @@ void App::Draw3D()
 
 
     // ガイドオブジェクト描画.
-    DrawGuide();
+    {
+        auto pRTV = m_LightingBuffer.GetTargetView();
+        auto pDSV =  m_DepthBuffer.GetTargetView();
+        m_pDeviceContext->OMSetRenderTargets(1, &pRTV, pDSV);
+        DrawGuide();
+    }
 }
 
 

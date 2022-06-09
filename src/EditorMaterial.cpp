@@ -674,6 +674,120 @@ int EditMaterialView::GetRasterizerState() const
 int EditMaterialView::GetDepthState() const
 { return m_DepthState.GetValue(); }
 
+//-----------------------------------------------------------------------------
+//      エクスポートデータを設定します.
+//-----------------------------------------------------------------------------
+void EditMaterialView::SetExportData(ExportMaterial* dst, const PluginMaterial* mat)
+{
+    dst->CastShadow         = m_ShadowCast.GetValue();
+    dst->ReceiveShadow      = m_ShadowReceive.GetValue();
+    dst->BlendState         = m_BlendState.GetValue();
+    dst->RasterizerState    = m_RasterizerState.GetValue();
+    dst->DepthState         = m_DepthState.GetValue();
+
+    dst->ParamCount = uint32_t(m_Params.size());
+    dst->pParams = new ExportParameter[dst->ParamCount];
+
+    auto& props = mat->GetProperties();
+    assert(props.Values.size() == m_Params.size());
+
+    for(size_t i=0; i<m_Params.size(); ++i)
+    {
+        auto& srcParam = m_Params[i];
+        auto  dstParam = &dst->pParams[i];
+
+        switch(m_Params[i].Type)
+        {
+        case asura::PROPERTY_TYPE_BOOL:
+            {
+                dstParam->Type       = EXPORT_PARAMETER_TYPE_BOOL;
+                dstParam->Value.Bool = srcParam.Param.pBool->GetValue();
+                dstParam->Name       = props.Values[i].Name.c_str();
+            }
+            break;
+
+        case asura::PROPERTY_TYPE_INT:
+            {
+                dstParam->Type       = EXPORT_PARAMETER_TYPE_INT;
+                dstParam->Value.Int  = srcParam.Param.pInt->GetValue();
+                dstParam->Name       = props.Values[i].Name.c_str();
+            }
+            break;
+
+        case asura::PROPERTY_TYPE_FLOAT:
+            {
+                dstParam->Type           = EXPORT_PARAMETER_TYPE_FLOAT;
+                dstParam->Value.Float    = srcParam.Param.pFloat->GetValue();
+                dstParam->Name           = props.Values[i].Name.c_str();
+            }
+            break;
+
+        case asura::PROPERTY_TYPE_FLOAT2:
+            {
+                dstParam->Type           = EXPORT_PARAMETER_TYPE_FLOAT2;
+                dstParam->Value.Float2.x = srcParam.Param.pFloat2->GetValue().x;
+                dstParam->Value.Float2.y = srcParam.Param.pFloat2->GetValue().y;
+                dstParam->Name           = props.Values[i].Name.c_str();
+            }
+            break;
+
+        case asura::PROPERTY_TYPE_FLOAT3:
+            {
+                dstParam->Type           = EXPORT_PARAMETER_TYPE_FLOAT3;
+                dstParam->Value.Float3.x = srcParam.Param.pFloat3->GetValue().x;
+                dstParam->Value.Float3.y = srcParam.Param.pFloat3->GetValue().y;
+                dstParam->Value.Float3.z = srcParam.Param.pFloat3->GetValue().z;
+                dstParam->Name           = props.Values[i].Name.c_str();
+            }
+            break;
+
+        case asura::PROPERTY_TYPE_FLOAT4:
+            {
+                dstParam->Type           = EXPORT_PARAMETER_TYPE_FLOAT4;
+                dstParam->Value.Float4.x = srcParam.Param.pFloat4->GetValue().x;
+                dstParam->Value.Float4.y = srcParam.Param.pFloat4->GetValue().y;
+                dstParam->Value.Float4.z = srcParam.Param.pFloat4->GetValue().z;
+                dstParam->Value.Float4.w = srcParam.Param.pFloat4->GetValue().w;
+                dstParam->Name           = props.Values[i].Name.c_str();
+            }
+            break;
+
+        case asura::PROPERTY_TYPE_COLOR3:
+            {
+                dstParam->Type           = EXPORT_PARAMETER_TYPE_COLOR3;
+                dstParam->Value.Color3.x = srcParam.Param.pColor3->GetValue().x;
+                dstParam->Value.Color3.y = srcParam.Param.pColor3->GetValue().y;
+                dstParam->Value.Color3.z = srcParam.Param.pColor3->GetValue().z;
+                dstParam->Name           = props.Values[i].Name.c_str();
+            }
+            break;
+
+        case asura::PROPERTY_TYPE_COLOR4:
+            {
+                dstParam->Type           = EXPORT_PARAMETER_TYPE_COLOR4;
+                dstParam->Value.Color4.x = srcParam.Param.pColor4->GetValue().x;
+                dstParam->Value.Color4.y = srcParam.Param.pColor4->GetValue().y;
+                dstParam->Value.Color4.z = srcParam.Param.pColor4->GetValue().z;
+                dstParam->Value.Color4.w = srcParam.Param.pColor4->GetValue().w;
+                dstParam->Name           = props.Values[i].Name.c_str();
+            }
+            break;
+        }
+    }
+
+    dst->Texture2DCount = uint32_t(m_Textures.size());
+    dst->Texture2Ds     = new ExportTexture[dst->Texture2DCount];
+
+    assert(m_Textures.size() == props.Textures.size());
+
+    for(size_t i=0; i<m_Textures.size(); ++i)
+    {
+        auto dstTex = &dst->Texture2Ds[i];
+        dstTex->Name = props.Textures[i].Name.c_str();
+        dstTex->Path = m_Textures[i].Texture.GetPath().c_str();
+    }
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // EditorMaterial class
@@ -908,141 +1022,26 @@ int EditorMaterial::GetBlendState() const
     assert(instance != nullptr);
     return instance->GetBlendState();
 }
-//
-////-----------------------------------------------------------------------------
-////      エクスポートデータを生成します.
-////-----------------------------------------------------------------------------
-//void EditorMaterial::CreateExportData(ExportMaterial* dst)
-//{
-//    PluginMaterial* material;
-//    if (!PluginMgr::Instance().FindMasterMaterial(m_SelectedMaterial, &material))
-//    { return; }
-//
-//    if (m_EditViews.find(m_SelectedMaterial) == m_EditViews.end())
-//    { return; }
-//
-//    auto src = m_EditViews.at(m_SelectedMaterial);
-//    assert(src != nullptr);
-//
-//    //dst->Name            = material->m_Name.c_str();
-//    //dst->ShaderPath      = material->m_ShaderPath.c_str();
-//    //dst->CastShadow      = src->m_ShadowCast.GetValue();
-//    //dst->ReceiveShadow   = src->m_ShadowReceive.GetValue();
-//    //dst->BlendState      = src->m_BlendState.GetValue();
-//    //dst->RasterizerState = src->m_RasterizerState.GetValue();
-//    //dst->DepthState      = src->m_DepthState.GetValue();
-//
-//    //dst->BoolCount  = uint32_t(src->m_Bool.size());
-//    //dst->BoolParams = new BoolParam[dst->BoolCount];
-//    //for(auto i=0u; i<dst->BoolCount; ++i)
-//    //{
-//    //    dst->BoolParams[i].Target    = material->m_Bool[i].Target.c_str();
-//    //    dst->BoolParams[i].Name      = src->m_Bool[i].Tag.c_str();
-//    //    dst->BoolParams[i].Value     = src->m_Bool[i].Param.GetValue();
-//    //}
-//
-//    //dst->IntCount  = uint32_t(src->m_Int.size());
-//    //dst->IntParams = new IntParam[dst->IntCount];
-//    //for(auto i=0u; i<dst->IntCount; ++i)
-//    //{
-//    //    dst->IntParams[i].Target     = material->m_Int[i].Target.c_str();
-//    //    dst->IntParams[i].Name       = src->m_Int[i].Tag.c_str();
-//    //    dst->IntParams[i].Value      = src->m_Int[i].Param.GetValue();
-//    //}
-//
-//    //dst->FloatCount  = uint32_t(src->m_Float.size());
-//    //dst->FloatParams = new FloatParam[dst->FloatCount];
-//    //for(auto i=0u; i<dst->FloatCount; ++i)
-//    //{
-//    //    dst->FloatParams[i].Target   = material->m_Float[i].Target.c_str();
-//    //    dst->FloatParams[i].Name     = src->m_Float[i].Tag.c_str();
-//    //    dst->FloatParams[i].Value    = src->m_Float[i].Param.GetValue();
-//    //}
-//
-//    //dst->Float2Count  = uint32_t(src->m_Float2.size());
-//    //dst->Float2Params = new Float2Param[dst->Float2Count];
-//    //for(auto i=0u; i<dst->Float2Count; ++i)
-//    //{
-//    //    auto& val = src->m_Float2[i].Param.GetValue();
-//
-//    //    dst->Float2Params[i].Target  = material->m_Float2[i].Target.c_str();
-//    //    dst->Float2Params[i].Name    = src->m_Float2[i].Tag.c_str();
-//    //    dst->Float2Params[i].X       = val.x;
-//    //    dst->Float2Params[i].Y       = val.y;
-//    //}
-//
-//    //dst->Float3Count  = uint32_t(src->m_Float3.size());
-//    //dst->Float3Params = new Float3Param[dst->Float3Count];
-//    //for(auto i=0u; i<dst->Float3Count; ++i)
-//    //{
-//    //    auto& val = src->m_Float3[i].Param.GetValue();
-//
-//    //    dst->Float3Params[i].Target  = material->m_Float3[i].Target.c_str();
-//    //    dst->Float3Params[i].Name    = src->m_Float3[i].Tag.c_str();
-//    //    dst->Float3Params[i].X       = val.x;
-//    //    dst->Float3Params[i].Y       = val.y;
-//    //    dst->Float3Params[i].Z       = val.z;
-//    //}
-//
-//    //dst->Float4Count  = uint32_t(src->m_Float4.size());
-//    //dst->Float4Params = new Float4Param[dst->Float4Count];
-//    //for(auto i=0u; i<dst->Float4Count; ++i)
-//    //{
-//    //    auto& val = src->m_Float4[i].Param.GetValue();
-//
-//    //    dst->Float4Params[i].Target  = material->m_Float4[i].Target.c_str();
-//    //    dst->Float4Params[i].Name    = src->m_Float4[i].Tag.c_str();
-//    //    dst->Float4Params[i].X       = val.x;
-//    //    dst->Float4Params[i].Y       = val.y;
-//    //    dst->Float4Params[i].Z       = val.z;
-//    //    dst->Float4Params[i].W       = val.w;
-//    //}
-//
-//    //dst->Color3Count  = uint32_t(src->m_Color3.size());
-//    //dst->Color3Params = new Color3Param[dst->Color3Count];
-//    //for(auto i=0u; i<dst->Color3Count; ++i)
-//    //{
-//    //    auto& val = src->m_Color3[i].Param.GetValue();
-//
-//    //    dst->Color3Params[i].Target  = material->m_Color3[i].Target.c_str();
-//    //    dst->Color3Params[i].Name    = src->m_Color3[i].Tag.c_str();
-//    //    dst->Color3Params[i].R       = val.x;
-//    //    dst->Color3Params[i].G       = val.y;
-//    //    dst->Color3Params[i].B       = val.z;
-//    //}
-//
-//    //dst->Color4Count  = uint32_t(src->m_Color4.size());
-//    //dst->Color4Params = new Color4Param[dst->Color4Count];
-//    //for(auto i=0u; i<dst->Color4Count; ++i)
-//    //{
-//    //    auto& val = src->m_Color4[i].Param.GetValue();
-//
-//    //    dst->Color4Params[i].Target  = material->m_Color4[i].Target.c_str();
-//    //    dst->Color4Params[i].Name    = src->m_Color4[i].Tag.c_str();
-//    //    dst->Color4Params[i].R       = val.x;
-//    //    dst->Color4Params[i].G       = val.y;
-//    //    dst->Color4Params[i].B       = val.z;
-//    //    dst->Color4Params[i].A       = val.w;
-//    //}
-//
-//    //dst->Bit32Count  = uint32_t(src->m_Bit32.size());
-//    //dst->Bit32Params = new Bit32Param[dst->Bit32Count];
-//    //for(auto i=0u; i<dst->Bit32Count; ++i)
-//    //{
-//    //    dst->Bit32Params[i].Target   = material->m_Bit32[i].Target.c_str();
-//    //    dst->Bit32Params[i].Name     = src->m_Bit32[i].Tag.c_str();
-//    //    dst->Bit32Params[i].Value    = src->m_Bit32[i].Param.GetValue();
-//    //}
-//
-//    //dst->Texture2DCount  = uint32_t(src->m_Texture2D.size());
-//    //dst->Texture2DParams = new TextureParam[dst->Texture2DCount];
-//    //for(auto i=0u; i<dst->Texture2DCount; ++i)
-//    //{
-//    //    dst->Texture2DParams[i].Target   = material->m_Texture2D[i].Target.c_str();
-//    //    dst->Texture2DParams[i].Name     = src->m_Texture2D[i].Tag.c_str();
-//    //    dst->Texture2DParams[i].Path     = src->m_Texture2D[i].Param.GetPath().c_str();
-//    //}
-//}
+
+//-----------------------------------------------------------------------------
+//      エクスポートデータを生成します.
+//-----------------------------------------------------------------------------
+void EditorMaterial::SetExportData(ExportMaterial* dst)
+{
+    PluginMaterial* material;
+    if (!PluginMgr::Instance().FindMasterMaterial(m_SelectedMaterial, &material))
+    { return; }
+
+    if (m_EditViews.find(m_SelectedMaterial) == m_EditViews.end())
+    { return; }
+
+    auto view = m_EditViews.at(m_SelectedMaterial);
+    assert(view != nullptr);
+
+    dst->Name       = m_Name.c_str();
+    dst->ShaderPath = material->GetShaderPath().c_str();
+    view->SetExportData(dst, material);
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1130,35 +1129,3 @@ bool EditorMaterials::FindMaterial(const std::string& name, EditorMaterial& mate
     return false;
 }
 
-////-----------------------------------------------------------------------------
-////      エクスポートコンテキストを生成します.
-////-----------------------------------------------------------------------------
-//ExportContext* EditorMaterials::CreateExportContext()
-//{
-//    ExportContext* context = nullptr;
-//
-//    try {
-//        context = new ExportContext();
-//
-//        context->OutputPath    = nullptr; // 作った側で入れる想定.
-//        context->MaterialCount = uint32_t(m_Materials.size());
-//
-//        if (m_Materials.empty())
-//        { context->Materials = nullptr; }
-//        else
-//        {
-//            context->Materials = new ExportMaterial[m_Materials.size()];
-//                
-//            for(size_t i=0; i<m_Materials.size(); ++i)
-//            { m_Materials[i].CreateExportData(&context->Materials[i]); }
-//        }
-//    }
-//    catch(std::exception e)
-//    {
-//        ELOGA("Error : exception occurred. msg = %s", e.what());
-//        DisposeExportContext(context);
-//        return nullptr;
-//    }
-//
-//    return context;
-//};

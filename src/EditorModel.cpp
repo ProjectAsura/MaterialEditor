@@ -353,13 +353,13 @@ bool EditorModel::Init(const char* path)
     auto ext = asdx::GetExtA(path);
     auto pDevice = asdx::DeviceContext::Instance().GetDevice();
 
-    asdx::ResModel model;
+    asdx::Dispose(m_Resource);
 
     // OBJファイル.
     if (_stricmp(ext.c_str(), "obj") == 0)
     {
         OBJLoader loader;
-        if (!loader.Load(path, model))
+        if (!loader.Load(path, m_Resource))
         {
             ELOGA("Error : OBJLoader::Load() Failed. path = %s", path);
             return false;
@@ -369,7 +369,7 @@ bool EditorModel::Init(const char* path)
     else if (_stricmp(ext.c_str(), "fbx") == 0)
     {
         FBXLoader loader;
-        if (!loader.Load(path, model))
+        if (!loader.Load(path, m_Resource))
         {
             ELOGA("Error : FBXLoader::Load() Failed. path = %s", path);
             return false;
@@ -379,7 +379,7 @@ bool EditorModel::Init(const char* path)
     else if (_stricmp(ext.c_str(), "gltf") == 0 || _stricmp(ext.c_str(), "glb") == 0)
     {
         GLTFLoader loader;
-        if (!loader.Load(path, model))
+        if (!loader.Load(path, m_Resource))
         {
             ELOGA("Error : GLTFLoader::Load() Failed. path = %s", path);
             return false;
@@ -393,11 +393,11 @@ bool EditorModel::Init(const char* path)
     }
 
 
-    m_Meshes.resize(model.Meshes.size());
+    m_Meshes.resize(m_Resource.Meshes.size());
 
-    for(size_t i=0; i<model.Meshes.size(); ++i)
+    for(size_t i=0; i<m_Resource.Meshes.size(); ++i)
     {
-        if (!m_Meshes[i].Init(pDevice, model.Meshes[i]))
+        if (!m_Meshes[i].Init(pDevice, m_Resource.Meshes[i]))
         {
             ELOG("Error : EditorMesh::Init() Failed.");
             return false;
@@ -432,6 +432,7 @@ void EditorModel::Term()
     { m_Meshes[i].Term(); }
 
     m_Meshes.clear();
+    asdx::Dispose(m_Resource);
 
     m_Scale       = asdx::Vector3(1.0f, 1.0f, 1.0f);
     m_Rotation    = asdx::Vector3(0.0f, 0.0f, 0.0f);
@@ -544,3 +545,9 @@ uint64_t EditorModel::CalcPolygonCount() const
 
     return count;
 }
+
+//-----------------------------------------------------------------------------
+//      リソースを取得します.
+//-----------------------------------------------------------------------------
+const asdx::ResModel& EditorModel::GetResource() const
+{ return m_Resource; }

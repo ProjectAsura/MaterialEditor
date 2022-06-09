@@ -140,6 +140,7 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     <ClCompile Include="..\src\DebugPrimitive.cpp" />
     <ClCompile Include="..\src\EditorMaterial.cpp" />
     <ClCompile Include="..\src\EditorModel.cpp" />
+    <ClCompile Include="..\src\ExportContextHelper.cpp" />
     <ClCompile Include="..\src\FBXLoader.cpp" />
     <ClCompile Include="..\src\FxParser.cpp" />
     <ClCompile Include="..\src\GLTFLoader.cpp" />
@@ -163,6 +164,7 @@ xcopy $(ProjectDir)..\..\asdx11\res\shaders\BRDF.hlsli $(ProjectDir)..\res\plugi
     <ClInclude Include="..\include\DebugPrimitive.h" />
     <ClInclude Include="..\include\EditorMaterial.h" />
     <ClInclude Include="..\include\EditorModel.h" />
+    <ClInclude Include="..\include\ExportContextHelper.h" />
     <ClInclude Include="..\include\FBXLoader.h" />
     <ClInclude Include="..\include\FxParser.h" />
     <ClInclude Include="..\include\GLTFLoader.h" />

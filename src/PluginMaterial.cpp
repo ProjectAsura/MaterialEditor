@@ -310,3 +310,9 @@ bool PluginMaterial::FindSlotUAV(const std::string& name, uint32_t& slot, bool l
     }
     return false;
 }
+
+//-----------------------------------------------------------------------------
+//      シェーダパスを取得します.
+//-----------------------------------------------------------------------------
+const std::string& PluginMaterial::GetShaderPath() const
+{ return m_ShaderPath; }

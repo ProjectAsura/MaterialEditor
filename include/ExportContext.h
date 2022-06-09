@@ -14,6 +14,21 @@ struct ExportContext;
 typedef bool (__stdcall *ExportFunc)(const ExportContext* context);
 
 ///////////////////////////////////////////////////////////////////////////////
+// EXPORT_PARAMETER_TYPE enum
+///////////////////////////////////////////////////////////////////////////////
+enum EXPORT_PARAMETER_TYPE
+{
+    EXPORT_PARAMETER_TYPE_BOOL,
+    EXPORT_PARAMETER_TYPE_INT,
+    EXPORT_PARAMETER_TYPE_FLOAT,
+    EXPORT_PARAMETER_TYPE_FLOAT2,
+    EXPORT_PARAMETER_TYPE_FLOAT3,
+    EXPORT_PARAMETER_TYPE_FLOAT4,
+    EXPORT_PARAMETER_TYPE_COLOR3,
+    EXPORT_PARAMETER_TYPE_COLOR4,
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // Vec2 structure
 ///////////////////////////////////////////////////////////////////////////////
 struct Vec2
@@ -44,103 +59,43 @@ struct Vec4
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// BoolParam structure
+// Vec4s structure
 ///////////////////////////////////////////////////////////////////////////////
-struct BoolParam
+struct Vec4s
 {
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    bool        Value;      //!< 値.
+    uint16_t x;
+    uint16_t y;
+    uint16_t z;
+    uint16_t w;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// IntParam structure
+// ExportParameter structure
 ///////////////////////////////////////////////////////////////////////////////
-struct IntParam
+struct ExportParameter
 {
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    int         Value;      //!< 値.
+    EXPORT_PARAMETER_TYPE   Type;
+    const char*             Name;
+    union Value
+    {
+        bool    Bool;
+        int     Int;
+        float   Float;
+        Vec2    Float2;
+        Vec3    Float3;
+        Vec4    Float4;
+        Vec3    Color3;
+        Vec4    Color4;
+    } Value;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// FloatParam structure
+// ExportTexture structure
 ///////////////////////////////////////////////////////////////////////////////
-struct FloatParam
+struct ExportTexture
 {
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    float       Value;      //!< 値.
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Float2Param structure
-///////////////////////////////////////////////////////////////////////////////
-struct Float2Param
-{
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    Vec2        Value;      //!< 値.
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Float3Param structure
-///////////////////////////////////////////////////////////////////////////////
-struct Float3Param
-{
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    Vec3        Value;      //!< 値.
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Float4Param structure
-///////////////////////////////////////////////////////////////////////////////
-struct Float4Param
-{
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    Vec4        Value;      //!< 値.
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Color3Param structure
-///////////////////////////////////////////////////////////////////////////////
-struct Color3Param
-{
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    Vec3        Value;      //!< 値.
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Color4Param structure
-///////////////////////////////////////////////////////////////////////////////
-struct Color4Param
-{
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    Vec4        Value;      //!< 値.
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Bit32Param structure
-///////////////////////////////////////////////////////////////////////////////
-struct Bit32Param
-{
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    uint32_t    Value;      //!< 値.
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// TextureParam structure
-///////////////////////////////////////////////////////////////////////////////
-struct TextureParam
-{
-    const char* Name;       //!< パラメータ名.
-    const char* Target;     //!< バインド先名.
-    const char* Path;       //!< テクスチャファイルパス.
+    const char*     Name;
+    const char*     Path;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -148,33 +103,39 @@ struct TextureParam
 ///////////////////////////////////////////////////////////////////////////////
 struct ExportMaterial
 {
-    const char*     Name;               //!< マテリアル名.
-    const char*     ShaderPath;         //!< シェーダファイルパス.
-    bool            CastShadow;         //!< シャドウキャスト.
-    bool            ReceiveShadow;      //!< シャドウレシーブ.
-    int             BlendState;         //!< ブレンドステート.
-    int             RasterizerState;    //!< ラスタライザーステート.
-    int             DepthState;         //!< 深度ステート.
-    uint32_t        BoolCount;          //!< boolパラメータ数.
-    BoolParam*      BoolParams;         //!< boolパラメータ.
-    uint32_t        IntCount;           //!< intパラメータ数.
-    IntParam*       IntParams;          //!< intパラメータ.
-    uint32_t        FloatCount;         //!< floatパラメータ数.
-    FloatParam*     FloatParams;        //!< floatパラメータ.
-    uint32_t        Float2Count;        //!< float2パラメータ数.
-    Float2Param*    Float2Params;       //!< float2パラメータ.
-    uint32_t        Float3Count;        //!< float3パラメータ数.
-    Float3Param*    Float3Params;       //!< float3パラメータ.
-    uint32_t        Float4Count;        //!< float4パラメータ数.
-    Float4Param*    Float4Params;       //!< float4パラメータ.
-    uint32_t        Color3Count;        //!< color3パラメータ数.
-    Color3Param*    Color3Params;       //!< color3パラメータ.
-    uint32_t        Color4Count;        //!< color4パラメータ数.
-    Color4Param*    Color4Params;       //!< color4パラメータ.
-    uint32_t        Bit32Count;         //!< bit32パラメータ数.
-    Bit32Param*     Bit32Params;        //!< bit32パラメータ.
-    uint32_t        Texture2DCount;     //!< texture2Dパラメータ数.
-    TextureParam*   Texture2DParams;    //!< texture2Dパラメータ.
+    const char*         Name;               //!< マテリアル名.
+    const char*         ShaderPath;         //!< シェーダファイルパス.
+    bool                CastShadow;         //!< シャドウキャスト.
+    bool                ReceiveShadow;      //!< シャドウレシーブ.
+    int                 BlendState;         //!< ブレンドステート.
+    int                 RasterizerState;    //!< ラスタライザーステート.
+    int                 DepthState;         //!< 深度ステート.
+    uint32_t            ParamCount;         //!< パラメータ数.
+    ExportParameter*    pParams;            //!< パラメータ.
+    uint32_t            Texture2DCount;     //!< テクスチャ数.
+    ExportTexture*      Texture2Ds;         //!< テクスチャ.
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// ExportMesh structure
+///////////////////////////////////////////////////////////////////////////////
+struct ExportMesh
+{
+    const char*     Name;
+    const char*     MateiralName;
+    uint32_t        VertexCount;
+    const Vec3*     Positions;
+    const Vec3*     Normals;
+    const Vec3*     Tangents;
+    const Vec4*     Colors;
+    const Vec2*     TexCoord0;
+    const Vec2*     TexCoord1;
+    const Vec2*     TexCoord2;
+    const Vec2*     TexCoord3;
+    const Vec4s*    BoneIndices;
+    const Vec4*     BoneWeights;
+    uint32_t        IndexCount;
+    const uint32_t* Indices;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -185,103 +146,7 @@ struct ExportContext
     char*               OutputPath;     //!< 出力ファイルパス.
     uint32_t            MaterialCount;  //!< マテリアル数.
     ExportMaterial*     Materials;      //!< マテリアル.
+    uint32_t            MeshCount;      //!< メッシュ数.
+    ExportMesh*         Meshes;         //!< メッシュ.
 };
 
-//-----------------------------------------------------------------------------
-//      エクスポートコンテキストを破棄します.
-//-----------------------------------------------------------------------------
-inline void DisposeExportContext(ExportContext*& context)
-{
-    if (context == nullptr)
-    { return; }
-
-    if (context->Materials != nullptr)
-    {
-        for(auto i=0u; i<context->MaterialCount; ++i)
-        {
-            if (context->Materials[i].BoolParams != nullptr)
-            {
-                delete[] context->Materials[i].BoolParams;
-                context->Materials[i].BoolParams = nullptr;
-            }
-
-            if (context->Materials[i].IntParams != nullptr)
-            {
-                delete[] context->Materials[i].IntParams;
-                context->Materials[i].IntParams = nullptr;
-            }
-
-            if (context->Materials[i].FloatParams != nullptr)
-            {
-                delete[] context->Materials[i].FloatParams;
-                context->Materials[i].FloatParams = nullptr;
-            }
-
-            if (context->Materials[i].Float2Params != nullptr)
-            {
-                delete[] context->Materials[i].Float2Params;
-                context->Materials[i].Float2Params = nullptr;
-            }
-
-            if (context->Materials[i].Float3Params != nullptr)
-            {
-                delete[] context->Materials[i].Float3Params;
-                context->Materials[i].Float3Params = nullptr;
-            }
-
-            if (context->Materials[i].FloatParams != nullptr)
-            {
-                delete[] context->Materials[i].FloatParams;
-                context->Materials[i].FloatParams = nullptr;
-            }
-
-            if (context->Materials[i].Float2Params != nullptr)
-            {
-                delete[] context->Materials[i].Float2Params;
-                context->Materials[i].Float2Params = nullptr;
-            }
-
-            if (context->Materials[i].Float3Params != nullptr)
-            {
-                delete[] context->Materials[i].FloatParams;
-                context->Materials[i].FloatParams = nullptr;
-            }
-
-            if (context->Materials[i].Float4Params != nullptr)
-            {
-                delete[] context->Materials[i].Float4Params;
-                context->Materials[i].Float4Params = nullptr;
-            }
-
-            if (context->Materials[i].Color3Params != nullptr)
-            {
-                delete[] context->Materials[i].Color3Params;
-                context->Materials[i].Color3Params = nullptr;
-            }
-
-            if (context->Materials[i].Color4Params != nullptr)
-            {
-                delete[] context->Materials[i].Color4Params;
-                context->Materials[i].Color4Params = nullptr;
-            }
-
-            if (context->Materials[i].Bit32Params != nullptr)
-            {
-                delete[] context->Materials[i].Bit32Params;
-                context->Materials[i].Bit32Params = nullptr;
-            }
-
-            if (context->Materials[i].Texture2DParams != nullptr)
-            {
-                delete[] context->Materials[i].Texture2DParams;
-                context->Materials[i].Texture2DParams = nullptr;
-            }
-        }
-
-        delete[] context->Materials;
-        context->Materials = nullptr;
-    }
-
-    delete context;
-    context = nullptr;
-}

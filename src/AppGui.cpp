@@ -18,6 +18,7 @@
 #include <AppVersion.h>
 #include <Config.h>
 #include <LightMgr.h>
+#include <ExportContextHelper.h>
 
 
 namespace {
@@ -75,7 +76,7 @@ static OSS kLicenses[] = {
     {"TinyXML-2"        , "https://github.com/leethomason/tinyxml2/blob/master/LICENSE.txt"},
     {"meshoptimizer"    , "https://github.com/zeux/meshoptimizer/blob/master/LICENSE.md"},
     {"DirectXTex"       , "https://github.com/microsoft/DirectXTex/blob/master/LICENSE"},
-    {"assimp"           , "https://github.com/assimp/assimp/blob/master/LICENSE"},
+    {"tinygltf"         , "https://github.com/syoyo/tinygltf/blob/master/LICENSE"},
 };
 
 
@@ -88,7 +89,6 @@ struct MenuContext
     WorkSpace*          pWorkSpace = nullptr;
     Config*             pConfig = nullptr;
 };
-
 
 //-----------------------------------------------------------------------------
 //      ハイパーリンクを描画します.
@@ -276,21 +276,20 @@ void DrawExportMenu(MenuContext& context)
         }
     }
 
-    //auto exportContext = context.pWorkSpace->GetMaterials()->CreateExportContext();
-    //if (exportContext == nullptr)
-    //{
-    //    DisposeExportContext(exportContext);
-    //    asdx::ErrorDlg("エクスポート失敗", "出力データの生成に失敗しました.");
-    //    return;
-    //}
+    ExportContext* exportContext;
+    if (!Create(*context.pWorkSpace, &exportContext))
+    {
+        asdx::ErrorDlg("Export Failed.", "Export Failed.");
+        return;
+    }
 
-    //auto ret = CallExporter(exporter.c_str(), exportContext);
-    //if (ret)
-    //{ ILOGA("Info : Export Success."); }
-    //else
-    //{ ELOGA("Error : Export Failed."); }
+    auto ret = CallExporter(exporter.c_str(), exportContext);
+    if (ret)
+    { ILOGA("Info : Export Success."); }
+    else
+    { ELOGA("Error : Export Failed."); }
 
-    //DisposeExportContext(exportContext);
+    Dispose(exportContext);
 }
 
 //-----------------------------------------------------------------------------

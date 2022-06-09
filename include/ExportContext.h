@@ -13,6 +13,35 @@
 struct ExportContext;
 typedef bool (__stdcall *ExportFunc)(const ExportContext* context);
 
+///////////////////////////////////////////////////////////////////////////////
+// Vec2 structure
+///////////////////////////////////////////////////////////////////////////////
+struct Vec2
+{
+    float x;
+    float y;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Vec3 structure
+///////////////////////////////////////////////////////////////////////////////
+struct Vec3
+{
+    float x;
+    float y;
+    float z;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Vec4 structure
+///////////////////////////////////////////////////////////////////////////////
+struct Vec4
+{
+    float x;
+    float y;
+    float z;
+    float w;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // BoolParam structure
@@ -51,8 +80,7 @@ struct Float2Param
 {
     const char* Name;       //!< パラメータ名.
     const char* Target;     //!< バインド先名.
-    float       X;          //!< X成分.
-    float       Y;          //!< Y成分.
+    Vec2        Value;      //!< 値.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,9 +90,7 @@ struct Float3Param
 {
     const char* Name;       //!< パラメータ名.
     const char* Target;     //!< バインド先名.
-    float       X;          //!< X成分.
-    float       Y;          //!< Y成分.
-    float       Z;          //!< Z成分.
+    Vec3        Value;      //!< 値.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,10 +100,7 @@ struct Float4Param
 {
     const char* Name;       //!< パラメータ名.
     const char* Target;     //!< バインド先名.
-    float       X;          //!< X成分.
-    float       Y;          //!< Y成分.
-    float       Z;          //!< Z成分.
-    float       W;          //!< W成分.
+    Vec4        Value;      //!< 値.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,9 +110,7 @@ struct Color3Param
 {
     const char* Name;       //!< パラメータ名.
     const char* Target;     //!< バインド先名.
-    float       R;          //!< R成分.
-    float       G;          //!< G成分.
-    float       B;          //!< B成分.
+    Vec3        Value;      //!< 値.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -99,10 +120,7 @@ struct Color4Param
 {
     const char* Name;       //!< パラメータ名.
     const char* Target;     //!< バインド先名.
-    float       R;          //!< R成分.
-    float       G;          //!< G成分.
-    float       B;          //!< B成分.
-    float       A;          //!< A成分.
+    Vec4        Value;      //!< 値.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,92 +195,92 @@ inline void DisposeExportContext(ExportContext*& context)
     if (context == nullptr)
     { return; }
 
-    if (context->Materials == nullptr)
-    { return; }
-
-    for(auto i=0u; i<context->MaterialCount; ++i)
+    if (context->Materials != nullptr)
     {
-        if (context->Materials[i].BoolParams != nullptr)
+        for(auto i=0u; i<context->MaterialCount; ++i)
         {
-            delete[] context->Materials[i].BoolParams;
-            context->Materials[i].BoolParams = nullptr;
+            if (context->Materials[i].BoolParams != nullptr)
+            {
+                delete[] context->Materials[i].BoolParams;
+                context->Materials[i].BoolParams = nullptr;
+            }
+
+            if (context->Materials[i].IntParams != nullptr)
+            {
+                delete[] context->Materials[i].IntParams;
+                context->Materials[i].IntParams = nullptr;
+            }
+
+            if (context->Materials[i].FloatParams != nullptr)
+            {
+                delete[] context->Materials[i].FloatParams;
+                context->Materials[i].FloatParams = nullptr;
+            }
+
+            if (context->Materials[i].Float2Params != nullptr)
+            {
+                delete[] context->Materials[i].Float2Params;
+                context->Materials[i].Float2Params = nullptr;
+            }
+
+            if (context->Materials[i].Float3Params != nullptr)
+            {
+                delete[] context->Materials[i].Float3Params;
+                context->Materials[i].Float3Params = nullptr;
+            }
+
+            if (context->Materials[i].FloatParams != nullptr)
+            {
+                delete[] context->Materials[i].FloatParams;
+                context->Materials[i].FloatParams = nullptr;
+            }
+
+            if (context->Materials[i].Float2Params != nullptr)
+            {
+                delete[] context->Materials[i].Float2Params;
+                context->Materials[i].Float2Params = nullptr;
+            }
+
+            if (context->Materials[i].Float3Params != nullptr)
+            {
+                delete[] context->Materials[i].FloatParams;
+                context->Materials[i].FloatParams = nullptr;
+            }
+
+            if (context->Materials[i].Float4Params != nullptr)
+            {
+                delete[] context->Materials[i].Float4Params;
+                context->Materials[i].Float4Params = nullptr;
+            }
+
+            if (context->Materials[i].Color3Params != nullptr)
+            {
+                delete[] context->Materials[i].Color3Params;
+                context->Materials[i].Color3Params = nullptr;
+            }
+
+            if (context->Materials[i].Color4Params != nullptr)
+            {
+                delete[] context->Materials[i].Color4Params;
+                context->Materials[i].Color4Params = nullptr;
+            }
+
+            if (context->Materials[i].Bit32Params != nullptr)
+            {
+                delete[] context->Materials[i].Bit32Params;
+                context->Materials[i].Bit32Params = nullptr;
+            }
+
+            if (context->Materials[i].Texture2DParams != nullptr)
+            {
+                delete[] context->Materials[i].Texture2DParams;
+                context->Materials[i].Texture2DParams = nullptr;
+            }
         }
 
-        if (context->Materials[i].IntParams != nullptr)
-        {
-            delete[] context->Materials[i].IntParams;
-            context->Materials[i].IntParams = nullptr;
-        }
-
-        if (context->Materials[i].FloatParams != nullptr)
-        {
-            delete[] context->Materials[i].FloatParams;
-            context->Materials[i].FloatParams = nullptr;
-        }
-
-        if (context->Materials[i].Float2Params != nullptr)
-        {
-            delete[] context->Materials[i].Float2Params;
-            context->Materials[i].Float2Params = nullptr;
-        }
-
-        if (context->Materials[i].Float3Params != nullptr)
-        {
-            delete[] context->Materials[i].Float3Params;
-            context->Materials[i].Float3Params = nullptr;
-        }
-
-        if (context->Materials[i].FloatParams != nullptr)
-        {
-            delete[] context->Materials[i].FloatParams;
-            context->Materials[i].FloatParams = nullptr;
-        }
-
-        if (context->Materials[i].Float2Params != nullptr)
-        {
-            delete[] context->Materials[i].Float2Params;
-            context->Materials[i].Float2Params = nullptr;
-        }
-
-        if (context->Materials[i].Float3Params != nullptr)
-        {
-            delete[] context->Materials[i].FloatParams;
-            context->Materials[i].FloatParams = nullptr;
-        }
-
-        if (context->Materials[i].Float4Params != nullptr)
-        {
-            delete[] context->Materials[i].Float4Params;
-            context->Materials[i].Float4Params = nullptr;
-        }
-
-        if (context->Materials[i].Color3Params != nullptr)
-        {
-            delete[] context->Materials[i].Color3Params;
-            context->Materials[i].Color3Params = nullptr;
-        }
-
-        if (context->Materials[i].Color4Params != nullptr)
-        {
-            delete[] context->Materials[i].Color4Params;
-            context->Materials[i].Color4Params = nullptr;
-        }
-
-        if (context->Materials[i].Bit32Params != nullptr)
-        {
-            delete[] context->Materials[i].Bit32Params;
-            context->Materials[i].Bit32Params = nullptr;
-        }
-
-        if (context->Materials[i].Texture2DParams != nullptr)
-        {
-            delete[] context->Materials[i].Texture2DParams;
-            context->Materials[i].Texture2DParams = nullptr;
-        }
+        delete[] context->Materials;
+        context->Materials = nullptr;
     }
-
-    delete[] context->Materials;
-    context->Materials = nullptr;
 
     delete context;
     context = nullptr;

@@ -1,9 +1,8 @@
-Ôªø//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
 // File : FBXLoader.cpp
 // Desc : Film Box Loader.
 // Copyright(c) Project Asura. All right reserved.
 //-------------------------------------------------------------------------------------------------
-
 
 //-------------------------------------------------------------------------------------------------
 // Includes
@@ -11,20 +10,15 @@
 #include <FBXLoader.h>
 #include <asdxLogger.h>
 #include <asdxMisc.h>
+#include <algorithm>
+#include <tuple>
 
 #if ENABLE_FBX
 #include <fbxsdk.h>
 #endif
 
-//-------------------------------------------------------------------------------------------------
-// Using Statements.
-//-------------------------------------------------------------------------------------------------
-using namespace fbxsdk;
-
-
 namespace {
 
-#if ENABLE_FBX
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Counters structure
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,15 +35,15 @@ struct Counters
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 struct Face
 {
-    uint32_t IndexP[ 3 ];       // ‰ΩçÁΩÆÂ∫ßÊ®ô„Ç§„É≥„Éá„ÉÉ„ÇØ„Çπ.
-    uint32_t IndexC[ 3 ];       // È†ÇÁÇπ„Ç´„É©„Éº„Ç§„É≥„Éá„ÉÉ„ÇØ„Çπ.
-    uint32_t IndexN[ 3 ];       // Ê≥ïÁ∑ö„Éô„ÇØ„Éà„É´„Ç§„É≥„Éá„ÉÉ„ÇØ„Çπ.
-    uint32_t IndexT[ 3 ];       // Êé•Á∑ö„Éô„ÇØ„Éà„É´„Ç§„É≥„Éá„ÉÉ„ÇØ„Çπ.
-    uint32_t IndexU[ 4 ][ 3 ];  // „ÉÜ„ÇØ„Çπ„ÉÅ„É£Â∫ßÊ®ô„Ç§„É≥„Éá„ÉÉ„ÇØ„Çπ.
+    uint32_t IndexP[ 3 ];       // à íuç¿ïWÉCÉìÉfÉbÉNÉX.
+    uint32_t IndexC[ 3 ];       // í∏ì_ÉJÉâÅ[ÉCÉìÉfÉbÉNÉX.
+    uint32_t IndexN[ 3 ];       // ñ@ê¸ÉxÉNÉgÉãÉCÉìÉfÉbÉNÉX.
+    uint32_t IndexT[ 3 ];       // ê⁄ê¸ÉxÉNÉgÉãÉCÉìÉfÉbÉNÉX.
+    uint32_t IndexU[ MaxLayerCount ][ 3 ];  // ÉeÉNÉXÉ`ÉÉç¿ïWÉCÉìÉfÉbÉNÉX.
 };
 
 //-------------------------------------------------------------------------------------------------
-//      „Éé„Éº„ÉâÂà•„ÅÆÊï∞„ÇíËß£Êûê„Åó„Åæ„Åô.
+//      ÉmÅ[Éhï ÇÃêîÇâêÕÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 void ParseCount(FbxNode* pNode, Counters& counters)
 {
@@ -85,7 +79,7 @@ void ParseCount(FbxNode* pNode, Counters& counters)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      FbxMatrix„ÇíÂ§âÊèõ„Åó„Åæ„Åô.
+//      FbxMatrixÇïœä∑ÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 asdx::Matrix FromFbxMatrix(const FbxMatrix& matrix)
 {
@@ -114,7 +108,7 @@ asdx::Matrix FromFbxMatrix(const FbxMatrix& matrix)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      FbxMatrix„ÇíÂ§âÊèõ„Åó„Åæ„Åô.
+//      FbxMatrixÇïœä∑ÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 asdx::Matrix FromFbxMatrix(const FbxAMatrix& matrix)
 {
@@ -143,7 +137,7 @@ asdx::Matrix FromFbxMatrix(const FbxAMatrix& matrix)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      FbxVector2„Åã„ÇâVector2„Å´Â§âÊèõ„Åó„Åæ„Åô.
+//      FbxVector2Ç©ÇÁVector2Ç…ïœä∑ÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 asdx::Vector2 ToVector2(const FbxVector2& value)
 {
@@ -153,7 +147,7 @@ asdx::Vector2 ToVector2(const FbxVector2& value)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      FbxVector4„Åã„ÇâVector3„Å´Â§âÊèõ„Åó„Åæ„Åô.
+//      FbxVector4Ç©ÇÁVector3Ç…ïœä∑ÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 asdx::Vector3 ToVector3(const FbxVector4& value)
 {
@@ -164,7 +158,7 @@ asdx::Vector3 ToVector3(const FbxVector4& value)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      FbxVector4„Åã„ÇâVector4„Å´Â§âÊèõ„Åó„Åæ„Åô.
+//      FbxVector4Ç©ÇÁVector4Ç…ïœä∑ÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 asdx::Vector4 ToVector4(const FbxVector4& value)
 {
@@ -176,7 +170,7 @@ asdx::Vector4 ToVector4(const FbxVector4& value)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      Vector2„Å´Â§âÊèõ„Åó„Åæ„Åô.
+//      Vector2Ç…ïœä∑ÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 asdx::Vector2 FromFbxProperty2(const FbxPropertyT<FbxDouble2>& value)
 {
@@ -185,7 +179,7 @@ asdx::Vector2 FromFbxProperty2(const FbxPropertyT<FbxDouble2>& value)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      Vector3„Å´Â§âÊèõ„Åó„Åæ„Åô.
+//      Vector3Ç…ïœä∑ÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 asdx::Vector3 FromFbxProperty3(const FbxPropertyT<FbxDouble3>& value)
 {
@@ -197,7 +191,7 @@ asdx::Vector3 FromFbxProperty3(const FbxPropertyT<FbxDouble3>& value)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      Vector4„Å´Â§âÊèõ„Åó„Åæ„Åô.
+//      Vector4Ç…ïœä∑ÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 asdx::Vector4 FromFbxProperty4(const FbxPropertyT<FbxDouble4>& value)
 {
@@ -210,9 +204,9 @@ asdx::Vector4 FromFbxProperty4(const FbxPropertyT<FbxDouble4>& value)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      „ÉÜ„ÇØ„Çπ„ÉÅ„É£„É™„Çπ„Éà„Å´ËøΩÂä†„Åó„Åæ„Åô.
+//      ÉeÉNÉXÉ`ÉÉÉäÉXÉgÇ…í«â¡ÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
-void AddTexture(FbxSurfaceMaterial* pMaterial, const char* propName, std::vector<asdx::ResTexturePath>& textures)
+void AddTexture(FbxSurfaceMaterial* pMaterial, const char* propName, std::vector<std::string>& textures)
 {
     auto prop = pMaterial->FindProperty(propName);
     auto count = prop.GetSrcObjectCount<FbxTexture>();
@@ -221,7 +215,7 @@ void AddTexture(FbxSurfaceMaterial* pMaterial, const char* propName, std::vector
     {
         auto pLayeredTexture = prop.GetSrcObject<FbxLayeredTexture>(i);
         
-        // Âçò‰Ωì„ÉÜ„ÇØ„Çπ„ÉÅ„É£.
+        // íPëÃÉeÉNÉXÉ`ÉÉ.
         if (pLayeredTexture == nullptr)
         {
             auto pBaseTexture = prop.GetSrcObject<FbxTexture>(i);
@@ -232,18 +226,14 @@ void AddTexture(FbxSurfaceMaterial* pMaterial, const char* propName, std::vector
             if (pFileTexture == nullptr)
             { continue; }
 
-            // ‰ΩøÁî®„Åï„Çå„Å¶„ÅÑ„Å™„ÅÑÂ†¥Âêà„ÅØ„Çπ„Ç≠„ÉÉ„Éó.
+            // égópÇ≥ÇÍÇƒÇ¢Ç»Ç¢èÍçáÇÕÉXÉLÉbÉv.
             if (!pFileTexture->UseMaterial.Get())
             { continue; }
 
-            // „ÉÜ„ÇØ„Çπ„ÉÅ„É£Âêç„ÇíÊ†ºÁ¥ç.
-            asdx::ResTexturePath item;
-            item.Name = propName;
-            item.Path = pFileTexture->GetRelativeFileName(); // UTF-8„ÅßÊ†ºÁ¥ç.
-
-            textures.emplace_back(item);
+            // ÉeÉNÉXÉ`ÉÉñºÇäiî[.
+            textures.push_back(pFileTexture->GetRelativeFileName()); // UTF-8Ç≈äiî[.
         }
-        // „É¨„Ç§„É§„Éº„ÉÜ„ÇØ„Çπ„ÉÅ„É£.
+        // ÉåÉCÉÑÅ[ÉeÉNÉXÉ`ÉÉ.
         else
         {
             auto layerCount = pLayeredTexture->GetSrcObjectCount<FbxTexture>();
@@ -257,20 +247,16 @@ void AddTexture(FbxSurfaceMaterial* pMaterial, const char* propName, std::vector
                 if (pFileTexture == nullptr)
                 { continue; }
 
-                // ‰ΩøÁî®„Åï„Çå„Å¶„ÅÑ„Å™„ÅÑÂ†¥Âêà„ÅØ„Çπ„Ç≠„ÉÉ„Éó.
+                // égópÇ≥ÇÍÇƒÇ¢Ç»Ç¢èÍçáÇÕÉXÉLÉbÉv.
                 if (pFileTexture->UseMaterial.Get())
                 { continue; }
 
-                // „ÉÜ„ÇØ„Çπ„ÉÅ„É£Âêç„ÇíÊ†ºÁ¥ç.
-                asdx::ResTexturePath item;
-                item.Name = propName;
-                item.Path = pFileTexture->GetRelativeFileName(); // UTF-8„ÅßÊ†ºÁ¥ç.
-                textures.emplace_back(item);
+                // ÉeÉNÉXÉ`ÉÉñºÇäiî[.
+                textures.push_back(pFileTexture->GetRelativeFileName()); // UTF-8Ç≈äiî[.
             }
         }
     }
 }
-#endif//ENABLE_FBX
 
 } // namespace
 
@@ -280,22 +266,21 @@ void AddTexture(FbxSurfaceMaterial* pMaterial, const char* propName, std::vector
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------------------------------------------------------------------------------------
-//      „Ç≥„É≥„Çπ„Éà„É©„ÇØ„Çø„Åß„Åô.
+//      ÉRÉìÉXÉgÉâÉNÉ^Ç≈Ç∑.
 //-------------------------------------------------------------------------------------------------
 FBXLoader::FBXLoader()
 { /* DO_NOTHING */ }
 
 //-------------------------------------------------------------------------------------------------
-//      „Éá„Çπ„Éà„É©„ÇØ„Çø„Åß„Åô.
+//      ÉfÉXÉgÉâÉNÉ^Ç≈Ç∑.
 //-------------------------------------------------------------------------------------------------
 FBXLoader::~FBXLoader()
 { /* DO_NOTHING */ }
 
-#if ENABLE_FBX
 //-------------------------------------------------------------------------------------------------
-//      Ë™≠„ÅøËæº„ÅøÂá¶ÁêÜ„Åß„Åô.
+//      ì«Ç›çûÇ›èàóùÇ≈Ç∑.
 //-------------------------------------------------------------------------------------------------
-bool FBXLoader::Load(const char* path, asdx::ResModel& model, bool skipTriangulate)
+bool FBXLoader::Load(const char* path, bool skipTriangulate)
 {
     if (path == nullptr)
     {
@@ -303,10 +288,15 @@ bool FBXLoader::Load(const char* path, asdx::ResModel& model, bool skipTriangula
         return false;
     }
 
-    // „Éï„Ç©„É´„ÉÄ„Éë„ÇπÂèñÂæó.
+    m_ErrorString.clear();
+
+    // ÉtÉ@ÉCÉãÉpÉX.
+    m_Path = path;
+
+    // ÉtÉHÉãÉ_ÉpÉXéÊìæ.
     m_FolderPath = asdx::GetDirectoryPathA(path);
 
-    // „Éû„Éç„Éº„Ç∏„É£ÁîüÊàê.
+    // É}ÉlÅ[ÉWÉÉê∂ê¨.
     m_pMgr = FbxManager::Create();
     if (m_pMgr == nullptr)
     {
@@ -315,7 +305,7 @@ bool FBXLoader::Load(const char* path, asdx::ResModel& model, bool skipTriangula
         return false;
     }
 
-    // „Ç∑„Éº„É≥„ÇíÁîüÊàê.
+    // ÉVÅ[ÉìÇê∂ê¨.
     m_pScene = FbxScene::Create(m_pMgr, "PainterScene");
     if (m_pScene == nullptr)
     {
@@ -324,7 +314,7 @@ bool FBXLoader::Load(const char* path, asdx::ResModel& model, bool skipTriangula
         return false;
     }
 
-    // „Ç§„É≥„Éù„Éº„Çø‚ÄïÁîüÊàê.
+    // ÉCÉìÉ|Å[É^Å\ê∂ê¨.
     m_pImporter = FbxImporter::Create(m_pMgr, "FBXLoader");
     if (m_pImporter == nullptr)
     {
@@ -333,38 +323,39 @@ bool FBXLoader::Load(const char* path, asdx::ResModel& model, bool skipTriangula
         return false;
     }
 
-    // UTF-8„Å´Â§âÊèõ„Åó„Å¶Ôºå„Ç§„É≥„Éù„Éº„Çø‚Äï„ÇíÂàùÊúüÂåñ.
+    // UTF-8Ç…ïœä∑ÇµÇƒÅCÉCÉìÉ|Å[É^Å\Çèâä˙âª.
     {
         char* filePath;
         FbxAnsiToUTF8(path, filePath, 0);
 
         if (!m_pImporter->Initialize(filePath))
         {
-            ELOG("Error : FbxImpoter::Initialize() Failed.");
+            ELOG("Error : FbxImpoter::Initialize() Failed. path = %s", filePath);
             Term();
             FbxDeleteArray(filePath);
             return false;
         }
 
-        // ‰∏çË¶Å„Å™„É°„É¢„É™„ÇíËß£Êîæ.
+        // ïsóvÇ»ÉÅÉÇÉäÇâï˙.
         FbxDeleteArray(filePath);
     }
 
-    // „Ç§„É≥„Éù„Éº„Éà.
+    // ÉCÉìÉ|Å[Ég.
     if (!m_pImporter->Import(m_pScene))
     {
         ELOG("Error : FbxImport::Import() Failed.");
         return false;
     }
 
-    // Âçò‰Ωç„Çí[cm]„Å´Â§âÊèõ.
+    // íPà Ç[m]Ç…ïœä∑.
     {
         auto unit = m_pScene->GetGlobalSettings().GetSystemUnit();
+
         if (unit.GetScaleFactor() != 1.0f)
-        { FbxSystemUnit::cm.ConvertScene(m_pScene); }
+        { FbxSystemUnit::m.ConvertScene(m_pScene); }
     }
 
-    // ‰∏âËßíÂΩ¢Âåñ„Åó„Å¶„Åä„Åè.
+    // éOäpå`âªÇµÇƒÇ®Ç≠.
     if (!skipTriangulate)
     {
         FbxGeometryConverter converter(m_pMgr);
@@ -374,12 +365,12 @@ bool FBXLoader::Load(const char* path, asdx::ResModel& model, bool skipTriangula
             return false;
         }
 
-        // Â§â„Å™„Éù„É™„Ç¥„É≥„ÇÇ„Å§„ÅÑ„Åß„Å´Âèñ„ÇäÈô§„ÅÑ„Å¶„Åä„Åè.
+        // ïœÇ»É|ÉäÉSÉìÇ‡Ç¬Ç¢Ç≈Ç…éÊÇËèúÇ¢ÇƒÇ®Ç≠.
         converter.RemoveBadPolygonsFromMeshes(m_pScene);
     }
 
-    // „Ç≥„É≥„ÉÜ„É≥„ÉÑ„ÇíËß£Êûê.
-    ParseContent(model);
+    // ÉRÉìÉeÉìÉcÇâêÕ.
+    ParseContent();
 
     m_pMgr->Destroy();
     m_pMgr      = nullptr;
@@ -390,26 +381,46 @@ bool FBXLoader::Load(const char* path, asdx::ResModel& model, bool skipTriangula
 }
 
 //-------------------------------------------------------------------------------------------------
-//      ÁµÇ‰∫ÜÂá¶ÁêÜ„Åß„Åô.
+//      èIóπèàóùÇ≈Ç∑.
 //-------------------------------------------------------------------------------------------------
 void FBXLoader::Term()
 {
     if (m_pMgr != nullptr)
     { m_pMgr->Destroy(); }
-
     m_pMgr      = nullptr;
     m_pImporter = nullptr;
     m_pScene    = nullptr;
+
+    m_Meshes.clear();
+    m_Meshes.shrink_to_fit();
+
+    m_Bones.clear();
+    m_Bones.shrink_to_fit();
+
+    m_Motions.clear();
+    m_Motions.shrink_to_fit();
+
+    m_Cameras.clear();
+    m_Cameras.shrink_to_fit();
+
+    m_Lights.clear();
+    m_Lights.shrink_to_fit();
+
+    m_Materials.clear();
+    m_Materials.shrink_to_fit();
+
+    m_NullNodes.clear();
+    m_NullNodes.shrink_to_fit();
 
     m_FolderPath.clear();
 }
 
 //-------------------------------------------------------------------------------------------------
-//      „Ç≥„É≥„ÉÜ„É≥„ÉÑ„ÇíËß£Êûê„Åó„Åæ„Åô
+//      ÉRÉìÉeÉìÉcÇâêÕÇµÇ‹Ç∑
 //-------------------------------------------------------------------------------------------------
-void FBXLoader::ParseContent(asdx::ResModel& model)
+void FBXLoader::ParseContent()
 {
-    // „É´„Éº„Éà„Éé„Éº„ÉâÂèñÂæó.
+    // ÉãÅ[ÉgÉmÅ[ÉhéÊìæ.
     FbxNode* pRootNode = m_pScene->GetRootNode();
     if (pRootNode == nullptr)
     {
@@ -417,14 +428,35 @@ void FBXLoader::ParseContent(asdx::ResModel& model)
         return;
     }
 
-    // „Éé„Éº„Éâ„ÇíËß£Êûê.
-    ParseNode(pRootNode, model);
+    // ÉJÉEÉìÉgÇãÅÇﬂÇ‹Ç∑.
+    Counters counters;
+    ParseCount(pRootNode, counters);
+
+    m_Meshes .reserve( counters.mesh );
+    m_Bones  .reserve( counters.skeleton );
+    m_Cameras.reserve( counters.camera );
+    m_Lights .reserve( counters.light );
+
+    // É}ÉeÉäÉAÉãêîÇéÊìæ.
+    auto materialCount = m_pScene->GetMaterialCount();
+    m_Materials.resize(materialCount);
+
+    // É}ÉeÉäÉAÉãÇâêÕ.
+    for(auto i=0; i<materialCount; ++i)
+    {
+        auto mat = m_pScene->GetMaterial(i);
+        ParseMaterial(mat, m_Materials[i]);
+    }
+
+    // ÉmÅ[ÉhÇâêÕ.
+    std::string parent = "";
+    ParseNode(pRootNode, parent);
 }
 
 //-------------------------------------------------------------------------------------------------
-//      „Éé„Éº„Éâ„ÇíËß£Êûê„Åó„Åæ„Åô.
+//      ÉmÅ[ÉhÇâêÕÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
-void FBXLoader::ParseNode(FbxNode* pNode, asdx::ResModel& model)
+void FBXLoader::ParseNode(FbxNode* pNode, const std::string& parent)
 {
     if (pNode == nullptr)
     {
@@ -432,9 +464,13 @@ void FBXLoader::ParseNode(FbxNode* pNode, asdx::ResModel& model)
         return;
     }
 
+    std::string parentName = pNode->GetInitialName();
+    if (parentName.find("spl_") != 0)
+    { parentName = parent; }
+
     if (pNode->GetNodeAttribute() == nullptr)
     {
-        ELOG("Error : Node Attribute is null.");
+        ParseNull(pNode);
     }
     else
     {
@@ -442,891 +478,103 @@ void FBXLoader::ParseNode(FbxNode* pNode, asdx::ResModel& model)
         switch(type)
         {
         case FbxNodeAttribute::eMesh:
-            { ParseMesh(pNode, model); }
+            { ParseMesh(pNode, parentName); }
             break;
 
-#if 0
-        //case FbxNodeAttribute::eSkeleton:
-        //   { ParseSkeleton(pNode); }
-        //   break;
+        case FbxNodeAttribute::eSkeleton:
+           { ParseSkeleton(pNode); }
+           break;
 
-        //case FbxNodeAttribute::eCamera:
-        //   { ParseCamera(pNode); }
-        //   break;
+        case FbxNodeAttribute::eCamera:
+           { ParseCamera(pNode); }
+           break;
 
-        //case FbxNodeAttribute::eLight:
-        //    { ParseLight(pNode); }
-        //    break;
-#endif
+        case FbxNodeAttribute::eLight:
+            { ParseLight(pNode); }
+            break;
+
+        case FbxNodeAttribute::eNull:
+            { ParseNull(pNode); }
+            break;
         }
     }
 
     auto count = pNode->GetChildCount();
     for(auto i=0; i<count; ++i)
-    { ParseNode( pNode->GetChild(i), model); }
+    { ParseNode( pNode->GetChild(i), parentName); }
+}
+
+//-----------------------------------------------------------------------------
+//      ÉAÉgÉäÉrÉÖÅ[Égñ≥ÇµÉmÅ[ÉhÇâêÕÇµÇ‹Ç∑.
+//-----------------------------------------------------------------------------
+void FBXLoader::ParseNull(FbxNode* pNode)
+{
+    auto T = pNode->LclTranslation.Get();
+    auto S = pNode->LclScaling.Get();
+    auto R = pNode->LclRotation.Get();
+
+    ResNullNodeFBX dst = {};
+    dst.Name        = pNode->GetInitialName();
+    dst.Translation = asdx::Vector3(float(T[0]), float(T[1]), float(T[2]));
+    dst.Scale       = asdx::Vector3(float(S[0]), float(S[1]), float(S[2]));
+    dst.Rotation    = asdx::Vector3(
+        asdx::ToRadian(float(R[0])),
+        asdx::ToRadian(float(R[1])),
+        asdx::ToRadian(float(R[2])));
+
+    m_NullNodes.push_back(dst);
 }
 
 //-------------------------------------------------------------------------------------------------
-//      „É°„ÉÉ„Ç∑„É•„ÇíËß£Êûê„Åó„Åæ„Åô.
+//      ÉÅÉbÉVÉÖÇâêÕÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
-void FBXLoader::ParseMesh(FbxNode* pNode, asdx::ResModel& model)
+void FBXLoader::ParseMesh(FbxNode* pNode, const std::string& parentNode)
 {
     auto pMesh = pNode->GetMesh();
     assert( pMesh != nullptr );
 
-    MeshFBX dst;
-    dst.Name = pNode->GetInitialName();
+    ResMeshFBX dst;
+    dst.ParentNode = parentNode;
+    dst.Name       = pNode->GetInitialName();
 
-    asdx::ResMaterial mat;
+    ParseVertex( pMesh, dst );
+    ParseSubset( pMesh, dst );
 
-    ParseVertex  ( pMesh, dst );
-    ParseMaterial( pMesh, model );
-    ParseSubset  ( pMesh, dst );
-
-    for(size_t i=0; i<dst.Subsets.size(); ++i)
-    {
-        asdx::ResMesh mesh;
-        mesh.MeshName = dst.Name;
-        mesh.MaterialName = dst.Subsets[i].MaterialName;
-
-        auto count = dst.Subsets[i].Count;
-        mesh.Positions.resize(count);
-
-        if (dst.Normals.size() > 0)
-        { mesh.Normals.resize(count); }
-
-        if (dst.Tangents.size() > 0)
-        { mesh.Tangents.resize(count); }
-
-        if (dst.BoneIndices.size() > 0)
-        { mesh.BoneIndices.resize(count); }
-
-        if (dst.BoneWeights.size() > 0)
-        { mesh.BoneWeights.resize(count); }
-
-        if (dst.Colors.size() > 0)
-        { mesh.Colors.resize(count); }
-
-        for(auto j=0; j<MAX_LAYER_COUNT; ++j)
-        {
-            if (dst.TexCoords[j].size() == 0)
-            { continue; }
-
-            mesh.TexCoords[j].resize(count);
-        }
-
-        mesh.Indices.resize(count);
-
-        for(uint32_t j=0; j<count; ++j)
-        {
-            auto idx = dst.Subsets[i].Offset + j;
-            auto vid = dst.Indices[idx];
-
-            mesh.Indices[j] = vid;
-            mesh.Positions[j] = dst.Positions[vid];
-
-            if (dst.Normals.size() > 0)
-            { mesh.Normals[j] = dst.Normals[vid]; }
-
-            if (dst.Tangents.size() > 0)
-            { mesh.Tangents[j] = dst.Tangents[vid]; }
-
-            if (dst.BoneIndices.size() > 0)
-            { mesh.BoneIndices[j] = dst.BoneIndices[vid]; }
-
-            if (dst.BoneWeights.size() > 0)
-            { mesh.BoneWeights[j] = dst.BoneWeights[vid]; }
-
-            if (dst.Colors.size() > 0)
-            { mesh.Colors[j] = dst.Colors[vid]; }
-
-            for(auto k=0; k<MAX_LAYER_COUNT; ++k)
-            {
-                if (dst.TexCoords[k].size() == 0)
-                { continue; }
-
-                // VÊñπÂêë„Çí„Éï„É™„ÉÉ„Éó.
-                mesh.TexCoords[k][j].x = dst.TexCoords[k][j].x;
-                mesh.TexCoords[k][j].y = 1.0f - dst.TexCoords[k][j].y;
-            }
-        }
-
-        for(size_t j=0; j<count; j+=3)
-        {
-            auto i0 = mesh.Indices[j + 0];
-            auto i1 = mesh.Indices[j + 1];
-            auto i2 = mesh.Indices[j + 2];
-            mesh.Indices[j + 0] = i0;
-            mesh.Indices[j + 1] = i2;
-            mesh.Indices[j + 2] = i1;
-        }
-
-        model.Meshes.emplace_back(mesh);
-    }
+    m_Meshes.push_back(dst);
 }
 
 //-------------------------------------------------------------------------------------------------
-//      È†ÇÁÇπ„Éá„Éº„Çø„ÇíËß£Êûê„Åó„Åæ„Åô.
-//-------------------------------------------------------------------------------------------------
-void FBXLoader::ParseVertex(FbxMesh* pSrcMesh, MeshFBX& dstMesh)
-{
-    auto pPosition  = pSrcMesh->GetControlPoints();
-    auto pNormal    = pSrcMesh->GetElementNormal();
-    auto pTangent   = pSrcMesh->GetElementTangent();
-    auto pColors    = pSrcMesh->GetElementVertexColor();
-
-    // Êé•Á∑ö„Éá„Éº„Çø„ÅåÁÑ°„Åë„Çå„Å∞ÁîüÊàê„Åô„Çã.
-    if (pTangent == nullptr)
-    {
-        pSrcMesh->GenerateTangentsData(0, true);
-        pTangent = pSrcMesh->GetElementTangent();
-        assert(pTangent != nullptr);
-    }
-
-    auto world = FromFbxMatrix(pSrcMesh->GetNode()->EvaluateGlobalTransform());
-
-    FbxGeometryElementUV* pUV[4];
-    auto layerCount = pSrcMesh->GetElementUVCount();
-
-    const auto MaxLayerCount = 4;
-
-    if ( layerCount > MaxLayerCount )
-    {
-        ILOG( "Info : Texture Layer Count Clamp %d ---> %d", layerCount, MaxLayerCount );
-        layerCount = MaxLayerCount;
-    }
-
-    for( auto i=0; i<MaxLayerCount; ++i )
-    { pUV[i] = pSrcMesh->GetElementUV(i); }
-
-    // Èù¢„Éá„Éº„Çø„ÅÆ„É°„É¢„É™„ÇíÁ¢∫‰øù.
-    std::vector<Face> faces;
-    faces.resize( pSrcMesh->GetPolygonCount() );
-
-    // ‰ΩçÁΩÆÂ∫ßÊ®ô„Ç§„É≥„Éá„ÉÉ„ÇØ„Çπ„ÇíÊ†ºÁ¥ç.
-    for( size_t i=0; i<faces.size(); ++i )
-    {
-        auto count = pSrcMesh->GetPolygonSize(int(i));
-        assert( count == 3 );  // ‰∫ãÂâç„Å´‰∏âËßíÂΩ¢„Åó„Å¶„ÅÑ„Çã„ÅÆÂøÖ„Åö3„Å´„Å™„Å£„Å¶„ÅÑ„Çã„Åì„Å®„Çí„ÉÅ„Çß„ÉÉ„ÇØ.
-
-        for( auto j=0; j<count; ++j )
-        {
-            faces[i].IndexP[j] = pSrcMesh->GetPolygonVertex(int(i), j);
-            faces[i].IndexN[j] = 0;
-            faces[i].IndexT[j] = 0;
-
-            for( auto k=0; k<MaxLayerCount; ++k )
-            { faces[i].IndexU[k][j] = 0; }
-        }
-    }
-
-    // È†ÇÁÇπ„Ç´„É©„Éº„ÅåÂ≠òÂú®„Åô„ÇãÂ†¥Âêà.
-    if ( pColors != nullptr )
-    {
-        auto mapMode = pColors->GetMappingMode();
-        auto refMode = pColors->GetReferenceMode();
-
-        switch( mapMode )
-        {
-        case FbxGeometryElement::eByControlPoint:
-            {
-                std::vector<uint32_t> indices;
-                indices.resize( pSrcMesh->GetControlPointsCount() );
-
-                if ( refMode == FbxGeometryElement::eDirect )
-                {
-                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
-                    { indices[i] = static_cast<uint32_t>(i); }
-                }
-                else if ( refMode == FbxGeometryElement::eIndexToDirect )
-                {
-                    auto& container = pColors->GetIndexArray();
-                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
-                    { indices[i] = static_cast<uint32_t>(container.GetAt(i)); }
-                }
-
-                for( size_t i=0; i<faces.size(); ++i )
-                {
-                    for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                    { faces[i].IndexC[j] = indices[ faces[i].IndexP[j] ]; }
-                }
-
-                indices.clear();
-            }
-            break;
-
-        case FbxGeometryElement::eByPolygonVertex:
-            {
-                int idx = 0;
-                if ( refMode == FbxGeometryElement::eDirect )
-                {
-                    for( size_t i=0; i<faces.size(); ++i )
-                    {
-                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                        {
-                            faces[i].IndexC[j] = static_cast<uint32_t>(idx);
-                            idx++;
-                        }
-                    }
-                }
-                else if ( refMode == FbxGeometryElement::eIndexToDirect )
-                {
-                    auto& container = pColors->GetIndexArray();
-                    for( size_t i=0; i<faces.size(); ++i )
-                    {
-                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                        {
-                            faces[i].IndexC[j] = static_cast<uint32_t>(container.GetAt(idx));
-                            idx++;
-                        }
-                    }
-                }
-            }
-            break;
-        }
-    }
-
-    // Ê≥ïÁ∑ö„Éô„ÇØ„Éà„É´„ÅåÂ≠òÂú®„Åô„ÇãÂ†¥Âêà.
-    if ( pNormal != nullptr )
-    {
-        auto mapMode = pNormal->GetMappingMode();
-        auto refMode = pNormal->GetReferenceMode();
-
-        switch( mapMode )
-        {
-        case FbxGeometryElement::eByControlPoint:
-            {
-                std::vector<uint32_t> indices;
-                indices.resize( pSrcMesh->GetControlPointsCount() );
-
-                if ( refMode == FbxGeometryElement::eDirect )
-                {
-                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
-                    { indices[i] = static_cast<uint32_t>(i); }
-                }
-                else if ( refMode == FbxGeometryElement::eIndexToDirect )
-                {
-                    auto& container = pNormal->GetIndexArray();
-                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
-                    { indices[i] = static_cast<uint32_t>(container.GetAt(i)); }
-                }
-
-                for( size_t i=0; i<faces.size(); ++i )
-                {
-                    for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                    { faces[i].IndexN[j] = indices[ faces[i].IndexP[j] ]; }
-                }
-
-                indices.clear();
-            }
-            break;
-
-        case FbxGeometryElement::eByPolygonVertex:
-            {
-                int idx = 0;
-                if ( refMode == FbxGeometryElement::eDirect )
-                {
-                    for( size_t i=0; i<faces.size(); ++i )
-                    {
-                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                        {
-                            faces[i].IndexN[j] = static_cast<uint32_t>(idx);
-                            idx++;
-                        }
-                    }
-                }
-                else if ( refMode == FbxGeometryElement::eIndexToDirect )
-                {
-                    auto& container = pNormal->GetIndexArray();
-                    for( size_t i=0; i<faces.size(); ++i )
-                    {
-                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                        {
-                            faces[i].IndexN[j] = static_cast<uint32_t>(container.GetAt(idx));
-                            idx++;
-                        }
-                    }
-                }
-            }
-            break;
-        }
-    }
-
-    // Êé•Á∑ö„Éô„ÇØ„Éà„É´
-    if ( pTangent != nullptr )
-    {
-        auto mapMode = pTangent->GetMappingMode();
-        auto refMode = pTangent->GetReferenceMode();
-
-        switch( mapMode )
-        {
-        case FbxGeometryElement::eByControlPoint:
-            {
-                std::vector<uint32_t> indices;
-                indices.resize( pSrcMesh->GetControlPointsCount() );
-
-                if ( refMode == FbxGeometryElement::eDirect )
-                {
-                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
-                    { indices[i] = static_cast<uint32_t>(i); }
-                }
-                else if ( refMode == FbxGeometryElement::eIndexToDirect )
-                {
-                    auto& container = pTangent->GetIndexArray();
-                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
-                    { indices[i] = static_cast<uint32_t>(container.GetAt(i)); }
-                }
-
-                for( size_t i=0; i<faces.size(); ++i )
-                {
-                    for( size_t j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                    { faces[i].IndexT[j] = indices[ faces[i].IndexP[j] ]; }
-                }
-
-                indices.clear();
-            }
-            break;
-
-        case FbxGeometryElement::eByPolygonVertex:
-            {
-                int idx = 0;
-                if ( refMode == FbxGeometryElement::eDirect )
-                {
-                    for( size_t i=0; i<faces.size(); ++i )
-                    {
-                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                        {
-                            faces[i].IndexT[j] = static_cast<uint32_t>(idx);
-                            idx++;
-                        }
-                    }
-                }
-                else if ( refMode == FbxGeometryElement::eIndexToDirect )
-                {
-                    auto& container = pTangent->GetIndexArray();
-                    for( size_t i=0; i<faces.size(); ++i )
-                    {
-                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                        {
-                            faces[i].IndexT[j] = static_cast<uint32_t>(container.GetAt(idx));
-                            idx++;
-                        }
-                    }
-                }
-            }
-            break;
-
-        default:
-            ELOG("Unexpect case.");
-            break;
-        }
-    }
-
-    // „ÉÜ„ÇØ„Çπ„ÉÅ„É£Â∫ßÊ®ô.
-    for( auto layer=0; layer<layerCount; ++layer )
-    {
-        if ( pUV[layer] == nullptr )
-        { continue; }
-
-        auto pTexCoord = pUV[layer];
-        auto mapMode = pTexCoord->GetMappingMode();
-        auto refMode = pTexCoord->GetReferenceMode();
-
-        switch( mapMode )
-        {
-        case FbxGeometryElement::eByControlPoint:
-            {
-                std::vector<uint32_t> indices;
-                indices.resize( pSrcMesh->GetControlPointsCount() );
-
-                if ( refMode == FbxGeometryElement::eDirect )
-                {
-                    for( auto i=-0; i<pSrcMesh->GetControlPointsCount(); ++i )
-                    { indices[i] = static_cast<uint32_t>(i); }
-                }
-                else if ( refMode == FbxGeometryElement::eIndexToDirect )
-                {
-                    auto& container = pTexCoord->GetIndexArray();
-                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
-                    { indices[i] = static_cast<uint32_t>(container.GetAt(i)); }
-                }
-
-                for( size_t i=0; i<faces.size(); ++i )
-                {
-                    for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                    { faces[i].IndexU[layer][j] = indices[ faces[i].IndexP[j] ]; }
-                }
-
-                indices.clear();
-            }
-            break;
-
-        case FbxGeometryElement::eByPolygonVertex:
-            {
-                int idx = 0;
-
-                if ( refMode == FbxGeometryElement::eDirect )
-                {
-                    for( size_t i=0; i<faces.size(); ++i )
-                    {
-                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                        {
-                            faces[i].IndexU[layer][j] = static_cast<uint32_t>(idx);
-                            idx++;
-                        }
-                    }
-                }
-                else if ( refMode == FbxGeometryElement::eIndexToDirect )
-                {
-                    auto& container = pTexCoord->GetIndexArray();
-
-                    for( size_t i=0; i<faces.size(); ++i )
-                    {
-                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
-                        {
-                            faces[i].IndexU[layer][j] = static_cast<uint32_t>(container.GetAt(idx));
-                            idx++;
-                        }
-                    }
-                }
-            }
-            break;
-        }
-    }
-
-    // È†ÇÁÇπ„ÇíÁµÑ„ÅøÁ´ã„Å¶„Çã.
-    {
-        dstMesh.Positions.resize( faces.size() * 3 );
-        if (pNormal != nullptr)
-        { dstMesh.Normals  .resize( faces.size() * 3 ); }
-        if (pTangent != nullptr)
-        { dstMesh.Tangents.resize( faces.size() * 3 ); }
-        for( auto i=0; i<layerCount; ++i )
-        { dstMesh.TexCoords[i].resize( faces.size() * 3 ); }
-        if (pColors != nullptr)
-        { dstMesh.Colors.resize( faces.size() * 3 ); }
-
-        auto worldT = asdx::Matrix::Transpose(world);
-
-        uint32_t idx = 0;
-        for( size_t i=0; i<faces.size(); ++i )
-        {
-            for( auto j=0; j<3; ++j )
-            {
-                auto& position = pPosition[ faces[i].IndexP[j] ];
-                dstMesh.Positions[idx].x = static_cast<float>( position[0] );
-                dstMesh.Positions[idx].y = static_cast<float>( position[1] );
-                dstMesh.Positions[idx].z = static_cast<float>( position[2] );
-                dstMesh.Positions[idx] = asdx::Vector3::TransformCoord(dstMesh.Positions[idx], world);
-
-                if ( pColors != nullptr )
-                {
-                    const auto& color = pColors->GetDirectArray()[ faces[i].IndexC[j] ];
-                    dstMesh.Colors[idx].x = static_cast<float>( color[0] );
-                    dstMesh.Colors[idx].y = static_cast<float>( color[1] );
-                    dstMesh.Colors[idx].z = static_cast<float>( color[2] );
-                    dstMesh.Colors[idx].w = static_cast<float>( color[3] );
-                }
-
-                if ( pNormal != nullptr )
-                {
-                    const auto& normal = pNormal->GetDirectArray()[ faces[i].IndexN[j] ];
-                    dstMesh.Normals[idx].x = static_cast<float>( normal[0] );
-                    dstMesh.Normals[idx].y = static_cast<float>( normal[1] );
-                    dstMesh.Normals[idx].z = static_cast<float>( normal[2] );
-                    dstMesh.Normals[idx] = asdx::Vector3::TransformNormal(dstMesh.Normals[idx], worldT);
-                    dstMesh.Normals[idx] = asdx::Vector3::SafeNormalize(dstMesh.Normals[idx], dstMesh.Normals[idx]);
-                }
-
-                if ( pTangent != nullptr )
-                {
-                    const auto& tangent = pTangent->GetDirectArray()[ faces[i].IndexT[j] ];
-                    dstMesh.Tangents[idx].x = static_cast<float>( tangent[0] );
-                    dstMesh.Tangents[idx].y = static_cast<float>( tangent[1] );
-                    dstMesh.Tangents[idx].z = static_cast<float>( tangent[2] );
-                    dstMesh.Tangents[idx] = asdx::Vector3::TransformNormal(dstMesh.Tangents[idx], worldT);
-                    dstMesh.Tangents[idx] = asdx::Vector3::SafeNormalize(dstMesh.Tangents[idx], dstMesh.Tangents[idx]);
-                }
-
-                for( auto k=0; k<layerCount; ++k)
-                {
-                    if ( pUV[k] != nullptr )
-                    {
-                        const auto& texcoord = pUV[k]->GetDirectArray()[ faces[i].IndexU[k][j] ];
-                        dstMesh.TexCoords[k][idx].x = static_cast<float>( texcoord[0] );
-                        dstMesh.TexCoords[k][idx].y = static_cast<float>( texcoord[1] );
-                    }
-                }
-
-                idx++;
-            }
-        }
-    }
-
-    // È†ÇÁÇπ„Ç§„É≥„Éá„ÉÉ„ÇØ„ÇπË®≠ÂÆö.
-    {
-        dstMesh.Indices.resize( faces.size() * 3 );
-        for( size_t i=0; i<faces.size() * 3; ++i )
-        { dstMesh.Indices[i] = static_cast<uint32_t>(i); }
-    }
-
-    // „Éú„Éº„É≥ID„Å®„Éú„Éº„É≥„ÅÆÈáç„ÅøË®≠ÂÆö.
-    {
-        dstMesh.BoneIndices.resize( faces.size() * 3 );
-        dstMesh.BoneWeights.resize( faces.size() * 3 );
-
-        for(size_t i=0; i<faces.size() * 3; ++i)
-        {
-            dstMesh.BoneIndices[i].x = 0;
-            dstMesh.BoneIndices[i].y = 0;
-            dstMesh.BoneIndices[i].z = 0;
-            dstMesh.BoneIndices[i].w = 0;
-
-            dstMesh.BoneWeights[i].x = -1.0f;
-            dstMesh.BoneWeights[i].y = -1.0f;
-            dstMesh.BoneWeights[i].z = -1.0f;
-            dstMesh.BoneWeights[i].w = -1.0f;
-        }
-
-        auto deformerCount = pSrcMesh->GetDeformerCount();
-        for(auto i=0; i<deformerCount; ++i)
-        {
-            auto pSkin = FbxCast<FbxSkin>(pSrcMesh->GetDeformer(i, FbxDeformer::eSkin));
-            if (pSkin == nullptr)
-            { continue; }
-
-            auto clusterCount = pSkin->GetClusterCount();
-            for(auto j=0; j<clusterCount; ++j)
-            {
-                auto pCluster = pSkin->GetCluster(j);
-                if (pCluster == nullptr)
-                { continue; }
-
-                auto pointCount = pCluster->GetControlPointIndicesCount();
-                auto indices = pCluster->GetControlPointIndices();
-                auto weights = pCluster->GetControlPointWeights();
-
-
-                for(auto k=0l; k<pointCount; ++k)
-                {
-                    auto idx = indices[k];
-                    auto weight = float(weights[k]);
-
-                    // Á©∫„ÅÑ„Å¶„ÅÑ„Çã„Å®„Åì„Çç„Åã„ÇâÈ†ÜÁï™„Å´ÂÖ•„Çå„Å¶„ÅÑ„Åè.
-                    if (dstMesh.BoneWeights[idx].x < 0.0f)
-                    {
-                        dstMesh.BoneIndices[idx].x = j;
-                        dstMesh.BoneWeights[idx].x = weight;
-                    }
-                    else if (dstMesh.BoneWeights[idx].y < 0.0f)
-                    {
-                        dstMesh.BoneIndices[idx].y = j;
-                        dstMesh.BoneWeights[idx].y = weight;
-                    }
-                    else if (dstMesh.BoneWeights[idx].z < 0.0f)
-                    {
-                        dstMesh.BoneIndices[idx].z = j;
-                        dstMesh.BoneWeights[idx].z = weight;
-                    }
-                    else if (dstMesh.BoneWeights[idx].w < 0.0f)
-                    {
-                        dstMesh.BoneIndices[idx].w = j;
-                        dstMesh.BoneWeights[idx].w = weight;
-                    }
-                    else
-                    {
-                        // Á©∫„Åç„ÅåÁÑ°„Åë„Çå„Å∞‰∏ÄÁï™„Ç¶„Çß„Ç§„Éà„ÅåÂ∞è„Åï„ÅÑ„Å®„Åì„Çç„ÇíÁΩÆ„ÅçÊèõ„Åà„Çã.
-                        auto miniIdx = 0;
-                        auto miniWeight = dstMesh.BoneWeights[idx].x;
-
-                        if (dstMesh.BoneIndices[idx].y < miniWeight)
-                        {
-                            miniWeight = dstMesh.BoneWeights[idx].y;
-                            miniIdx    = 1;
-                        }
-                        if (dstMesh.BoneIndices[idx].z < miniWeight)
-                        {
-                            miniWeight = dstMesh.BoneWeights[idx].z;
-                            miniIdx    = 2;
-                        }
-                        if (dstMesh.BoneIndices[idx].w < miniWeight)
-                        {
-                            miniWeight = dstMesh.BoneWeights[idx].w;
-                            miniIdx    = 3;
-                        }
-
-                        if (miniWeight < weight)
-                        {
-                            switch(miniIdx)
-                            {
-                            case 0:
-                                {
-                                    dstMesh.BoneIndices[idx].x = j;
-                                    dstMesh.BoneWeights[idx].x = weight;
-                                }
-                                break;
-
-                            case 1:
-                                {
-                                    dstMesh.BoneIndices[idx].y = j;
-                                    dstMesh.BoneWeights[idx].y = weight;
-                                }
-                                break;
-
-                            case 2:
-                                {
-                                    dstMesh.BoneIndices[idx].z = j;
-                                    dstMesh.BoneWeights[idx].z = weight;
-                                }
-                                break;
-
-                            case 3:
-                                {
-                                    dstMesh.BoneIndices[idx].w = j;
-                                    dstMesh.BoneWeights[idx].w = weight;
-                                }
-                                break;
-
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
-    }
-
-    for(size_t i=0; i<dstMesh.BoneWeights.size(); ++i)
-    {
-        if (dstMesh.BoneWeights[i].x < 0.0f)
-        { dstMesh.BoneWeights[i].x = 0.0f; }
-
-        if (dstMesh.BoneWeights[i].y < 0.0f)
-        { dstMesh.BoneWeights[i].y = 0.0f; }
-
-        if (dstMesh.BoneWeights[i].z < 0.0f)
-        { dstMesh.BoneWeights[i].z = 0.0f; }
-
-        if (dstMesh.BoneWeights[i].w < 0.0f)
-        { dstMesh.BoneWeights[i].w = 0.0f; }
-    }
-
-    faces.clear();
-}
-
-//-------------------------------------------------------------------------------------------------
-//      „Éû„ÉÜ„É™„Ç¢„É´„ÇíËß£Êûê„Åó„Åæ„Åô.
-//-------------------------------------------------------------------------------------------------
-void FBXLoader::ParseMaterial(FbxMesh* pSrcMesh, asdx::ResModel& dstModel)
-{
-    auto count = pSrcMesh->GetNode()->GetMaterialCount();
-
-    for(auto i=0; i<count; ++i)
-    {
-        auto pBase = pSrcMesh->GetNode()->GetMaterial(i);
-        if (pBase == nullptr)
-        { continue; }
-
-        asdx::ResMaterial dstMaterial;
-        dstMaterial.Name = pBase->GetName();
-
-        // Lambert
-        if (pBase->GetClassId().Is(FbxSurfaceLambert::ClassId))
-        {
-            auto pLambert = FbxCast<FbxSurfaceLambert>(pBase);
-            AddTexture(pLambert, FbxSurfaceMaterial::sAmbient,   dstMaterial.Textures);
-            AddTexture(pLambert, FbxSurfaceMaterial::sDiffuse,   dstMaterial.Textures);
-            AddTexture(pLambert, FbxSurfaceMaterial::sEmissive,  dstMaterial.Textures);
-            AddTexture(pLambert, FbxSurfaceMaterial::sNormalMap, dstMaterial.Textures);
-
-        }
-        else if (pBase->GetClassId().Is(FbxSurfacePhong::ClassId))
-        {
-            auto pPhong = FbxCast<FbxSurfacePhong>(pBase);
-            AddTexture(pPhong, FbxSurfaceMaterial::sAmbient,   dstMaterial.Textures);
-            AddTexture(pPhong, FbxSurfaceMaterial::sDiffuse,   dstMaterial.Textures);
-            AddTexture(pPhong, FbxSurfaceMaterial::sSpecular,  dstMaterial.Textures);
-            AddTexture(pPhong, FbxSurfaceMaterial::sShininess, dstMaterial.Textures);
-            AddTexture(pPhong, FbxSurfaceMaterial::sEmissive,  dstMaterial.Textures);
-            AddTexture(pPhong, FbxSurfaceMaterial::sNormalMap, dstMaterial.Textures);
-        }
-
-        dstMaterial.Textures.shrink_to_fit();
-
-        dstModel.Materials.emplace_back(dstMaterial);
-    }
-}
-
-//-------------------------------------------------------------------------------------------------
-//      „Çµ„Éñ„Çª„ÉÉ„Éà„ÇíËß£Êûê„Åó„Åæ„Åô.
-//-------------------------------------------------------------------------------------------------
-void FBXLoader::ParseSubset(FbxMesh* pSrcMesh, MeshFBX& dstMesh)
-{
-    FbxLayerElementArrayTemplate<int>* pIndices = nullptr;
-    auto mappingMode = FbxGeometryElement::eNone;
-
-    if ( pSrcMesh->GetElementMaterial() != nullptr )
-    {
-        pSrcMesh->GetMaterialIndices( &pIndices );
-        mappingMode = pSrcMesh->GetElementMaterial()->GetMappingMode();
-    }
-
-    switch( mappingMode )
-    {
-    case FbxGeometryElement::eNone:
-        { /* DO_NOTHING */ }
-        break;
-
-    case FbxGeometryElement::eAllSame:
-        {
-            dstMesh.Subsets.resize(1);
-
-            dstMesh.Subsets[0].Offset     = 0;
-            dstMesh.Subsets[0].Count      = pSrcMesh->GetPolygonCount() * 3;
-            //dstMesh.Subsets[0].MaterialId = pIndices->GetAt(0);
-            dstMesh.Subsets[0].MaterialName = pSrcMesh->GetNode()->GetMaterial(pIndices->GetAt(0))->GetName();
-        }
-        break;
-
-    case FbxGeometryElement::eByPolygon:
-        {
-            int prevId = -1;
-            int subset = -1;
-            for(auto i=0; i<pSrcMesh->GetPolygonCount(); ++i)
-            {
-                auto id = pIndices->GetAt(i);
-
-                if ( subset >= 0 )
-                { dstMesh.Subsets[subset].Count += 3; }
-
-                if ( prevId != id )
-                {
-                    SubsetFBX data;
-                    data.Count      = 0;
-                    data.Offset     = static_cast<uint32_t>(i * 3);
-                    //data.MaterialId = static_cast<uint32_t>(id);
-                    data.MaterialName = pSrcMesh->GetNode()->GetMaterial(id)->GetName();
-
-                    dstMesh.Subsets.emplace_back( data );
-
-                    prevId = id;
-                    subset++;
-                }
-            }
-        }
-        break;
-    }
-}
-
-#if 0
-//-------------------------------------------------------------------------------------------------
-//      „Çπ„Ç±„É´„Éà„É≥„ÇíËß£Êûê„Åó„Åæ„Åô.
+//      ÉXÉPÉãÉgÉìÇâêÕÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 void FBXLoader::ParseSkeleton(FbxNode* pNode)
 {
     auto pSkeleton = pNode->GetSkeleton();
     assert(pSkeleton != nullptr);
 
-    FbxMatrix transform    = m_pScene->GetAnimationEvaluator()->GetNodeLocalTransform(pNode);
-    FbxMatrix invTransform = m_pScene->GetAnimationEvaluator()->GetNodeGlobalTransform(pNode).Inverse();
-
-    ResBone dst;
-    dst.Name         = pNode->GetInitialName();
-    dst.IsRoot       = pSkeleton->IsSkeletonRoot();
-    dst.Length       = float(pSkeleton->GetLimbLengthDefaultValue());
-    dst.Transform    = FromFbxMatrix(transform);
-    dst.InvTransform = FromFbxMatrix(invTransform);
-
-    m_Bones.push_back(dst);
-}
-
-//-------------------------------------------------------------------------------------------------
-//      „É¢„Éº„Ç∑„Éß„É≥„ÇíËß£Êûê„Åó„Åæ„Åô.
-//-------------------------------------------------------------------------------------------------
-void FBXLoader::ParseMotion(FbxAnimStack* pSrcStack, ResMotion& dstMotion)
-{
-    FbxString stackName = pSrcStack->GetName();
-    dstMotion.Name = stackName;
-
-    auto takeInfo = m_pScene->GetTakeInfo(stackName);
-    assert( takeInfo != nullptr );
-
-    // „Ç≤„Éº„É†Áî®ÈÄî„Å´Âêà„Çè„Åõ„Å¶60FPS„Å®„Åó„Å¶„Åä„Åè.
-    auto timeUnit = FbxTime::eFrames60;
-
-    auto start = takeInfo->mLocalTimeSpan.GetStart().GetFrameCount(timeUnit);
-    auto end   = takeInfo->mLocalTimeSpan.GetStop() .GetFrameCount(timeUnit);
-
-    dstMotion.Duration = static_cast<uint32_t>(end - start + 1);
-
-    // ÂêÑ„Éú„Éº„É≥ÂàÜ„Å†„ÅëÂõû„Åô.
-    for(size_t i=0; i<m_Bones.size(); ++i)
     {
-        // ÂêçÂâç„Åã„Çâ„É™„É≥„ÇØ„Éé„Éº„ÉâÂêç„ÇíÂèñÂæó.
-        auto pLinkNode = m_pScene->FindNodeByName(FbxString(m_Bones[i].Name.c_str()));
-        if ( pLinkNode == nullptr )
-        {
-            ILOG("Info : Not Found. name = %s", m_Bones[i].Name.c_str());
-            continue;
-        }
+        FbxMatrix transform    = m_pScene->GetAnimationEvaluator()->GetNodeLocalTransform(pNode);
+        FbxMatrix invTransform = m_pScene->GetAnimationEvaluator()->GetNodeGlobalTransform(pNode).Inverse();
+    
+        ResBoneFBX dst;
+        dst.Name         = pNode->GetInitialName();
+        dst.IsRoot       = pSkeleton->IsSkeletonRoot();
+        dst.Length       = float(pSkeleton->GetLimbLengthDefaultValue());
+        dst.Transform    = FromFbxMatrix(transform);
+        dst.InvTransform = FromFbxMatrix(invTransform);
 
-        ResBoneMotion boneMotion;
-        boneMotion.BoneName = m_Bones[i].Name;
-        boneMotion.KeyFrames.reserve(dstMotion.Duration);
-
-        FbxAMatrix prevTransform;
-        prevTransform.SetIdentity();
-
-        // „Ç≠„Éº„Éï„É¨„Éº„É†„ÇíË®≠ÂÆö.
-        for(auto idx=start; idx<=end; ++idx)
-        {
-            FbxTime curTime;
-            curTime.SetFrame(idx, timeUnit);
-
-            // Â§âÊèõË°åÂàó„ÇíÂèñÂæó.
-            auto transform = pLinkNode->EvaluateGlobalTransform(curTime);
-
-            // Âêå‰∏ÄÂ§âÊèõË°åÂàó„Åß„ÅÇ„Çå„Å∞Ë®≠ÂÆö„Åó„Å™„ÅÑ.
-            if (prevTransform != transform)
-            {
-                auto t = transform.GetT();  // Âπ≥Ë°åÁßªÂãï.
-                auto s = transform.GetS();  // „Çπ„Ç±„Éº„É´.
-                auto q = transform.GetQ();  // ÂõûËª¢.
-
-                ResKeyPose key;
-                key.FrameIndex  = static_cast<uint32_t>(idx);
-                key.Translation = asdx::Vector3(t[0], t[1], t[2]);
-                key.Scale       = asdx::Vector3(s[0], s[1], s[2]);
-                key.Rotation    = asdx::Quaternion(q[0], q[1], q[2], q[3]);
-
-            #if 0
-                // Ë°åÂàó„ÅßÂèñ„Çä„Åü„ÅÑÂ†¥Âêà„ÅØ„Åì„Å°„Çâ.
-                //key.Transform  = FromFbxMatrix(transform);
-            #endif
-
-                boneMotion.KeyFrames.push_back(key);
-                prevTransform = transform;
-            }
-        }
-
-        // „É°„É¢„É™ÊúÄÈÅ©Âåñ.
-        boneMotion.KeyFrames.shrink_to_fit();
-
-        // Ê†ºÁ¥ç.
-        dstMotion.Bones.push_back(boneMotion);
+        m_Bones.push_back(dst);
     }
 }
 
-
 //-------------------------------------------------------------------------------------------------
-//      „Ç´„É°„É©„ÇíËß£Êûê„Åó„Åæ„Åô.
+//      ÉJÉÅÉâÇâêÕÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 void FBXLoader::ParseCamera(FbxNode* pNode)
 {
     auto pCamera = pNode->GetCamera();
     assert(pCamera != nullptr);
 
-    ResCamera dst;
+    ResCameraFBX dst;
     dst.Position            = FromFbxProperty3(pCamera->Position);
     dst.Target              = FromFbxProperty3(pCamera->InterestPosition);
     dst.Upward              = FromFbxProperty3(pCamera->UpVector);
@@ -1357,16 +605,16 @@ void FBXLoader::ParseCamera(FbxNode* pNode)
 }
 
 //-------------------------------------------------------------------------------------------------
-//      „É©„Ç§„Éà„ÇíËß£Êûê„Åó„Åæ„Åô.
+//      ÉâÉCÉgÇâêÕÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
 void FBXLoader::ParseLight(FbxNode* pNode)
 {
     auto pLight = pNode->GetLight();
     assert(pLight != nullptr);
 
-    ResLight dst;
-    dst.Color = FromFbxProperty3(pLight->Color);
-    dst.Intensity = float(pLight->Intensity.Get());
+    ResLightFBX dst;
+    dst.Color      = FromFbxProperty3(pLight->Color);
+    dst.Intensity  = float(pLight->Intensity.Get());
     dst.InnerAngle = float(pLight->InnerAngle.Get());
     dst.OuterAngle = float(pLight->OuterAngle.Get());
 
@@ -1403,26 +651,1059 @@ void FBXLoader::ParseLight(FbxNode* pNode)
     m_Lights.push_back(dst);
 }
 
-#endif
-
-#else   // FBXÁÑ°ÂäπÊôÇ.
-
 //-------------------------------------------------------------------------------------------------
-//      Ë™≠„ÅøËæº„ÅøÂá¶ÁêÜ„Åß„Åô.
+//      í∏ì_ÉfÅ[É^ÇâêÕÇµÇ‹Ç∑.
 //-------------------------------------------------------------------------------------------------
-bool FBXLoader::Load(const char*, asdx::ResModel&, bool)
+void FBXLoader::ParseVertex(FbxMesh* pSrcMesh, ResMeshFBX& dstMesh)
 {
-    ELOGA("Error : FBX Not Supported.");
-    return false;
+    auto pPosition  = pSrcMesh->GetControlPoints();
+    auto pNormal    = pSrcMesh->GetElementNormal();
+    auto pTangent   = pSrcMesh->GetElementTangent();
+    auto pBinormal  = pSrcMesh->GetElementBinormal();
+    auto pColors    = pSrcMesh->GetElementVertexColor();
+
+    auto world = FromFbxMatrix(pSrcMesh->GetNode()->EvaluateGlobalTransform());
+
+    FbxGeometryElementUV* pUV[MaxLayerCount];
+    auto layerCount = pSrcMesh->GetElementUVCount();
+
+    if ( layerCount > MaxLayerCount )
+    {
+        ILOG( "Info : Texture Layer Count Clamp %d ---> %d", layerCount, MaxLayerCount );
+        layerCount = MaxLayerCount;
+    }
+
+    for( auto i=0; i<MaxLayerCount; ++i )
+    { pUV[i] = pSrcMesh->GetElementUV(i); }
+
+    // ê⁄ê¸ÉfÅ[É^Ç™ñ≥ÇØÇÍÇŒê∂ê¨Ç∑ÇÈ.
+    if (pTangent == nullptr && layerCount > 0)
+    {
+        pSrcMesh->GenerateTangentsData(0, true);
+        pTangent = pSrcMesh->GetElementTangent();
+        assert(pTangent != nullptr);
+    }
+
+    // ñ ÉfÅ[É^ÇÃÉÅÉÇÉäÇämï€.
+    std::vector<Face> faces;
+    faces.resize( pSrcMesh->GetPolygonCount() );
+
+    // à íuç¿ïWÉCÉìÉfÉbÉNÉXÇäiî[.
+    for( size_t i=0; i<faces.size(); ++i )
+    {
+        auto count = pSrcMesh->GetPolygonSize(int(i));
+        assert( count == 3 );  // éñëOÇ…éOäpå`ÇµÇƒÇ¢ÇÈÇÃïKÇ∏3Ç…Ç»Ç¡ÇƒÇ¢ÇÈÇ±Ç∆ÇÉ`ÉFÉbÉN.
+
+        for( auto j=0; j<count; ++j )
+        {
+            auto indexP = pSrcMesh->GetPolygonVertex(int(i), j);
+            if (indexP < 0)
+            {
+                m_ErrorString += "Invalid Data Index. Polygon Vertex Index (";
+                m_ErrorString += std::to_string(int(i));
+                m_ErrorString += " , ";
+                m_ErrorString += std::to_string(j);
+                m_ErrorString += "), Mesh name = ";
+                m_ErrorString += pSrcMesh->GetNode()->GetInitialName();
+                m_ErrorString += ", UniqueID = ";
+                m_ErrorString += std::to_string(pSrcMesh->GetUniqueID());
+                m_ErrorString += "\n";
+                indexP = 0;
+            }
+            faces[i].IndexP[j] = uint32_t(indexP);
+            faces[i].IndexN[j] = 0;
+            faces[i].IndexT[j] = 0;
+
+            for( auto k=0; k<MaxLayerCount; ++k )
+            { faces[i].IndexU[k][j] = 0; }
+        }
+    }
+
+    // í∏ì_ÉJÉâÅ[Ç™ë∂ç›Ç∑ÇÈèÍçá.
+    if ( pColors != nullptr )
+    {
+        auto mapMode = pColors->GetMappingMode();
+        auto refMode = pColors->GetReferenceMode();
+
+        switch( mapMode )
+        {
+        case FbxGeometryElement::eByControlPoint:
+            {
+                std::vector<uint32_t> indices;
+                indices.resize( pSrcMesh->GetControlPointsCount() );
+
+                if ( refMode == FbxGeometryElement::eDirect )
+                {
+                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
+                    { indices[i] = static_cast<uint32_t>(i); }
+                }
+                else if ( refMode == FbxGeometryElement::eIndexToDirect )
+                {
+                    auto& container = pColors->GetIndexArray();
+                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
+                    {
+                        auto indexC = container.GetAt(i);
+                        if (indexC < 0)
+                        {
+                            m_ErrorString += "Invalid Data Index. VertexColor index (";
+                            m_ErrorString += std::to_string(i);
+                            m_ErrorString += "), Mesh name = ";
+                            m_ErrorString += pSrcMesh->GetNode()->GetInitialName();
+                            m_ErrorString += ", UniqueID = ";
+                            m_ErrorString += std::to_string(pSrcMesh->GetUniqueID());
+                            m_ErrorString += "\n";
+                            indexC = 0;
+                        }
+                        indices[i] = static_cast<uint32_t>(indexC);
+                    }
+                }
+
+                for( size_t i=0; i<faces.size(); ++i )
+                {
+                    for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                    { faces[i].IndexC[j] = indices[ faces[i].IndexP[j] ]; }
+                }
+
+                indices.clear();
+            }
+            break;
+
+        case FbxGeometryElement::eByPolygonVertex:
+            {
+                int idx = 0;
+                if ( refMode == FbxGeometryElement::eDirect )
+                {
+                    for( size_t i=0; i<faces.size(); ++i )
+                    {
+                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                        {
+                            faces[i].IndexC[j] = static_cast<uint32_t>(idx);
+                            idx++;
+                        }
+                    }
+                }
+                else if ( refMode == FbxGeometryElement::eIndexToDirect )
+                {
+                    auto& container = pColors->GetIndexArray();
+                    for( size_t i=0; i<faces.size(); ++i )
+                    {
+                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                        {
+                            auto indexC = container.GetAt(idx);
+                            if (indexC < 0)
+                            {
+                                m_ErrorString += "Invalid Data Index. VertexColor index (";
+                                m_ErrorString += std::to_string(idx);
+                                m_ErrorString += "), Mesh name = ";
+                                m_ErrorString += pSrcMesh->GetNode()->GetInitialName();
+                                m_ErrorString += ", UniqueID = ";
+                                m_ErrorString += std::to_string(pSrcMesh->GetUniqueID());
+                                m_ErrorString += "\n";
+                                indexC = 0;
+                            }
+
+                            faces[i].IndexC[j] = uint32_t(indexC);
+                            idx++;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+    }
+
+    // ñ@ê¸ÉxÉNÉgÉãÇ™ë∂ç›Ç∑ÇÈèÍçá.
+    if ( pNormal != nullptr )
+    {
+        auto mapMode = pNormal->GetMappingMode();
+        auto refMode = pNormal->GetReferenceMode();
+
+        switch( mapMode )
+        {
+        case FbxGeometryElement::eByControlPoint:
+            {
+                std::vector<uint32_t> indices;
+                indices.resize( pSrcMesh->GetControlPointsCount() );
+
+                if ( refMode == FbxGeometryElement::eDirect )
+                {
+                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
+                    { indices[i] = static_cast<uint32_t>(i); }
+                }
+                else if ( refMode == FbxGeometryElement::eIndexToDirect )
+                {
+                    auto& container = pNormal->GetIndexArray();
+                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
+                    {
+                        auto indexN = container.GetAt(i);
+                        if (indexN < 0)
+                        {
+                            m_ErrorString += "Invalid Data Index. Normal index (";
+                            m_ErrorString += std::to_string(i);
+                            m_ErrorString += "), Mesh name = ";
+                            m_ErrorString += pSrcMesh->GetNode()->GetInitialName();
+                            m_ErrorString += ", UniqueID = ";
+                            m_ErrorString += std::to_string(pSrcMesh->GetUniqueID());
+                            m_ErrorString += "\n";
+                            indexN = 0;
+                        }
+
+                        indices[i] = uint32_t(indexN);
+                    }
+                }
+
+                for( size_t i=0; i<faces.size(); ++i )
+                {
+                    for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                    { faces[i].IndexN[j] = indices[ faces[i].IndexP[j] ]; }
+                }
+
+                indices.clear();
+            }
+            break;
+
+        case FbxGeometryElement::eByPolygonVertex:
+            {
+                int idx = 0;
+                if ( refMode == FbxGeometryElement::eDirect )
+                {
+                    for( size_t i=0; i<faces.size(); ++i )
+                    {
+                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                        {
+                            faces[i].IndexN[j] = static_cast<uint32_t>(idx);
+                            idx++;
+                        }
+                    }
+                }
+                else if ( refMode == FbxGeometryElement::eIndexToDirect )
+                {
+                    auto& container = pNormal->GetIndexArray();
+                    for( size_t i=0; i<faces.size(); ++i )
+                    {
+                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                        {
+                            auto indexN = container.GetAt(idx);
+                            if (indexN < 0)
+                            {
+                                m_ErrorString += "Invalid Data Index. Normal index (";
+                                m_ErrorString += std::to_string(i);
+                                m_ErrorString += "), Mesh name = ";
+                                m_ErrorString += pSrcMesh->GetNode()->GetInitialName();
+                                m_ErrorString += ", UniqueID = ";
+                                m_ErrorString += std::to_string(pSrcMesh->GetUniqueID());
+                                m_ErrorString += "\n";
+                                indexN = 0;
+                            }
+
+                            faces[i].IndexN[j] = uint32_t(indexN);
+                            idx++;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+    }
+
+    // ê⁄ê¸ÉxÉNÉgÉã
+    if ( pTangent != nullptr )
+    {
+        auto mapMode = pTangent->GetMappingMode();
+        auto refMode = pTangent->GetReferenceMode();
+
+        switch( mapMode )
+        {
+        case FbxGeometryElement::eByControlPoint:
+            {
+                std::vector<uint32_t> indices;
+                indices.resize( pSrcMesh->GetControlPointsCount() );
+
+                if ( refMode == FbxGeometryElement::eDirect )
+                {
+                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
+                    { indices[i] = static_cast<uint32_t>(i); }
+                }
+                else if ( refMode == FbxGeometryElement::eIndexToDirect )
+                {
+                    auto& container = pTangent->GetIndexArray();
+                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
+                    {
+                        auto indexT = container.GetAt(i);
+                        if (indexT < 0)
+                        {
+                            m_ErrorString += "Invalid Data Index. Tangent index (";
+                            m_ErrorString += std::to_string(i);
+                            m_ErrorString += "), Mesh name = ";
+                            m_ErrorString += pSrcMesh->GetNode()->GetInitialName();
+                            m_ErrorString += ", UniqueID = ";
+                            m_ErrorString += std::to_string(pSrcMesh->GetUniqueID());
+                            m_ErrorString += "\n";
+                            indexT = 0;
+                        }
+
+                        indices[i] = uint32_t(indexT);
+                    }
+                }
+
+                for( size_t i=0; i<faces.size(); ++i )
+                {
+                    for( size_t j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                    { faces[i].IndexT[j] = indices[ faces[i].IndexP[j] ]; }
+                }
+
+                indices.clear();
+            }
+            break;
+
+        case FbxGeometryElement::eByPolygonVertex:
+            {
+                int idx = 0;
+                if ( refMode == FbxGeometryElement::eDirect )
+                {
+                    for( size_t i=0; i<faces.size(); ++i )
+                    {
+                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                        {
+                            faces[i].IndexT[j] = static_cast<uint32_t>(idx);
+                            idx++;
+                        }
+                    }
+                }
+                else if ( refMode == FbxGeometryElement::eIndexToDirect )
+                {
+                    auto& container = pTangent->GetIndexArray();
+                    for( size_t i=0; i<faces.size(); ++i )
+                    {
+                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                        {
+                            auto indexT = container.GetAt(idx);
+                            if (indexT < 0)
+                            {
+                                m_ErrorString += "Invalid Data Index. Tangent index (";
+                                m_ErrorString += std::to_string(idx);
+                                m_ErrorString += "), Mesh name = ";
+                                m_ErrorString += pSrcMesh->GetNode()->GetInitialName();
+                                m_ErrorString += ", UniqueID = ";
+                                m_ErrorString += std::to_string(pSrcMesh->GetUniqueID());
+                                m_ErrorString += "\n";
+                                indexT = 0;
+                            }
+                            faces[i].IndexT[j] = uint32_t(indexT);
+                            idx++;
+                        }
+                    }
+                }
+            }
+            break;
+
+        default:
+            ELOG("Unexpect case.");
+            break;
+        }
+    }
+
+    // ÉeÉNÉXÉ`ÉÉç¿ïW.
+    for( auto layer=0; layer<layerCount; ++layer )
+    {
+        if ( pUV[layer] == nullptr )
+        { continue; }
+
+        auto pTexCoord = pUV[layer];
+        auto mapMode = pTexCoord->GetMappingMode();
+        auto refMode = pTexCoord->GetReferenceMode();
+
+        switch( mapMode )
+        {
+        case FbxGeometryElement::eByControlPoint:
+            {
+                std::vector<uint32_t> indices;
+                indices.resize( pSrcMesh->GetControlPointsCount() );
+
+                if ( refMode == FbxGeometryElement::eDirect )
+                {
+                    for( auto i=-0; i<pSrcMesh->GetControlPointsCount(); ++i )
+                    { indices[i] = static_cast<uint32_t>(i); }
+                }
+                else if ( refMode == FbxGeometryElement::eIndexToDirect )
+                {
+                    auto& container = pTexCoord->GetIndexArray();
+                    for( auto i=0; i<pSrcMesh->GetControlPointsCount(); ++i )
+                    {
+                        auto indexU = container.GetAt(i);
+                        if (indexU < 0)
+                        {
+                            m_ErrorString += "Invalid Data Index. TexCoord(";
+                            m_ErrorString += std::to_string(layer);
+                            m_ErrorString += ") index (";
+                            m_ErrorString += std::to_string(i);
+                            m_ErrorString += "), Mesh name = ";
+                            m_ErrorString += pSrcMesh->GetNode()->GetInitialName();
+                            m_ErrorString += ", UniqueID = ";
+                            m_ErrorString += std::to_string(pSrcMesh->GetUniqueID());
+                            m_ErrorString += "\n";
+                            indexU = 0;
+                        }
+                        indices[i] = uint32_t(indexU);
+                    }
+                }
+
+                for( size_t i=0; i<faces.size(); ++i )
+                {
+                    for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                    { faces[i].IndexU[layer][j] = indices[ faces[i].IndexP[j] ]; }
+                }
+
+                indices.clear();
+            }
+            break;
+
+        case FbxGeometryElement::eByPolygonVertex:
+            {
+                int idx = 0;
+
+                if ( refMode == FbxGeometryElement::eDirect )
+                {
+                    for( size_t i=0; i<faces.size(); ++i )
+                    {
+                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                        {
+                            faces[i].IndexU[layer][j] = static_cast<uint32_t>(idx);
+                            idx++;
+                        }
+                    }
+                }
+                else if ( refMode == FbxGeometryElement::eIndexToDirect )
+                {
+                    auto& container = pTexCoord->GetIndexArray();
+
+                    for( size_t i=0; i<faces.size(); ++i )
+                    {
+                        for( auto j=0; j<pSrcMesh->GetPolygonSize(int(i)); ++j )
+                        {
+                            auto indexU = container.GetAt(idx);
+                            if (indexU < 0)
+                            {
+                                m_ErrorString += "Invalid Data Index. TexCoord(";
+                                m_ErrorString += std::to_string(layer);
+                                m_ErrorString += ") index (";
+                                m_ErrorString += std::to_string(idx);
+                                m_ErrorString += "), Mesh name = ";
+                                m_ErrorString += pSrcMesh->GetNode()->GetInitialName();
+                                m_ErrorString += ", UniqueID = ";
+                                m_ErrorString += std::to_string(pSrcMesh->GetUniqueID());
+                                m_ErrorString += "\n";
+                                indexU = 0;
+                            }
+                            faces[i].IndexU[layer][j] = uint32_t(indexU);
+                            idx++;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+    }
+
+    // í∏ì_ÇëgÇ›óßÇƒÇÈ.
+    {
+        dstMesh.Positions.resize( faces.size() * 3 );
+        if (pNormal != nullptr)
+        { dstMesh.Normals  .resize( faces.size() * 3 ); }
+        if (pTangent != nullptr)
+        { dstMesh.Tangents.resize( faces.size() * 3 ); }
+        for( auto i=0; i<layerCount; ++i )
+        { dstMesh.TexCoords[i].resize( faces.size() * 3 ); }
+        if (pColors != nullptr)
+        { dstMesh.Colors.resize( faces.size() * 3 ); }
+
+        uint32_t idx = 0;
+        for( size_t i=0; i<faces.size(); ++i )
+        {
+            for( auto j=0; j<3; ++j )
+            {
+                auto& position = pPosition[ faces[i].IndexP[j] ];
+                dstMesh.Positions[idx].x = static_cast<float>( position[0] );
+                dstMesh.Positions[idx].y = static_cast<float>( position[1] );
+                dstMesh.Positions[idx].z = static_cast<float>( position[2] );
+                dstMesh.Positions[idx] = asdx::Vector3::TransformCoord(dstMesh.Positions[idx], world);
+
+                if ( pColors != nullptr )
+                {
+                    const auto& color = pColors->GetDirectArray()[ faces[i].IndexC[j] ];
+                    dstMesh.Colors[idx].x = static_cast<float>( color[0] );
+                    dstMesh.Colors[idx].y = static_cast<float>( color[1] );
+                    dstMesh.Colors[idx].z = static_cast<float>( color[2] );
+                    dstMesh.Colors[idx].w = static_cast<float>( color[3] );
+                }
+
+                if ( pNormal != nullptr )
+                {
+                    const auto& normal = pNormal->GetDirectArray()[ faces[i].IndexN[j] ];
+                    dstMesh.Normals[idx].x = static_cast<float>( normal[0] * normal[3] );
+                    dstMesh.Normals[idx].y = static_cast<float>( normal[1] * normal[3] );
+                    dstMesh.Normals[idx].z = static_cast<float>( normal[2] * normal[3] );
+                    dstMesh.Normals[idx] = asdx::Vector3::TransformNormal(dstMesh.Normals[idx], world);
+                    dstMesh.Normals[idx] = asdx::Vector3::SafeNormalize(dstMesh.Normals[idx], dstMesh.Normals[idx]);
+                }
+
+                if ( pTangent != nullptr )
+                {
+                    const auto& tangent = pTangent->GetDirectArray()[ faces[i].IndexT[j] ];
+                    asdx::Vector3 T;
+                    T.x = static_cast<float>( tangent[0] * tangent[3] );
+                    T.y = static_cast<float>( tangent[1] * tangent[3] );
+                    T.z = static_cast<float>( tangent[2] * tangent[3] );
+                    T = asdx::Vector3::TransformNormal(T, world);
+                    T = asdx::Vector3::SafeNormalize(T, T);
+                    dstMesh.Tangents[idx].x = T.x;
+                    dstMesh.Tangents[idx].y = T.y;
+                    dstMesh.Tangents[idx].z = T.z;
+                    dstMesh.Tangents[idx].w = 1.0f;
+                }
+
+                for( auto k=0; k<layerCount; ++k)
+                {
+                    if ( pUV[k] != nullptr )
+                    {
+                        const auto& texcoord = pUV[k]->GetDirectArray()[ faces[i].IndexU[k][j] ];
+                        dstMesh.TexCoords[k][idx].x = static_cast<float>( texcoord[0] );
+                        dstMesh.TexCoords[k][idx].y = static_cast<float>( texcoord[1] );
+                    }
+                }
+
+                idx++;
+            }
+        }
+    }
+
+    // í∏ì_ÉCÉìÉfÉbÉNÉXê›íË.
+    {
+        dstMesh.Indices.resize( faces.size() * 3 );
+        for( size_t i=0; i<faces.size() * 3; i+=3 )
+        {
+            dstMesh.Indices[i + 0] = static_cast<uint32_t>(i + 0);
+            dstMesh.Indices[i + 1] = static_cast<uint32_t>(i + 1);
+            dstMesh.Indices[i + 2] = static_cast<uint32_t>(i + 2);
+        }
+    }
+
+    // É{Å[ÉìIDÇ∆É{Å[ÉìÇÃèdÇ›ê›íË.
+    {
+        dstMesh.BoneIds.resize( faces.size() * 3 );
+        dstMesh.BoneWeights.resize( faces.size() * 3 );
+
+        std::vector<ResBoneIdFBX>   boneIndices;
+        std::vector<asdx::Vector4>  boneWeights;
+
+        auto point_count = pSrcMesh->GetControlPointsCount();
+        boneIndices.resize(point_count);
+        boneWeights.resize(point_count);
+
+        auto deformerCount = pSrcMesh->GetDeformerCount(FbxDeformer::eSkin);
+        for(auto i=0; i<deformerCount; ++i)
+        {
+            auto pSkin = FbxCast<FbxSkin>(pSrcMesh->GetDeformer(i, FbxDeformer::eSkin));
+            if (pSkin == nullptr)
+            { continue; }
+
+            auto clusterCount = pSkin->GetClusterCount();
+            for(auto j=0; j<clusterCount; ++j)
+            {
+                auto pCluster = pSkin->GetCluster(j);
+                if (pCluster == nullptr)
+                { continue; }
+
+                auto count   = pCluster->GetControlPointIndicesCount();
+                auto indices = pCluster->GetControlPointIndices();
+                auto weights = pCluster->GetControlPointWeights();
+
+                if (count == 0)
+                { continue; }
+
+                // Ç±Ç±ÇÃÉJÉEÉìÉgÇÕ pSrcMesh->GetControlPointsCount() Ç∆ìØÇ∂Ç…Ç»ÇÈ.
+                for(auto k=0l; k<count; ++k)
+                {
+                    auto id  = indices[k];
+                    auto w   = float(weights[k]);
+
+                    // ãÛÇ¢ÇƒÇ¢ÇÈÇ∆Ç±ÇÎÇ©ÇÁèáî‘Ç…ì¸ÇÍÇƒÇ¢Ç≠.
+                    if (boneIndices[id].x < 0)
+                    {
+                        boneIndices[id].x = j;
+                        boneWeights[id].x = w;
+                    }
+                    else if (boneIndices[id].y < 0)
+                    {
+                        boneIndices[id].y = j;
+                        boneWeights[id].y = w;
+                    }
+                    else if (boneIndices[id].z < 0)
+                    {
+                        boneIndices[id].z = j;
+                        boneWeights[id].z = w;
+                    }
+                    else if (boneIndices[id].w < 0)
+                    {
+                        boneIndices[id].w = j;
+                        boneWeights[id].w = w;
+                    }
+                    else
+                    {
+                        // ãÛÇ´Ç™ñ≥ÇØÇÍÇŒàÍî‘ÉEÉFÉCÉgÇ™è¨Ç≥Ç¢Ç∆Ç±ÇÎÇíuÇ´ä∑Ç¶ÇÈ.
+                        auto miniIndex  = 0;
+                        auto miniWeight = boneWeights[id].x;
+
+                        if (boneIndices[id].y < miniWeight)
+                        {
+                            miniWeight = boneWeights[id].y;
+                            miniIndex  = 1;
+                        }
+                        if (boneIndices[id].z < miniWeight)
+                        {
+                            miniWeight = boneWeights[id].z;
+                            miniIndex  = 2;
+                        }
+                        if (boneIndices[id].w < miniWeight)
+                        {
+                            miniWeight = boneWeights[id].w;
+                            miniIndex  = 3;
+                        }
+
+                        if (miniWeight < w)
+                        {
+                            switch(miniIndex)
+                            {
+                            case 0:
+                                {
+                                    boneIndices[id].x = j;
+                                    boneWeights[id].x = w;
+                                }
+                                break;
+
+                            case 1:
+                                {
+                                    boneIndices[id].y = j;
+                                    boneWeights[id].y = w;
+                                }
+                                break;
+
+                            case 2:
+                                {
+                                    boneIndices[id].z = j;
+                                    boneWeights[id].z = w;
+                                }
+                                break;
+
+                            case 3:
+                                {
+                                    boneIndices[id].w = j;
+                                    boneWeights[id].w = w;
+                                }
+                                break;
+
+                            }
+                        }
+
+                    } // end else
+                } // end for
+            } // end for
+        }
+
+        // ëSïîÉ{Å[ÉìÇÇ»ÇﬂÇΩÇÁç≈èIìIÇ»ÉfÅ[É^Çì¸ÇÍÇÈ.
+        auto idx = 0;
+        for(size_t i=0; i<faces.size(); ++i)
+        {
+            for(auto j=0; j<3; ++j)
+            {
+                auto bi = boneIndices[ faces[i].IndexP[j] ];
+                auto bw = boneWeights[ faces[i].IndexP[j] ];
+
+                if (bi.x < 0)
+                {
+                    bi.x = 0;
+                    bw.x = 0.0f;
+                }
+                if (bi.y < 0)
+                {
+                    bi.y = 0;
+                    bw.y = 0.0f;
+                }
+                if (bi.z < 0)
+                {
+                    bi.z = 0;
+                    bw.z = 0.0f;
+                }
+                if (bi.w < 0)
+                {
+                    bi.w = 0;
+                    bw.w = 0.0f;
+                }
+
+                auto total_weight = 0.0f;
+                total_weight += bw.x;
+                total_weight += bw.y;
+                total_weight += bw.z;
+                total_weight += bw.w;
+
+                dstMesh.BoneIds[idx].x     = bi.x;
+                dstMesh.BoneWeights[idx].x = bw.x / total_weight;
+
+                dstMesh.BoneIds[idx].y     = bi.y;
+                dstMesh.BoneWeights[idx].y = bw.y / total_weight;
+
+                dstMesh.BoneIds[idx].z     = bi.z;
+                dstMesh.BoneWeights[idx].z = bw.z / total_weight;
+
+                dstMesh.BoneIds[idx].w     = bi.w;
+                dstMesh.BoneWeights[idx].w = bw.w / total_weight;
+
+                idx++;
+            }
+        }
+    }
+
+    for(size_t i=0; i<dstMesh.BoneWeights.size(); ++i)
+    {
+        if (dstMesh.BoneWeights[i].x < 0.0f)
+        { dstMesh.BoneWeights[i].x = 0.0f; }
+
+        if (dstMesh.BoneWeights[i].y < 0.0f)
+        { dstMesh.BoneWeights[i].y = 0.0f; }
+
+        if (dstMesh.BoneWeights[i].z < 0.0f)
+        { dstMesh.BoneWeights[i].z = 0.0f; }
+
+        if (dstMesh.BoneWeights[i].w < 0.0f)
+        { dstMesh.BoneWeights[i].w = 0.0f; }
+    }
+
+    faces.clear();
 }
 
-// Á©∫Èñ¢Êï∞„Å®„Åó„Å¶ÂÆüË£Ö.
-void FBXLoader::Term()                                                  { /* DO_NOTHING */ }
-void FBXLoader::ParseContent   ( asdx::ResModel& )                      { /* DO_NOTHING */ }
-void FBXLoader::ParseNode      ( fbxsdk::FbxNode*, asdx::ResModel& )    { /* DO_NOTHING */ }
-void FBXLoader::ParseMesh      ( fbxsdk::FbxNode*, asdx::ResModel& )    { /* DO_NOTHING */ }
-void FBXLoader::ParseVertex    ( fbxsdk::FbxMesh*, MeshFBX& )           { /* DO_NOTHING */ }
-void FBXLoader::ParseSubset    ( fbxsdk::FbxMesh*, MeshFBX& )           { /* DO_NOTHING */ }
-void FBXLoader::ParseMaterial  ( fbxsdk::FbxMesh*, asdx::ResModel& )    { /* DO_NOTHING */ }
+//-------------------------------------------------------------------------------------------------
+//      É}ÉeÉäÉAÉãÇâêÕÇµÇ‹Ç∑.
+//-------------------------------------------------------------------------------------------------
+void FBXLoader::ParseMaterial(FbxSurfaceMaterial* pSrcMaterial, ResMaterialFBX& dstMaterial)
+{
+    dstMaterial.Name = pSrcMaterial->GetName();
 
-#endif//ENABLE_FBX
+    if (pSrcMaterial->GetClassId().Is(FbxSurfaceLambert::ClassId))
+    {
+        auto pLambert = FbxCast<FbxSurfaceLambert>(pSrcMaterial);
+        AddTexture(pLambert, FbxSurfaceMaterial::sAmbient,   dstMaterial.Textures);
+        AddTexture(pLambert, FbxSurfaceMaterial::sDiffuse,   dstMaterial.Textures);
+        AddTexture(pLambert, FbxSurfaceMaterial::sEmissive,  dstMaterial.Textures);
+        AddTexture(pLambert, FbxSurfaceMaterial::sNormalMap, dstMaterial.Textures);
+    }
+    else if (pSrcMaterial->GetClassId().Is(FbxSurfacePhong::ClassId))
+    {
+        auto pPhong = FbxCast<FbxSurfacePhong>(pSrcMaterial);
+        AddTexture(pPhong, FbxSurfaceMaterial::sAmbient,    dstMaterial.Textures);
+        AddTexture(pPhong, FbxSurfaceMaterial::sDiffuse,    dstMaterial.Textures);
+        AddTexture(pPhong, FbxSurfaceMaterial::sSpecular,   dstMaterial.Textures);
+        AddTexture(pPhong, FbxSurfaceMaterial::sShininess,  dstMaterial.Textures);
+        AddTexture(pPhong, FbxSurfaceMaterial::sEmissive,   dstMaterial.Textures);
+        AddTexture(pPhong, FbxSurfaceMaterial::sNormalMap,  dstMaterial.Textures);
+    }
+
+    dstMaterial.Textures.shrink_to_fit();
+}
+
+//-------------------------------------------------------------------------------------------------
+//      ÉTÉuÉZÉbÉgÇâêÕÇµÇ‹Ç∑.
+//-------------------------------------------------------------------------------------------------
+void FBXLoader::ParseSubset(FbxMesh* pSrcMesh, ResMeshFBX& dstMesh)
+{
+    FbxLayerElementArrayTemplate<int>* pIndices = nullptr;
+    auto mappingMode = FbxGeometryElement::eNone;
+
+    if ( pSrcMesh->GetElementMaterial() != nullptr )
+    {
+        pSrcMesh->GetMaterialIndices( &pIndices );
+        mappingMode = pSrcMesh->GetElementMaterial()->GetMappingMode();
+    }
+
+    switch( mappingMode )
+    {
+    case FbxGeometryElement::eNone:
+        { /* DO_NOTHING */ }
+        break;
+
+    case FbxGeometryElement::eAllSame:
+        {
+            auto id         = pIndices->GetAt(0);
+            auto material   = pSrcMesh->GetNode()->GetMaterial(id);
+            auto index      = -1;
+            
+            for(int i=0; i<int(m_Materials.size()); ++i)
+            {
+                if (strcmp(material->GetName(), m_Materials[i].Name.c_str()) == 0)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            assert(index >= 0);
+
+            dstMesh.Subsets.resize(1);
+
+            dstMesh.Subsets[0].Offset     = 0;
+            dstMesh.Subsets[0].Count      = pSrcMesh->GetPolygonCount() * 3;
+            dstMesh.Subsets[0].MaterialId = index;
+        }
+        break;
+
+    case FbxGeometryElement::eByPolygon:
+        {
+            int prevId = -1;
+            int subset = -1;
+            for(auto i=0; i<pSrcMesh->GetPolygonCount(); ++i)
+            {
+                auto id         = pIndices->GetAt(i);
+                auto material   = pSrcMesh->GetNode()->GetMaterial(id);
+                auto index      = -1;
+
+                for(int i=0; i<int(m_Materials.size()); ++i)
+                {
+                    if (strcmp(material->GetName(), m_Materials[i].Name.c_str()) == 0)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+
+                assert(index >= 0);
+
+                if ( prevId != index )
+                {
+                    ResSubsetFBX data;
+                    data.Count      = 0;
+                    data.Offset     = uint32_t(i * 3);
+                    data.MaterialId = index;
+
+                    dstMesh.Subsets.push_back( data );
+
+                    prevId = index;
+                    subset++;
+                }
+
+                if ( subset >= 0 )
+                { dstMesh.Subsets[subset].Count += 3; }
+            }
+        }
+        break;
+    }
+}
+
+//-------------------------------------------------------------------------------------------------
+//      ÉÇÅ[ÉVÉáÉìÇâêÕÇµÇ‹Ç∑.
+//-------------------------------------------------------------------------------------------------
+void FBXLoader::ParseMotion(FbxAnimStack* pSrcStack, ResMotionFBX& dstMotion)
+{
+    FbxString stackName = pSrcStack->GetName();
+    dstMotion.Name = stackName;
+
+    auto takeInfo = m_pScene->GetTakeInfo(stackName);
+    assert( takeInfo != nullptr );
+
+    // ÉQÅ[ÉÄópìrÇ…çáÇÌÇπÇƒ60FPSÇ∆ÇµÇƒÇ®Ç≠.
+    auto timeUnit = FbxTime::eFrames60;
+
+    auto start = takeInfo->mLocalTimeSpan.GetStart().GetFrameCount(timeUnit);
+    auto end   = takeInfo->mLocalTimeSpan.GetStop() .GetFrameCount(timeUnit);
+
+    dstMotion.Duration = static_cast<uint32_t>(end - start + 1);
+
+    // äeÉ{Å[Éìï™ÇæÇØâÒÇ∑.
+    for(size_t i=0; i<m_Bones.size(); ++i)
+    {
+        // ñºëOÇ©ÇÁÉäÉìÉNÉmÅ[ÉhñºÇéÊìæ.
+        auto pLinkNode = m_pScene->FindNodeByName(FbxString(m_Bones[i].Name.c_str()));
+        if ( pLinkNode == nullptr )
+        {
+            ILOG("Info : Not Found. name = %s", m_Bones[i].Name.c_str());
+            continue;
+        }
+
+        ResBoneMotionFBX boneMotion;
+        boneMotion.BoneName = m_Bones[i].Name;
+        boneMotion.KeyFrames.reserve(dstMotion.Duration);
+
+        FbxAMatrix prevTransform;
+        prevTransform.SetIdentity();
+
+        // ÉLÅ[ÉtÉåÅ[ÉÄÇê›íË.
+        for(auto idx=start; idx<=end; ++idx)
+        {
+            FbxTime curTime;
+            curTime.SetFrame(idx, timeUnit);
+
+            // ïœä∑çsóÒÇéÊìæ.
+            auto transform = pLinkNode->EvaluateGlobalTransform(curTime);
+
+            // ìØàÍïœä∑çsóÒÇ≈Ç†ÇÍÇŒê›íËÇµÇ»Ç¢.
+            if (prevTransform != transform)
+            {
+                auto t = transform.GetT();  // ïΩçsà⁄ìÆ.
+                auto s = transform.GetS();  // ÉXÉPÅ[Éã.
+                auto q = transform.GetQ();  // âÒì].
+
+                ResKeyPoseFBX key;
+                key.FrameIndex  = static_cast<uint32_t>(idx);
+                key.Translation = asdx::Vector3(float(t[0]), float(t[1]), float(t[2]));
+                key.Scale       = asdx::Vector3(float(s[0]), float(s[1]), float(s[2]));
+                key.Rotation    = asdx::Quaternion(float(q[0]), float(q[1]), float(q[2]), float(q[3]));
+
+            #if 0
+                // çsóÒÇ≈éÊÇËÇΩÇ¢èÍçáÇÕÇ±ÇøÇÁ.
+                //key.Transform  = FromFbxMatrix(transform);
+            #endif
+
+                boneMotion.KeyFrames.push_back(key);
+                prevTransform = transform;
+            }
+        }
+
+        // ÉÅÉÇÉäç≈ìKâª.
+        boneMotion.KeyFrames.shrink_to_fit();
+
+        // äiî[.
+        dstMotion.Bones.push_back(boneMotion);
+    }
+}
+
+bool FBXLoader::Load(const char* path, asdx::ResModel& model)
+{
+    if (!Load(path))
+    {
+        return false;
+    }
+
+    model.Materials.resize(m_Materials.size());
+    for(size_t i=0; i<m_Materials.size(); ++i)
+    {
+        auto& srcMat = m_Materials[i];
+        auto& dstMat = model.Materials[i];
+
+        dstMat.Name = srcMat.Name;
+    }
+
+    auto meshId = 0u;
+
+    for(size_t i=0; i<m_Meshes.size(); ++i)
+    {
+        std::sort(m_Meshes[i].Subsets.begin(), m_Meshes[i].Subsets.end(),
+            [](const ResSubsetFBX& lhs, const ResSubsetFBX& rhs)
+            {
+                return std::tie(lhs.MaterialId, lhs.Offset) < std::tie(rhs.MaterialId, rhs.Offset);
+            });
+
+        auto hasNormal      = m_Meshes[i].Normals.size() > 0;
+        auto hasTangent     = m_Meshes[i].Tangents.size() > 0;
+        auto hasUV0         = m_Meshes[i].TexCoords[0].size() > 0;
+        auto hasUV1         = m_Meshes[i].TexCoords[1].size() > 0;
+        auto hasUV2         = m_Meshes[i].TexCoords[2].size() > 0;
+        auto hasUV3         = m_Meshes[i].TexCoords[3].size() > 0;
+        auto hasBoneId      = m_Meshes[i].BoneIds.size() > 0;
+        auto hasBoneWeight  = m_Meshes[i].BoneWeights.size() > 0;
+        auto hasColor       = m_Meshes[i].Colors.size() > 0;
+
+        auto materialId = -1;
+        auto index = 0;
+
+        auto dstMesh = asdx::ResMesh();
+
+        for(size_t j=0; j<m_Meshes[i].Subsets.size(); ++j)
+        {
+            auto& subset = m_Meshes[i].Subsets[j];
+            auto count = subset.Count;
+
+            if (materialId != subset.MaterialId)
+            {
+                if (materialId >= 0)
+                {
+                    if (!hasNormal)
+                    { asdx::CalcNormals(dstMesh); }
+
+                    if (!hasTangent)
+                    { asdx::CalcTangents(dstMesh); }
+
+                    model.Meshes.emplace_back(dstMesh);
+                    dstMesh = asdx::ResMesh();
+                }
+
+                dstMesh.MeshName     = "mesh";
+                dstMesh.MeshName     += std::to_string(meshId);
+                dstMesh.MaterialName = m_Materials[subset.MaterialId].Name;
+
+                materialId = subset.MaterialId;
+
+                index = 0;
+                meshId++;
+            }
+
+            for(size_t k=0; k<count; ++k)
+            {
+                auto idx = k + subset.Offset;
+
+                dstMesh.Positions.push_back(m_Meshes[i].Positions[idx]);
+
+                if (hasColor)
+                { dstMesh.Colors.push_back(m_Meshes[i].Colors[idx]); }
+
+                if (hasNormal)
+                { dstMesh.Normals.push_back(m_Meshes[i].Normals[idx]); }
+
+                if (hasTangent)
+                {
+                    dstMesh.Tangents.push_back(asdx::Vector3(
+                        m_Meshes[i].Tangents[idx].x,
+                        m_Meshes[i].Tangents[idx].y,
+                        m_Meshes[i].Tangents[idx].z));
+                }
+
+                if (hasUV0)
+                { dstMesh.TexCoords[0].push_back(m_Meshes[i].TexCoords[0][idx]); }
+
+                if (hasUV1)
+                { dstMesh.TexCoords[1].push_back(m_Meshes[i].TexCoords[1][idx]); }
+
+                if (hasUV2)
+                { dstMesh.TexCoords[2].push_back(m_Meshes[i].TexCoords[2][idx]); }
+
+                if (hasUV3)
+                { dstMesh.TexCoords[3].push_back(m_Meshes[i].TexCoords[3][idx]); }
+
+                if (hasBoneId)
+                {
+                    dstMesh.BoneIndices.push_back(asdx::ResBoneIndex(
+                        uint16_t(m_Meshes[i].BoneIds[idx].x),
+                        uint16_t(m_Meshes[i].BoneIds[idx].y),
+                        uint16_t(m_Meshes[i].BoneIds[idx].z),
+                        uint16_t(m_Meshes[i].BoneIds[idx].w)));
+                }
+
+                if (hasBoneWeight)
+                { dstMesh.BoneWeights.push_back(m_Meshes[i].BoneWeights[idx]); }
+
+                dstMesh.Indices.push_back(index);
+                index++;
+            }
+        }
+
+        if (materialId > 0)
+        {
+            if (!hasNormal)
+            { asdx::CalcNormals(dstMesh); }
+
+            if (!hasTangent)
+            { asdx::CalcTangents(dstMesh); }
+
+            model.Meshes.emplace_back(dstMesh);
+        }
+    }
+
+    return true;
+}

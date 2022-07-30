@@ -17,6 +17,7 @@ Properties
     float  AlphaThreshold("アルファ閾値", 0.01, range(0.0, 1.0)) = 0.0;
     float  MetalnessScale("メタルネススケール", 0.01, range(0.0, 1.0)) = 1.0;
     float  RoughnessScale("ラフネススケール", 0.01, range(0.0, 1.0)) = 1.0;
+    float2 TexCoordScale0("UVスケール", 0.01, range(-100000, 100000)) = float2(1.0, 1.0);
 
     Texture2D  BaseColor("ベースカラー", true) = "checkerboard";
     Texture2D  ORM("ORM", false) = "orm";
@@ -32,7 +33,7 @@ PSOutput LightingPS(const VSOutput input)
     PSOutput output = (PSOutput)0;
 
     // UVアニメーション.
-    float2 uv = GetTexCoord0(input);
+    float2 uv = GetTexCoord0(input) * TexCoordScale0;
 
     // ベースカラー取得.
     float4 baseColor = BaseColor.Sample(AnisotropicWrap, uv) * BaseColorScale;

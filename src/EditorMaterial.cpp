@@ -55,10 +55,10 @@ static const asdx::Localization kRasterizerState[] = {
 };
 
 static const asdx::Localization kDepthState[] = {
-    asdx::Localization(u8"デフォルト", u8"Default"),
+    asdx::Localization(u8"デフォルト"   , u8"Default"),
     asdx::Localization(u8"読み込みのみ", u8"Read Only"),
     asdx::Localization(u8"書き込みのみ", u8"Write Only"),
-    asdx::Localization(u8"無効", u8"None"),
+    asdx::Localization(u8"無効"      , u8"None"),
 };
 
 static const asdx::Localization kTagShadowReceive(u8"シャドウレシーブ", u8"Shadow Receive");

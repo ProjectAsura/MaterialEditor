@@ -26,8 +26,8 @@ namespace {
 //-----------------------------------------------------------------------------
 // Constant Values.
 //-----------------------------------------------------------------------------
-static const char* kWorkFilter = "Work File(*.work)\0*.work\0\0";
-static const char* kHelpLink = "https://github.com/ProjectAsura/MaterialEditor/blob/master/doc/help.md";
+static const char* kWorkFilter      = "Material Work File(*.mwk)\0*.mwk\0\0";
+static const char* kHelpLink        = "https://github.com/ProjectAsura/MaterialEditor/blob/master/doc/help.md";
 static const char* kReleaseNoteLink = "https://github.com/ProjectAsura/MaterialEditor/blob/master/doc/release_note.md";
 static const ImVec4 kRed   = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 static const ImVec4 kCyan  = ImVec4(0.0f, 1.0f, 1.0f, 1.0f);
@@ -60,6 +60,7 @@ static const asdx::Localization kTagJapanese(u8"日本語", u8"Japanese");
 static const asdx::Localization kTagEnglish(u8"英語", u8"English");
 static const asdx::Localization kMsgNoMaterial("出力するマテリアルがありません", "No material for export.");
 static const asdx::Localization kMsgNoExporter("エクスポーターが設定されていません", "Expoter is not setted.");
+static const asdx::Localization kMsgExportFailed("エクスポートに失敗しました", "Export Failed.");
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -279,7 +280,7 @@ void DrawExportMenu(MenuContext& context)
     ExportContext* exportContext;
     if (!Create(*context.pWorkSpace, &exportContext))
     {
-        asdx::ErrorDlg("Export Failed.", "Export Failed.");
+        asdx::ErrorDlg("Export Failed.", kMsgExportFailed.c_str());
         return;
     }
 

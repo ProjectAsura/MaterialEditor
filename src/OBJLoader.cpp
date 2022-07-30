@@ -11,6 +11,8 @@
 #include <asdxMisc.h>
 #include <asdxLogger.h>
 #include <fstream>
+#include <algorithm>
+#include <tuple>
 
 //-----------------------------------------------------------------------------
 // Constant Values.
@@ -130,8 +132,6 @@ bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model)
 
             for(auto i=0; i<4; ++i)
             {
-                count++;
-
                 // 位置座標インデックス.
                 stream >> ip;
                 p[i] = ip - 1;
@@ -163,21 +163,23 @@ bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model)
                     indices.push_back(f0);
                 }
 
+                count++;
+
                 if ('\n' == stream.peek() || '\r' == stream.peek())
                     break;
             }
 
             // 四角形.
-            if (count > 3)
+            if (count > 3 && p[3] != UINT32_MAX)
             {
                 assert(count == 4);
 
                 faceIndex++;
                 faceCount++;
 
-                IndexOBJ f0 = { p[2], t[2], n[2] };
-                IndexOBJ f1 = { p[3], t[3], n[3] };
-                IndexOBJ f2 = { p[0], t[0], n[0] };
+                IndexOBJ f0 = { p[3], t[3], n[3] };
+                IndexOBJ f1 = { p[0], t[0], n[0] };
+                IndexOBJ f2 = { p[1], t[1], n[1] };
 
                 indices.push_back(f0);
                 indices.push_back(f1);
@@ -201,11 +203,17 @@ bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model)
         {
             SubsetOBJ subset = {};
             stream >> subset.MaterialName;
+
+            if (group.empty())
+            { group = "group" + std::to_string(subsets.size()); }
+
             subset.MeshName   = group;
             subset.IndexStart = faceIndex * 3;
 
-            auto index = subsets.size();
+            auto index = subsets.size() - 1;
             subsets.push_back(subset);
+
+            group.clear();
 
             if (subsets.size() > 1)
             {
@@ -227,39 +235,74 @@ bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model)
 
     // 出力データを組み立て.
     {
-        uint32_t indexOffset = 0;
-        model.Meshes.resize(subsets.size());
+        std::sort(subsets.begin(), subsets.end(), 
+            [](const SubsetOBJ& lhs, const SubsetOBJ& rhs)
+            {
+                return std::tie(lhs.MaterialName, lhs.IndexStart) < std::tie(rhs.MaterialName, rhs.IndexStart);
+            });
+
+        std::string   matName;
+        asdx::ResMesh dstMesh;
+
+        uint32_t index     = 0;
+        uint32_t meshIndex = 0;
 
         for(size_t i=0; i<subsets.size(); ++i)
         {
-            auto& mesh = model.Meshes[i];
-            mesh.MeshName     = subsets[i].MeshName;
-            mesh.MaterialName = subsets[i].MaterialName;
+            if (matName != subsets[i].MaterialName)
+            {
+                if (!matName.empty())
+                {
+                    // 法線データが無ければ生成.
+                    if (dstMesh.Normals.empty())
+                    { asdx::CalcNormals(dstMesh); }
+
+                    // 接線データが無ければ生成を試みる.
+                    if (dstMesh.Tangents.empty())
+                    { asdx::CalcTangents(dstMesh); }
+
+                    model.Meshes.emplace_back(dstMesh);
+                    dstMesh = asdx::ResMesh();
+                    index = 0;
+                }
+
+                dstMesh.MeshName     = "mesh";
+                dstMesh.MeshName     += std::to_string(meshIndex);
+                dstMesh.MaterialName = subsets[i].MaterialName;
+
+                matName = dstMesh.MaterialName;
+                meshIndex++;
+            }
 
             for(size_t j=0; j<subsets[i].IndexCount; ++j)
             {
                 const auto& f = indices[j + subsets[i].IndexStart];
 
                 assert(f.P != UINT32_MAX);
-                mesh.Positions.push_back(positions[f.P]);
+                dstMesh.Positions.push_back(positions[f.P]);
 
                 if (f.T != UINT32_MAX)
-                { mesh.TexCoords[0].push_back(texcoords[f.T]); }
+                { dstMesh.TexCoords[0].push_back(texcoords[f.T]); }
 
                 if (f.N != UINT32_MAX)
-                { mesh.Normals.push_back(normals[f.N]); }
+                { dstMesh.Normals.push_back(normals[f.N]); }
 
-                mesh.Indices.push_back(indexOffset);
-                indexOffset++;
+                dstMesh.Indices.push_back(index);
+                index++;
             }
+        }
 
+        if (!matName.empty())
+        {
             // 法線データが無ければ生成.
-            if (mesh.Normals.empty())
-            { asdx::CalcNormals(mesh); }
+            if (dstMesh.Normals.empty())
+            { asdx::CalcNormals(dstMesh); }
 
             // 接線データが無ければ生成を試みる.
-            if (mesh.Tangents.empty())
-            { asdx::CalcTangents(mesh); }
+            if (dstMesh.Tangents.empty())
+            { asdx::CalcTangents(dstMesh); }
+
+            model.Meshes.emplace_back(dstMesh);
         }
     }
 

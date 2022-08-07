@@ -1594,7 +1594,7 @@ bool FBXLoader::Load(const char* path, asdx::ResModel& model)
 
     for(size_t i=0; i<m_Meshes.size(); ++i)
     {
-        std::sort(m_Meshes[i].Subsets.begin(), m_Meshes[i].Subsets.end(),
+        std::stable_sort(m_Meshes[i].Subsets.begin(), m_Meshes[i].Subsets.end(),
             [](const ResSubsetFBX& lhs, const ResSubsetFBX& rhs)
             {
                 return std::tie(lhs.MaterialId, lhs.Offset) < std::tie(rhs.MaterialId, rhs.Offset);

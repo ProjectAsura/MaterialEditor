@@ -235,7 +235,7 @@ bool OBJLoader::LoadOBJ(const char* path, asdx::ResModel& model)
 
     // 出力データを組み立て.
     {
-        std::sort(subsets.begin(), subsets.end(), 
+        std::stable_sort(subsets.begin(), subsets.end(), 
             [](const SubsetOBJ& lhs, const SubsetOBJ& rhs)
             {
                 return std::tie(lhs.MaterialName, lhs.IndexStart) < std::tie(rhs.MaterialName, rhs.IndexStart);
